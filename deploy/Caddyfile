@@ -1,0 +1,34 @@
+# Reverse proxy YAPAI — TLS automático (Let's Encrypt)
+# Definir DOMAIN en el entorno del contenedor caddy (ej. yapai.com)
+
+# Headers de seguridad para los frontends (la API los envía desde su middleware)
+(headers_seguridad) {
+	header {
+		X-Content-Type-Options nosniff
+		X-Frame-Options DENY
+		Referrer-Policy no-referrer
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		Content-Security-Policy "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self' https://api.{$DOMAIN}; frame-ancestors 'none'"
+	}
+}
+
+api.{$DOMAIN} {
+	reverse_proxy api:8000
+	# /metrics solo accesible internamente (Prometheus), no público
+	@metrics path /metrics
+	respond @metrics 404
+}
+
+app.{$DOMAIN} {
+	import headers_seguridad
+	reverse_proxy socio:3000
+}
+
+admin.{$DOMAIN} {
+	import headers_seguridad
+	reverse_proxy admin:3000
+}
+
+{$DOMAIN}, www.{$DOMAIN} {
+	redir https://app.{$DOMAIN}{uri} permanent
+}

@@ -1,0 +1,82 @@
+# Producción YAPAI — docker compose -f deploy/docker-compose.prod.yml --env-file deploy/.env.production up -d
+# Requiere deploy/.env.production (ver .env.production.example)
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build: ../backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      POSTGRES_HOST: db
+      ENV: production
+      DEBUG: "false"
+      JWT_SECRET: ${JWT_SECRET}
+      CORS_ORIGINS: ${CORS_ORIGINS}
+      FRONTEND_SOCIO_URL: https://app.${DOMAIN}
+      FRONTEND_ADMIN_URL: https://admin.${DOMAIN}
+      SIGNUP_MODE: ${SIGNUP_MODE:-auto}
+      LOG_JSON: "true"
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      EMAIL_ENABLED: ${EMAIL_ENABLED:-false}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: ${SMTP_FROM:-no-reply@yapai.com}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  socio:
+    build: ../frontend_socio
+    restart: unless-stopped
+    environment:
+      PUBLIC_API_BASE: https://api.${DOMAIN}/api/v1
+      ORIGIN: https://app.${DOMAIN}
+    depends_on:
+      - api
+
+  admin:
+    build: ../frontend_administrador
+    restart: unless-stopped
+    environment:
+      PUBLIC_API_BASE: https://api.${DOMAIN}/api/v1
+      ORIGIN: https://admin.${DOMAIN}
+    depends_on:
+      - api
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    environment:
+      DOMAIN: ${DOMAIN}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - api
+      - socio
+      - admin
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:

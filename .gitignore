@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Node / SvelteKit
+node_modules/
+.svelte-kit/
+build/
+dist/
+
+# Flutter / Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+movil_cliente/build/
+
+# Entornos y secretos — solo los .example se versionan
+.env
+*.env
+!*.env.example
+
+# Bases de datos locales
+*.db
+*.sqlite3
+
+# Sistema / IDE
+.DS_Store
+Thumbs.db
+.idea/
+*.log

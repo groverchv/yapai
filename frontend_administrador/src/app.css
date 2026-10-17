@@ -1,0 +1,33 @@
+@import 'tailwindcss';
+
+/* Marca YAPAI: azul marino (primario) + verde esmeralda (acento).
+   Se remapean las escalas indigo/emerald para recolorear toda la UI
+   sin tocar los componentes. */
+@theme {
+	/* Azul marino YAPAI (~#1B2A63) — reemplaza a indigo */
+	--color-indigo-50: #eef1fa;
+	--color-indigo-100: #dce2f4;
+	--color-indigo-200: #b9c4e8;
+	--color-indigo-300: #8fa0d6;
+	--color-indigo-400: #5e6fb6;
+	--color-indigo-500: #33449b;
+	--color-indigo-600: #1b2a63;
+	--color-indigo-700: #16224f;
+	--color-indigo-800: #111b3e;
+	--color-indigo-900: #0c1430;
+	--color-indigo-950: #08102a;
+
+	/* Verde YAPAI (~#1ABC9C) — reemplaza a emerald */
+	--color-emerald-50: #ecfcf9;
+	--color-emerald-100: #d2f8ef;
+	--color-emerald-200: #a7f0e1;
+	--color-emerald-300: #6fe3cb;
+	--color-emerald-400: #2bd3b4;
+	--color-emerald-500: #1abc9c;
+	/* 600+ oscurecidos: texto/ botones sobre blanco cumplen WCAG AA (≥4.5:1) */
+	--color-emerald-600: #0d8670;
+	--color-emerald-700: #0a6b5b;
+	--color-emerald-800: #075246;
+	--color-emerald-900: #04382f;
+	--color-emerald-950: #022b24;
+}
