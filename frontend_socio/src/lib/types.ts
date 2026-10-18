@@ -5,6 +5,8 @@ export interface UsuarioMe {
 	rol: 'superadmin' | 'owner' | 'cajero';
 	tenant_id: number | null;
 	totp_habilitado: boolean;
+	tenant_nombre?: string | null;
+	tenant_logo?: string | null;
 }
 
 export interface TokenPair {

@@ -123,25 +123,26 @@ class _ExplorarScreenState extends State<ExplorarScreen> {
               const Padding(padding: EdgeInsets.all(48),
                   child: Center(child: Text('No hay comercios disponibles')))
             else
-              ..._comercios.map((c) => Card(
-                    margin: const EdgeInsets.only(bottom: 10),
-                    child: ListTile(
-                      leading: _LogoComercio(url: c.logoUrl),
-                      title: Text(c.nombre,
-                          style: const TextStyle(fontWeight: FontWeight.bold)),
-                      subtitle: Text([
-                        if (c.categoria != null) c.categoria!,
-                        '${c.totalPremios} premios',
-                      ].join(' · ')),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => ComercioScreen(comercio: c),
-                        ),
-                      ),
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  mainAxisSpacing: 10,
+                  crossAxisSpacing: 10,
+                  childAspectRatio: 0.95,
+                ),
+                itemCount: _comercios.length,
+                itemBuilder: (_, i) => _ComercioCard(
+                  comercio: _comercios[i],
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ComercioScreen(comercio: _comercios[i]),
                     ),
-                  )),
+                  ),
+                ),
+              ),
           ],
         ),
       ),
@@ -149,30 +150,76 @@ class _ExplorarScreenState extends State<ExplorarScreen> {
   }
 }
 
-/// Logo circular del comercio con fallback al icono si falta o falla la carga.
-class _LogoComercio extends StatelessWidget {
-  final String? url;
-  const _LogoComercio({this.url});
+/// Card del grid 2 columnas: logo destacado + nombre + categoría/premios.
+class _ComercioCard extends StatelessWidget {
+  final Comercio comercio;
+  final VoidCallback onTap;
+  const _ComercioCard({required this.comercio, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    final fallback = CircleAvatar(
-      backgroundColor: Colors.green[50],
-      child: const Icon(Icons.storefront, color: Colors.green),
-    );
-    if (url == null) return fallback;
-    return ClipOval(
-      child: Image.network(
-        cloudinaryThumb(url!, w: 100),
-        width: 40,
-        height: 40,
-        fit: BoxFit.cover,
-        loadingBuilder: (_, child, progress) =>
-            progress == null ? child : fallback,
-        errorBuilder: (_, _, _) => fallback,
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      margin: EdgeInsets.zero,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: ClipOval(
+                  child: comercio.logoUrl != null
+                      ? Image.network(
+                          cloudinaryThumb(comercio.logoUrl!, w: 160),
+                          width: 64, height: 64, fit: BoxFit.cover,
+                          errorBuilder: (_, _, _) => _fallbackLogo(),
+                        )
+                      : _fallbackLogo(),
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                comercio.nombre,
+                style: const TextStyle(fontWeight: FontWeight.bold,
+                    fontSize: 13),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const Spacer(),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      comercio.categoria ?? 'Comercio',
+                      style: TextStyle(color: Colors.grey[600], fontSize: 11),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  Icon(Icons.card_giftcard,
+                      size: 12, color: Colors.green[700]),
+                  const SizedBox(width: 2),
+                  Text('${comercio.totalPremios}',
+                      style: TextStyle(color: Colors.green[700],
+                          fontSize: 11, fontWeight: FontWeight.bold)),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
+
+  Widget _fallbackLogo() => Container(
+        width: 64, height: 64,
+        decoration: BoxDecoration(
+          color: Colors.green[50], shape: BoxShape.circle,
+        ),
+        child: const Icon(Icons.storefront, color: Colors.green, size: 30),
+      );
 }
 
 /// Detalle del comercio: catálogo de premios + sucursales + canje.

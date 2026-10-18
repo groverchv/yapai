@@ -43,11 +43,31 @@
 </script>
 
 <aside class="flex h-screen w-64 flex-col bg-indigo-950 text-slate-300">
-	<div class="flex items-center gap-2 px-6 py-5">
-		<div class="rounded-lg bg-white px-3 py-1.5">
-			<img src="/logo.png" alt="YAPAI" class="h-6" />
+	<!-- Identidad de la Empresa del Socio -->
+	<div class="border-b border-indigo-900/60 bg-indigo-950/40 px-5 py-4">
+		<div class="flex items-center gap-3">
+			{#if auth.usuario?.tenant_logo}
+				<div class="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white p-1 shadow-md ring-2 ring-emerald-500/30">
+					<img src={auth.usuario.tenant_logo} alt={auth.usuario?.tenant_nombre ?? 'Logo'}
+						class="h-full w-full object-cover rounded-lg" />
+				</div>
+			{:else}
+				<div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-700 text-white font-extrabold text-lg shadow-md ring-2 ring-white/10">
+					{(auth.usuario?.tenant_nombre || 'S')[0].toUpperCase()}
+				</div>
+			{/if}
+			<div class="min-w-0 flex-1">
+				<p class="truncate text-sm font-bold text-white tracking-tight" title={auth.usuario?.tenant_nombre ?? 'Mi Comercio'}>
+					{auth.usuario?.tenant_nombre || 'Mi Comercio'}
+				</p>
+				<div class="flex items-center gap-1.5 mt-0.5">
+					<span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+					<span class="text-[10px] font-bold tracking-wider text-emerald-400 uppercase">
+						SOCIO
+					</span>
+				</div>
+			</div>
 		</div>
-		<span class="rounded bg-emerald-600 px-1.5 py-0.5 text-[10px] font-bold text-white">SOCIO</span>
 	</div>
 
 	<nav class="flex-1 space-y-5 overflow-y-auto px-3 py-2">

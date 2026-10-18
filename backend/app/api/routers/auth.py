@@ -44,6 +44,16 @@ def _front_por_rol(rol: RolUsuario) -> str:
     return settings.FRONTEND_ADMIN_URL if rol == RolUsuario.superadmin else settings.FRONTEND_SOCIO_URL
 
 
+def _crear_usuario_me(db: Session, usuario: Usuario) -> UsuarioMe:
+    u = UsuarioMe.model_validate(usuario)
+    if usuario.tenant_id:
+        t = db.get(Tenant, usuario.tenant_id)
+        if t:
+            u.tenant_nombre = t.nombre_comercial
+            u.tenant_logo = t.logo_url
+    return u
+
+
 @router.post("/login", response_model=LoginResponse,
              dependencies=[Depends(login_limiter)])
 def login(data: LoginRequest, db: Session = Depends(get_db)):
@@ -65,7 +75,7 @@ def login(data: LoginRequest, db: Session = Depends(get_db)):
     usuario.ultimo_login = utcnow()
     tokens = emitir_par_tokens(db, SujetoTipo.usuario, usuario.id, usuario.rol.value, usuario.tenant_id)
     db.commit()
-    return LoginResponse(tokens=tokens, usuario=UsuarioMe.model_validate(usuario))
+    return LoginResponse(tokens=tokens, usuario=_crear_usuario_me(db, usuario))
 
 
 @router.post("/login/2fa", response_model=LoginResponse,
@@ -87,7 +97,7 @@ def login_2fa(data: TotpLoginIn, db: Session = Depends(get_db)):
     tokens = emitir_par_tokens(db, SujetoTipo.usuario, usuario.id, usuario.rol.value, usuario.tenant_id)
     registrar_audit(db, usuario.id, "login_2fa", "usuario", usuario.id)
     db.commit()
-    return LoginResponse(tokens=tokens, usuario=UsuarioMe.model_validate(usuario))
+    return LoginResponse(tokens=tokens, usuario=_crear_usuario_me(db, usuario))
 
 
 @router.post("/2fa/setup", response_model=TotpSetupOut)
@@ -248,7 +258,7 @@ def signup(data: SignupRequest, db: Session = Depends(get_db)):
         return SignupResponse(aprobado=False)
     tokens = emitir_par_tokens(db, SujetoTipo.usuario, owner.id, owner.rol.value, tenant.id)
     db.commit()
-    return SignupResponse(aprobado=True, tokens=tokens, usuario=UsuarioMe.model_validate(owner))
+    return SignupResponse(aprobado=True, tokens=tokens, usuario=_crear_usuario_me(db, owner))
 
 
 @router.post("/refresh", response_model=TokenPair)
@@ -266,9 +276,9 @@ def logout(data: LogoutRequest, db: Session = Depends(get_db)):
 
 
 @router.get("/me", response_model=MeResponse)
-def me(subject: Subject = Depends(get_current_subject)):
+def me(subject: Subject = Depends(get_current_subject), db: Session = Depends(get_db)):
     if subject.tipo == "usuario":
-        return MeResponse(tipo="usuario", usuario=UsuarioMe.model_validate(subject.usuario))
+        return MeResponse(tipo="usuario", usuario=_crear_usuario_me(db, subject.usuario))
     return MeResponse(tipo="cliente", cliente=ClienteMe.model_validate(subject.cliente))
 
 

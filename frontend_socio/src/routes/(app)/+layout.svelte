@@ -7,7 +7,7 @@
 	import Topbar from '#lib/components/layout/Topbar.svelte';
 	import { auth } from '#lib/stores/auth.svelte';
 	import type { LayoutProps } from './$types';
-	import type { UsuarioMe } from '#lib/types';
+	import type { Perfil, UsuarioMe } from '#lib/types';
 
 	let { children }: LayoutProps = $props();
 	let verificado = $state(false);
@@ -37,7 +37,14 @@
 			if (me.tipo !== 'usuario' || me.usuario.rol !== 'owner') {
 				throw new Error('sin permisos');
 			}
-			auth.usuario = me.usuario;
+			try {
+				const p = await api.get<Perfil>('/socio/perfil');
+				me.usuario.tenant_nombre = p.tenant_nombre;
+				me.usuario.tenant_logo = p.logo_url;
+			} catch (e) {
+				console.warn('No se pudo cargar perfil del socio:', e);
+			}
+			auth.actualizarUsuario(me.usuario);
 			verificado = true;
 		} catch {
 			if (auth.usuario?.rol === 'cajero') {

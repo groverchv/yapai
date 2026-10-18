@@ -69,6 +69,8 @@ class UsuarioMe(BaseModel):
     rol: str
     tenant_id: int | None
     totp_habilitado: bool = False
+    tenant_nombre: str | None = None
+    tenant_logo: str | None = None
 
     class Config:
         from_attributes = True
@@ -82,6 +84,7 @@ class ClienteMe(BaseModel):
     saldo_puntos: int
     puntos_congelados: int
     codigo_referido: str | None = None
+    foto_url: str | None = None
 
     class Config:
         from_attributes = True

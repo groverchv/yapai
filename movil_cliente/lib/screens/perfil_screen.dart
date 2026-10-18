@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../api.dart';
 import '../auth_state.dart';
+import '../models.dart';
 
 class PerfilScreen extends StatelessWidget {
   const PerfilScreen({super.key});
@@ -53,14 +56,7 @@ class PerfilScreen extends StatelessWidget {
               padding: const EdgeInsets.all(20),
               child: Column(
                 children: [
-                  CircleAvatar(
-                    radius: 36,
-                    backgroundColor: Colors.green[50],
-                    child: Text(
-                      cliente?.nombre.substring(0, 1).toUpperCase() ?? '?',
-                      style: TextStyle(fontSize: 32, color: Colors.green[700]),
-                    ),
-                  ),
+                  _AvatarPerfil(cliente: cliente),
                   const SizedBox(height: 12),
                   Text(cliente?.nombre ?? '—',
                       style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
@@ -182,6 +178,88 @@ class PerfilScreen extends StatelessWidget {
                   textAlign: TextAlign.right),
             ),
           ],
+        ),
+      );
+}
+
+/// Avatar del perfil: muestra la foto Cloudinary o la inicial; tap para subir.
+class _AvatarPerfil extends StatefulWidget {
+  final Cliente? cliente;
+  const _AvatarPerfil({this.cliente});
+
+  @override
+  State<_AvatarPerfil> createState() => _AvatarPerfilState();
+}
+
+class _AvatarPerfilState extends State<_AvatarPerfil> {
+  bool _subiendo = false;
+
+  Future<void> _subir() async {
+    final auth = context.read<AuthState>();
+    final picked = await ImagePicker()
+        .pickImage(source: ImageSource.gallery, maxWidth: 800);
+    if (picked == null || !mounted) return;
+    setState(() => _subiendo = true);
+    try {
+      final bytes = await picked.readAsBytes();
+      await auth.subirFoto(bytes, picked.name);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content:
+                Text(e is ApiException ? e.detail : 'Error al subir la foto'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _subiendo = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final foto = widget.cliente?.fotoUrl;
+    return GestureDetector(
+      onTap: _subiendo ? null : _subir,
+      child: Stack(
+        children: [
+          CircleAvatar(
+            radius: 36,
+            backgroundColor: Colors.green[50],
+            child: ClipOval(
+              child: _subiendo
+                  ? const SizedBox(width: 24, height: 24,
+                      child: CircularProgressIndicator(strokeWidth: 2))
+                  : foto != null
+                      ? Image.network(cloudinaryThumb(foto, w: 160),
+                          width: 72, height: 72, fit: BoxFit.cover,
+                          errorBuilder: (_, _, _) => _inicial())
+                      : _inicial(),
+            ),
+          ),
+          Positioned(
+            right: 0, bottom: 0,
+            child: Container(
+              padding: const EdgeInsets.all(5),
+              decoration: BoxDecoration(
+                color: Colors.green[700], shape: BoxShape.circle,
+                border: Border.all(color: Colors.white, width: 2),
+              ),
+              child: const Icon(Icons.photo_camera,
+                  size: 14, color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _inicial() => Center(
+        child: Text(
+          widget.cliente?.nombre.substring(0, 1).toUpperCase() ?? '?',
+          style: TextStyle(fontSize: 32, color: Colors.green[700]),
         ),
       );
 }

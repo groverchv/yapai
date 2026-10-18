@@ -204,10 +204,20 @@
 	<div class="min-h-screen bg-slate-900 text-white">
 		<header class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-700 px-6 py-4">
 			<div class="flex items-center gap-3">
-				<div class="rounded-lg bg-white px-2.5 py-1">
-					<img src="/logo.png" alt="YAPAI" class="h-7" />
+				{#if auth.usuario?.tenant_logo}
+					<div class="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white p-1 shadow-sm">
+						<img src={auth.usuario.tenant_logo} alt={auth.usuario?.tenant_nombre ?? 'Logo'}
+							class="h-full w-full object-cover rounded" />
+					</div>
+				{:else}
+					<div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-600 text-white font-bold text-sm shadow-sm">
+						{(auth.usuario?.tenant_nombre || 'S')[0].toUpperCase()}
+					</div>
+				{/if}
+				<div>
+					<p class="text-sm font-bold text-white leading-tight">{auth.usuario?.tenant_nombre || 'Comercio'}</p>
+					<span class="rounded bg-emerald-600/30 text-emerald-400 px-1.5 py-0.5 text-[10px] font-bold tracking-wider uppercase">TERMINAL DE CAJA</span>
 				</div>
-				<span class="rounded bg-emerald-600 px-2 py-0.5 text-xs font-bold">TERMINAL</span>
 			</div>
 			<div class="flex items-center gap-4">
 				<div>

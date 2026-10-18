@@ -30,5 +30,6 @@ class Cliente(Base):
     # Referidos: código propio para compartir + quién lo refirió al registrarse
     codigo_referido: Mapped[str | None] = mapped_column(String(12), unique=True, index=True, nullable=True)
     referido_por_id: Mapped[int | None] = mapped_column(ForeignKey("clientes.id"), nullable=True)
+    foto_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     eliminado_en: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

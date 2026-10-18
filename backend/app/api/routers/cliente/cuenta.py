@@ -15,10 +15,12 @@ from app.schemas.auth import MessageResponse
 from app.schemas.cliente import (
     ClienteUpdate, MovimientoClienteOut, PerfilClienteOut, WalletOut,
 )
+from app.schemas.socio import FirmaUploadOut
 from app.services.auth import revocar_todos_refresh
 from app.services.puntos import (
     cancelar_pase, registrar_movimiento, saldo_disponible,
 )
+from app.services.uploads import firma_disponible, generar_firma
 
 router = APIRouter(dependencies=[Depends(get_current_cliente)])
 
@@ -26,6 +28,17 @@ router = APIRouter(dependencies=[Depends(get_current_cliente)])
 @router.get("/me", response_model=PerfilClienteOut)
 def mi_perfil(cliente: Cliente = Depends(get_current_cliente)):
     return PerfilClienteOut.model_validate(cliente)
+
+
+@router.post("/uploads/firma", response_model=FirmaUploadOut)
+def firma_foto(cliente: Cliente = Depends(get_current_cliente)):
+    """Firma para subir la foto de perfil directo a Cloudinary."""
+    if not firma_disponible():
+        raise HTTPException(
+            status.HTTP_503_SERVICE_UNAVAILABLE,
+            "Almacenamiento de imágenes no configurado",
+        )
+    return FirmaUploadOut(**generar_firma(None, f"clientes/{cliente.id}"))
 
 
 @router.patch("/me", response_model=PerfilClienteOut)

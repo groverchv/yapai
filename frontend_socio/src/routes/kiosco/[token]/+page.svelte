@@ -198,8 +198,15 @@
 <svelte:window onpointerdown={reiniciarIdle} onkeydown={reiniciarIdle} />
 
 <div class="relative flex min-h-screen flex-col items-center justify-center bg-slate-950 p-6 text-white">
-	<div class="absolute left-5 top-5 rounded-xl bg-white px-3 py-1.5 opacity-90">
-		<img src="/logo.png" alt="YAPAI" class="h-7" />
+	<div class="absolute left-5 top-5 flex items-center gap-2.5 rounded-xl bg-white/95 px-3 py-1.5 shadow-md backdrop-blur-sm">
+		{#if config?.logo_url}
+			<img src={config.logo_url} alt={config.comercio} class="h-8 max-w-[120px] object-contain rounded" />
+		{:else}
+			<img src="/logo.png" alt="YAPAI" class="h-7" />
+		{/if}
+		{#if config?.comercio}
+			<span class="text-xs font-bold text-slate-800">{config.comercio}</span>
+		{/if}
 	</div>
 
 	{#if idle}

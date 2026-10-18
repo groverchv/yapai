@@ -138,6 +138,32 @@ class AuthState extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Sube la foto de perfil: firma del backend → upload directo a Cloudinary
+  /// → PATCH /me con la URL resultante. Misma arquitectura que el portal socio.
+  Future<void> subirFoto(Uint8List bytes, String filename) async {
+    final firma = await api.post('/cliente/uploads/firma');
+    final req = http.MultipartRequest(
+      'POST',
+      Uri.parse('https://api.cloudinary.com/v1_1/'
+          '${firma['cloud_name']}/image/upload'),
+    )
+      ..fields['api_key'] = '${firma['api_key']}'
+      ..fields['timestamp'] = '${firma['timestamp']}'
+      ..fields['signature'] = '${firma['signature']}'
+      ..fields['folder'] = '${firma['folder']}'
+      ..files.add(
+          http.MultipartFile.fromBytes('file', bytes, filename: filename));
+    final res = await req.send();
+    final body = jsonDecode(await res.stream.bytesToString());
+    if (res.statusCode != 200) {
+      throw ApiException(res.statusCode,
+          body['error']?['message'] ?? 'Error al subir la imagen');
+    }
+    final actualizado =
+        await api.patch('/cliente/me', {'foto_url': body['secure_url']});
+    actualizarCliente(Cliente.fromJson(actualizado));
+  }
+
   Future<void> _guardarTokens() async {
     await _storage.write(key: 'access', value: api.accessToken);
     await _storage.write(key: 'refresh', value: api.refreshToken);
@@ -150,6 +176,7 @@ class AuthState extends ChangeNotifier {
         'telefono': cliente!.telefono, 'saldo_puntos': cliente!.saldoPuntos,
         'puntos_congelados': cliente!.puntosCongelados,
         'codigo_referido': cliente!.codigoReferido,
+        'foto_url': cliente!.fotoUrl,
       }));
     }
   }

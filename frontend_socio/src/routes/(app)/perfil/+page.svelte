@@ -51,7 +51,12 @@
 				logo_url: logo
 			});
 			if (auth.usuario) {
-				auth.usuario = { ...auth.usuario, nombre: perfil.nombre };
+				auth.actualizarUsuario({
+					...auth.usuario,
+					nombre: perfil.nombre,
+					tenant_nombre: perfil.tenant_nombre,
+					tenant_logo: perfil.logo_url
+				});
 			}
 			mensaje = '¡Datos de empresa y perfil actualizados exitosamente!';
 		} catch (err) {

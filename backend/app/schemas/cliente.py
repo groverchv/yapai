@@ -12,12 +12,15 @@ class PerfilClienteOut(BaseModel):
     telefono: str
     saldo_puntos: int
     puntos_congelados: int
+    foto_url: str | None = None
+    codigo_referido: str | None = None
     created_at: datetime
 
 
 class ClienteUpdate(BaseModel):
     nombre: str | None = Field(default=None, min_length=2, max_length=160)
     telefono: str | None = Field(default=None, min_length=4, max_length=30)
+    foto_url: str | None = Field(default=None, max_length=500)
 
 
 class WalletOut(BaseModel):

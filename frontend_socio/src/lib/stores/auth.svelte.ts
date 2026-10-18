@@ -46,6 +46,17 @@ class AuthStore {
 		if (this.usuario) this.guardar(tokens, this.usuario);
 	}
 
+	actualizarUsuario(usuario: UsuarioMe) {
+		this.usuario = usuario;
+		if (this.accessToken && this.refreshToken) {
+			localStorage.setItem(KEY, JSON.stringify({
+				access: this.accessToken,
+				refresh: this.refreshToken,
+				usuario
+			} satisfies Sesion));
+		}
+	}
+
 	limpiar() {
 		this.usuario = null;
 		this.accessToken = null;

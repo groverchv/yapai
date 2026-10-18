@@ -82,8 +82,11 @@ class _PasesScreenState extends State<PasesScreen> {
                                   color: _colorEstado(p.estado), size: 36),
                               title: Text(p.premioNombre,
                                   style: const TextStyle(fontWeight: FontWeight.bold)),
-                              subtitle: Text(
-                                  '${p.comercio} · ${p.puntos} pts · PIN ${p.pinCorto}'),
+                              subtitle: Text([
+                                '${p.comercio} · ${p.puntos} pts · PIN ${p.pinCorto}',
+                                if (p.estado == 'activo' && p.expiraEn != null)
+                                  'Vence ${formatFechaCorta(p.expiraEn)}',
+                              ].join('\n')),
                               trailing: Chip(
                                 label: Text(p.estado,
                                     style: const TextStyle(fontSize: 11)),

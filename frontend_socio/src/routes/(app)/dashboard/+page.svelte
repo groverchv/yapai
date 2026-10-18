@@ -143,20 +143,27 @@
 <div class="space-y-6">
 	<!-- ENCABEZADO PRINCIPAL CON ACCIONES RÁPIDAS -->
 	<div class="flex flex-col justify-between gap-4 rounded-2xl border border-slate-200/80 bg-gradient-to-r from-white via-slate-50/60 to-emerald-50/30 p-6 shadow-xs lg:flex-row lg:items-center">
-		<div>
-			<div class="flex items-center gap-2.5">
-				<h1 class="text-2xl font-extrabold tracking-tight text-slate-900">
-					Dashboard del Socio
-				</h1>
-				<span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-100/90 px-3 py-0.5 text-xs font-semibold text-emerald-800 shadow-2xs">
-					<span class="h-2 w-2 animate-pulse rounded-full bg-emerald-500"></span>
-					Comercio Activo
-				</span>
+		<div class="flex items-center gap-4">
+			{#if perfil?.logo_url}
+				<div class="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white p-1 shadow-sm ring-1 ring-slate-200/80">
+					<img src={perfil.logo_url} alt={perfil.tenant_nombre} class="h-full w-full object-cover rounded-xl" />
+				</div>
+			{/if}
+			<div>
+				<div class="flex items-center gap-2.5">
+					<h1 class="text-2xl font-extrabold tracking-tight text-slate-900">
+						Dashboard del Socio
+					</h1>
+					<span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-100/90 px-3 py-0.5 text-xs font-semibold text-emerald-800 shadow-2xs">
+						<span class="h-2 w-2 animate-pulse rounded-full bg-emerald-500"></span>
+						Comercio Activo
+					</span>
+				</div>
+				<p class="mt-1 text-sm text-slate-600">
+					Bienvenido, <strong class="text-slate-800">{perfil?.nombre ?? 'Socio'}</strong> ·
+					<span class="font-medium text-emerald-700">{perfil?.tenant_nombre ?? 'Tu Negocio'}</span>
+				</p>
 			</div>
-			<p class="mt-1 text-sm text-slate-600">
-				Bienvenido, <strong class="text-slate-800">{perfil?.nombre ?? 'Socio'}</strong> ·
-				<span class="font-medium text-emerald-700">{perfil?.tenant_nombre ?? 'Tu Negocio'}</span>
-			</p>
 		</div>
 
 		<!-- Acciones Rápidas -->

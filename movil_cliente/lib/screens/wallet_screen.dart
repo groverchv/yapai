@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -72,6 +73,58 @@ class _WalletScreenState extends State<WalletScreen> {
     } catch (_) {
       return iso;
     }
+  }
+
+  bool _subiendoFoto = false;
+
+  Future<void> _cambiarFoto() async {
+    final auth = context.read<AuthState>();
+    final picked = await ImagePicker()
+        .pickImage(source: ImageSource.gallery, maxWidth: 800);
+    if (picked == null || !mounted) return;
+    setState(() => _subiendoFoto = true);
+    try {
+      final bytes = await picked.readAsBytes();
+      await auth.subirFoto(bytes, picked.name);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e is ApiException ? e.detail : 'Error al subir'),
+              backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _subiendoFoto = false);
+    }
+  }
+
+  void _mostrarHistorial() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (ctx) => DraggableScrollableSheet(
+        initialChildSize: 0.7,
+        minChildSize: 0.4,
+        maxChildSize: 0.92,
+        expand: false,
+        builder: (_, scroll) => ListView(
+          controller: scroll,
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+          children: [
+            Text('Historial de movimientos',
+                style: Theme.of(ctx).textTheme.titleLarge),
+            const SizedBox(height: 12),
+            if (_movimientos.isEmpty)
+              const Padding(padding: EdgeInsets.all(32),
+                  child: Center(child: Text('Sin movimientos todavía')))
+            else
+              ..._movimientos.map((m) => _MovimientoTile(
+                  movimiento: m, fecha: _fecha(m.createdAt))),
+          ],
+        ),
+      ),
+    );
   }
 
   void _mostrarQr(Cliente cliente) {
@@ -244,7 +297,10 @@ class _WalletScreenState extends State<WalletScreen> {
             _TarjetaId(
               cliente: cliente,
               wallet: _wallet,
+              subiendoFoto: _subiendoFoto,
               onQr: cliente == null ? null : () => _mostrarQr(cliente),
+              onAvatar: _cambiarFoto,
+              onHistorial: _mostrarHistorial,
             ),
             const SizedBox(height: 20),
             Text('Ofertas', style: Theme.of(context).textTheme.titleMedium),
@@ -282,13 +338,7 @@ class _WalletScreenState extends State<WalletScreen> {
                   onTap: () => _mostrarComunicado(_comunicados[i]),
                 ),
               ),
-            const SizedBox(height: 20),
-            Text('Historial de movimientos',
-                style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 8),
-            if (_cargando)
-              const SizedBox.shrink()
-            else if (_error != null)
+            if (_error != null)
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(20),
@@ -300,37 +350,7 @@ class _WalletScreenState extends State<WalletScreen> {
                     ],
                   ),
                 ),
-              )
-            else if (_movimientos.isEmpty)
-              const Padding(padding: EdgeInsets.all(32),
-                  child: Center(child: Text('Sin movimientos todavía')))
-            else
-              ..._movimientos.map((m) => Card(
-                    margin: const EdgeInsets.only(bottom: 8),
-                    child: ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: m.puntos >= 0
-                            ? Colors.green[50] : Colors.red[50],
-                        child: Icon(
-                          m.puntos >= 0 ? Icons.add : Icons.remove,
-                          color: m.puntos >= 0 ? Colors.green : Colors.red,
-                        ),
-                      ),
-                      title: Text(_tipos[m.tipo] ?? m.tipo),
-                      subtitle: Text([
-                        if (m.comercio != null) m.comercio!,
-                        if (m.sucursal != null) m.sucursal!,
-                        _fecha(m.createdAt),
-                      ].join(' · ')),
-                      trailing: Text(
-                        '${m.puntos >= 0 ? '+' : ''}${m.puntos}',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold, fontSize: 16,
-                          color: m.puntos >= 0 ? Colors.green[700] : Colors.red[700],
-                        ),
-                      ),
-                    ),
-                  )),
+              ),
           ],
         ),
       ),
@@ -338,12 +358,17 @@ class _WalletScreenState extends State<WalletScreen> {
   }
 }
 
-/// Tarjeta de identidad estilo credencial: nombre, CI, saldo y acceso al QR.
+/// Tarjeta de identidad estilo credencial: foto, nombre, CI, saldo,
+/// acceso al QR de referido y al historial de movimientos.
 class _TarjetaId extends StatelessWidget {
   final Cliente? cliente;
   final Wallet? wallet;
+  final bool subiendoFoto;
   final VoidCallback? onQr;
-  const _TarjetaId({this.cliente, this.wallet, this.onQr});
+  final VoidCallback? onAvatar;
+  final VoidCallback? onHistorial;
+  const _TarjetaId({this.cliente, this.wallet, this.subiendoFoto = false,
+      this.onQr, this.onAvatar, this.onHistorial});
 
   String get _iniciales {
     final n = (cliente?.nombre ?? '?').trim();
@@ -372,12 +397,49 @@ class _TarjetaId extends StatelessWidget {
         children: [
           Row(
             children: [
-              CircleAvatar(
-                radius: 26,
-                backgroundColor: Colors.white24,
-                child: Text(_iniciales,
-                    style: const TextStyle(color: Colors.white, fontSize: 20,
-                        fontWeight: FontWeight.bold)),
+              GestureDetector(
+                onTap: onAvatar,
+                child: Stack(
+                  children: [
+                    CircleAvatar(
+                      radius: 26,
+                      backgroundColor: Colors.white24,
+                      child: ClipOval(
+                        child: subiendoFoto
+                            ? const SizedBox(width: 24, height: 24,
+                                child: CircularProgressIndicator(
+                                    strokeWidth: 2, color: Colors.white))
+                            : cliente?.fotoUrl != null
+                                ? Image.network(
+                                    cloudinaryThumb(cliente!.fotoUrl!, w: 120),
+                                    width: 52, height: 52, fit: BoxFit.cover,
+                                    errorBuilder: (_, _, _) => Text(
+                                        _iniciales,
+                                        style: const TextStyle(
+                                            color: Colors.white, fontSize: 20,
+                                            fontWeight: FontWeight.bold)),
+                                  )
+                                : Center(
+                                    child: Text(_iniciales,
+                                        style: const TextStyle(
+                                            color: Colors.white, fontSize: 20,
+                                            fontWeight: FontWeight.bold)),
+                                  ),
+                      ),
+                    ),
+                    Positioned(
+                      right: 0, bottom: 0,
+                      child: Container(
+                        padding: const EdgeInsets.all(3),
+                        decoration: const BoxDecoration(
+                          color: Colors.white, shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.photo_camera,
+                            size: 12, color: _navy),
+                      ),
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -429,21 +491,88 @@ class _TarjetaId extends StatelessWidget {
                   ],
                 ),
               ),
-              Material(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                child: InkWell(
-                  onTap: onQr,
-                  borderRadius: BorderRadius.circular(12),
-                  child: const Padding(
-                    padding: EdgeInsets.all(10),
-                    child: Icon(Icons.qr_code_2, color: _navy, size: 30),
+              Column(
+                children: [
+                  _BotonTarjeta(
+                    icono: Icons.qr_code_2,
+                    tooltip: 'Mi código',
+                    onTap: onQr,
                   ),
-                ),
+                  const SizedBox(height: 8),
+                  _BotonTarjeta(
+                    icono: Icons.receipt_long,
+                    tooltip: 'Historial',
+                    onTap: onHistorial,
+                  ),
+                ],
               ),
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Botón blanco cuadrado embebido en la tarjeta (QR, historial).
+class _BotonTarjeta extends StatelessWidget {
+  final IconData icono;
+  final String tooltip;
+  final VoidCallback? onTap;
+  const _BotonTarjeta({required this.icono, required this.tooltip, this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: Material(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.all(10),
+            child: Icon(icono, color: _navy, size: 26),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Fila de un movimiento de puntos (historial en bottom sheet).
+class _MovimientoTile extends StatelessWidget {
+  final Movimiento movimiento;
+  final String fecha;
+  const _MovimientoTile({required this.movimiento, required this.fecha});
+
+  @override
+  Widget build(BuildContext context) {
+    final m = movimiento;
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: ListTile(
+        leading: CircleAvatar(
+          backgroundColor: m.puntos >= 0 ? Colors.green[50] : Colors.red[50],
+          child: Icon(
+            m.puntos >= 0 ? Icons.add : Icons.remove,
+            color: m.puntos >= 0 ? Colors.green : Colors.red,
+          ),
+        ),
+        title: Text(_tipos[m.tipo] ?? m.tipo),
+        subtitle: Text([
+          if (m.comercio != null) m.comercio!,
+          if (m.sucursal != null) m.sucursal!,
+          fecha,
+        ].join(' · ')),
+        trailing: Text(
+          '${m.puntos >= 0 ? '+' : ''}${m.puntos}',
+          style: TextStyle(
+            fontWeight: FontWeight.bold, fontSize: 16,
+            color: m.puntos >= 0 ? Colors.green[700] : Colors.red[700],
+          ),
+        ),
       ),
     );
   }

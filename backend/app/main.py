@@ -49,7 +49,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Backend API Yapai
+# Backend API Yapai v1.1 - Reload trigger
 app.add_middleware(ObservabilityMiddleware)
 app.add_middleware(SecurityHeadersMiddleware)
 app.include_router(api_router, prefix="/api/v1")

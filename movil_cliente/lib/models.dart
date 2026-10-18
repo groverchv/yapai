@@ -6,17 +6,18 @@ class Cliente {
   final int saldoPuntos;
   final int puntosCongelados;
   final String? codigoReferido;
+  final String? fotoUrl;
 
   Cliente({
     required this.id, required this.nombre, required this.ci,
     required this.telefono, required this.saldoPuntos, required this.puntosCongelados,
-    this.codigoReferido,
+    this.codigoReferido, this.fotoUrl,
   });
 
   factory Cliente.fromJson(Map<String, dynamic> j) => Cliente(
         id: j['id'], nombre: j['nombre'], ci: j['ci'], telefono: j['telefono'],
         saldoPuntos: j['saldo_puntos'], puntosCongelados: j['puntos_congelados'],
-        codigoReferido: j['codigo_referido'],
+        codigoReferido: j['codigo_referido'], fotoUrl: j['foto_url'],
       );
 }
 
