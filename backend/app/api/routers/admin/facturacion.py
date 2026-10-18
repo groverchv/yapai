@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.core.deps import require_superadmin
 from app.db.session import get_db
 from app.models import EstadoFactura, FacturaPlan, Tenant, Usuario
-from app.schemas.admin import FacturaOut, FacturaPagarIn
+from app.schemas.admin import FacturaOut, FacturaPagarIn, Pagina
 from app.services.audit import registrar_audit
 from app.services.billing import generar_facturas, pagar_factura, periodo_de
 
@@ -24,21 +24,33 @@ def _out(db: Session, f: FacturaPlan) -> FacturaOut:
     )
 
 
-@router.get("", response_model=list[FacturaOut])
+@router.get("", response_model=Pagina[FacturaOut])
 def listar_facturas(
     estado: EstadoFactura | None = Query(None),
     tenant_id: int | None = Query(None),
     periodo: str | None = Query(None),
+    page: int = Query(1, ge=1),
+    size: int = Query(10, ge=1, le=200),
     db: Session = Depends(get_db),
 ):
-    q = select(FacturaPlan).order_by(FacturaPlan.periodo.desc(), FacturaPlan.id.desc())
+    filtros = []
     if estado:
-        q = q.where(FacturaPlan.estado == estado)
+        filtros.append(FacturaPlan.estado == estado)
     if tenant_id:
-        q = q.where(FacturaPlan.tenant_id == tenant_id)
+        filtros.append(FacturaPlan.tenant_id == tenant_id)
     if periodo:
-        q = q.where(FacturaPlan.periodo == periodo)
-    return [_out(db, f) for f in db.scalars(q.limit(500)).all()]
+        filtros.append(FacturaPlan.periodo == periodo)
+
+    total = db.scalar(select(func.count(FacturaPlan.id)).where(*filtros)) or 0
+    q = (
+        select(FacturaPlan)
+        .where(*filtros)
+        .order_by(FacturaPlan.periodo.desc(), FacturaPlan.id.desc())
+        .offset((page - 1) * size)
+        .limit(size)
+    )
+    rows = db.scalars(q).all()
+    return Pagina(items=[_out(db, f) for f in rows], total=total, page=page, size=size)
 
 
 @router.post("/generar", status_code=status.HTTP_201_CREATED)

@@ -126,15 +126,7 @@ class _ExplorarScreenState extends State<ExplorarScreen> {
               ..._comercios.map((c) => Card(
                     margin: const EdgeInsets.only(bottom: 10),
                     child: ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: Colors.green[50],
-                        backgroundImage: c.logoUrl != null
-                            ? NetworkImage(cloudinaryThumb(c.logoUrl!, w: 100))
-                            : null,
-                        child: c.logoUrl == null
-                            ? const Icon(Icons.storefront, color: Colors.green)
-                            : null,
-                      ),
+                      leading: _LogoComercio(url: c.logoUrl),
                       title: Text(c.nombre,
                           style: const TextStyle(fontWeight: FontWeight.bold)),
                       subtitle: Text([
@@ -152,6 +144,32 @@ class _ExplorarScreenState extends State<ExplorarScreen> {
                   )),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Logo circular del comercio con fallback al icono si falta o falla la carga.
+class _LogoComercio extends StatelessWidget {
+  final String? url;
+  const _LogoComercio({this.url});
+
+  @override
+  Widget build(BuildContext context) {
+    final fallback = CircleAvatar(
+      backgroundColor: Colors.green[50],
+      child: const Icon(Icons.storefront, color: Colors.green),
+    );
+    if (url == null) return fallback;
+    return ClipOval(
+      child: Image.network(
+        cloudinaryThumb(url!, w: 100),
+        width: 40,
+        height: 40,
+        fit: BoxFit.cover,
+        loadingBuilder: (_, child, progress) =>
+            progress == null ? child : fallback,
+        errorBuilder: (_, _, _) => fallback,
       ),
     );
   }

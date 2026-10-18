@@ -4,14 +4,16 @@
 	import Badge from '#lib/components/ui/Badge.svelte';
 	import DataTable from '#lib/components/ui/DataTable.svelte';
 	import Modal from '#lib/components/ui/Modal.svelte';
+	import Pagination from '#lib/components/ui/Pagination.svelte';
 	import { toast } from '#lib/stores/toast.svelte';
-	import type { FacturaOut } from '#lib/types';
+	import type { FacturaOut, Pagina } from '#lib/types';
 	import { formatDinero, formatFecha } from '#lib/utils/format';
 
-	let datos = $state<FacturaOut[] | null>(null);
+	let datos = $state<Pagina<FacturaOut> | null>(null);
 	let cargando = $state(false);
 	let estado = $state('');
 	let periodo = $state('');
+	let page = $state(1);
 	let pagarModal = $state<FacturaOut | null>(null);
 	let anularModal = $state<FacturaOut | null>(null);
 	let metodo = $state('transferencia');
@@ -31,10 +33,10 @@
 	async function cargar() {
 		cargando = true;
 		try {
-			const p = new URLSearchParams();
+			const p = new URLSearchParams({ page: String(page), size: '10' });
 			if (estado) p.set('estado', estado);
 			if (periodo) p.set('periodo', periodo);
-			datos = await api.get(`/admin/facturacion?${p}`);
+			datos = await api.get<Pagina<FacturaOut>>(`/admin/facturacion?${p}`);
 		} finally {
 			cargando = false;
 		}
@@ -104,7 +106,7 @@
 </div>
 
 <div class="rounded-xl border border-slate-200 bg-white shadow-sm">
-	<DataTable {columnas} filas={(datos ?? []) as unknown as Record<string, unknown>[]} {cargando}>
+	<DataTable {columnas} filas={(datos?.items ?? []) as unknown as Record<string, unknown>[]} {cargando}>
 		{#snippet celda({ key, fila })}
 			{@const f = fila as unknown as FacturaOut}
 			{#if key === 'monto'}
@@ -131,6 +133,14 @@
 			{/if}
 		{/snippet}
 	</DataTable>
+	{#if datos}
+		<Pagination
+			page={datos.page}
+			total={datos.total}
+			size={datos.size}
+			onchange={(p) => { page = p; cargar(); }}
+		/>
+	{/if}
 </div>
 
 <Modal abierto={pagarModal !== null} titulo="Registrar cobro de factura" onclose={() => (pagarModal = null)}>

@@ -156,15 +156,22 @@ class _WalletScreenState extends State<WalletScreen> {
             const SizedBox(height: 16),
             Row(
               children: [
-                CircleAvatar(
-                  radius: 16,
-                  backgroundColor: Colors.grey[100],
-                  backgroundImage:
-                      c.logoUrl != null ? NetworkImage(c.logoUrl!) : null,
-                  child: c.logoUrl == null
-                      ? const Icon(Icons.storefront, size: 16)
-                      : null,
-                ),
+                if (c.logoUrl != null)
+                  ClipOval(
+                    child: Image.network(
+                      cloudinaryThumb(c.logoUrl!, w: 64),
+                      width: 32, height: 32, fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) => CircleAvatar(
+                        radius: 16, backgroundColor: Colors.grey[100],
+                        child: const Icon(Icons.storefront, size: 16),
+                      ),
+                    ),
+                  )
+                else
+                  CircleAvatar(
+                    radius: 16, backgroundColor: Colors.grey[100],
+                    child: const Icon(Icons.storefront, size: 16),
+                  ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(c.comercio,

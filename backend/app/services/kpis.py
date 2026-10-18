@@ -52,6 +52,22 @@ def calcular_kpis_socio(
     canjes_exitosos = db.scalar(
         select(func.count(MovimientoPuntos.id)).where(*base, MovimientoPuntos.tipo == TipoMovimiento.canje)
     ) or 0
+    transacciones_totales = db.scalar(
+        select(func.count(MovimientoPuntos.id)).where(*base)
+    ) or 0
+    total_clientes_unicos = db.scalar(
+        select(func.count(func.distinct(MovimientoPuntos.cliente_id))).where(*base)
+    ) or 0
+
+    # Serie diaria de actividad
+    serie_rows = db.execute(
+        select(func.date(MovimientoPuntos.created_at), func.count(MovimientoPuntos.id))
+        .where(*base)
+        .group_by(func.date(MovimientoPuntos.created_at))
+        .order_by(func.date(MovimientoPuntos.created_at))
+    ).all()
+    serie_diaria = [{"fecha": str(f), "total": c} for f, c in serie_rows]
+
     tenant = db.get(Tenant, tenant_id)
     return KpisSocio(
         clientes_nuevos=clientes_nuevos,
@@ -59,4 +75,7 @@ def calcular_kpis_socio(
         puntos_consumidos=puntos_consumidos,
         canjes_exitosos=canjes_exitosos,
         horas_a_primer_giro=horas_a_primer_giro(db, tenant) if tenant else None,
+        transacciones_totales=transacciones_totales,
+        total_clientes_unicos=total_clientes_unicos,
+        serie_diaria=serie_diaria,
     )

@@ -215,7 +215,14 @@ def poblar():
 
         for s_def in SOCIOS_DEF:
             tenant = db.query(Tenant).filter_by(nit_rut=s_def["nit"]).first()
-            if not tenant:
+            if tenant:
+                if not tenant.logo_url or tenant.logo_url != s_def["logo_url"]:
+                    tenant.logo_url = s_def["logo_url"]
+                    db.flush()
+                tenants_creados.append(tenant)
+                for pr in db.query(Premio).filter_by(tenant_id=tenant.id).all():
+                    premios_creados.append(pr)
+            else:
                 tenant = Tenant(
                     nombre_comercial=s_def["nombre_comercial"],
                     razon_social=s_def["razon_social"],
@@ -232,6 +239,7 @@ def poblar():
                 )
                 db.add(tenant)
                 db.flush()
+                tenants_creados.append(tenant)
 
                 # Owner
                 owner = Usuario(
@@ -466,6 +474,23 @@ def poblar():
                 "total_premios": len(premios_creados),
                 "fecha_generacion": datetime.now(timezone.utc).isoformat(),
             },
+            "cloudinary_configuracion": {
+                "cloud_name": "dwerzrgya",
+                "api_key": "581815563668339",
+                "api_secret": "ul_5HAkewevM14trmtf7onSxZtU",
+                "cdn_base_url": "https://res.cloudinary.com/dwerzrgya/image/upload/",
+                "carpetas": {
+                    "logos_empresa": "yapai/empresas/logos",
+                    "premios_fotos": "yapai/premios/{tenant_id}",
+                    "comunicados": "yapai/tenants/{tenant_id}/comunicados",
+                    "general": "yapai/general"
+                },
+                "endpoints": {
+                    "subida_directa_backend": "POST http://localhost:8000/api/v1/socio/media/upload",
+                    "firma_subida_browser": "POST http://localhost:8000/api/v1/socio/comunicados/uploads/firma"
+                },
+                "estado": "Activo y verificado con SDK oficial en Backend y Frontend Socio"
+            },
             "credenciales_acceso": {
                 "administrador": {
                     "url": "http://localhost:5173",
@@ -478,12 +503,14 @@ def poblar():
                         "comercio": s["nombre_comercial"],
                         "categoria": s["categoria"],
                         "plan": s["plan"],
+                        "logo_url": s["logo_url"],
                         "url_socio": "http://localhost:5175/login",
                         "url_terminal_caja": "http://localhost:5175/terminal",
                         "url_kiosco": f"http://localhost:5175/kiosco/{s['sucursales'][0]['pantalla']}",
                         "pin_kiosco": s["sucursales"][0]["pin"],
                         "owner_login": {"email": s["email"], "password": "Owner123!"},
                         "cajero_login": {"email": s["cajero_email"], "password": "Cajero123!"},
+                        "premios_muestra": s["premios"],
                     }
                     for s in SOCIOS_DEF
                 ],
@@ -508,13 +535,30 @@ def poblar():
             "                   YAPAI - ECOSISTEMA DE DATOS INICIALES",
             "=" * 78,
             "",
-            "1. ACCESO ADMINISTRADOR GENERAL (Superadmin)",
+            "1. ALMACENAMIENTO DE IMÁGENES EN CLOUDINARY",
+            "   Cloud Name:    dwerzrgya",
+            "   API Key:       581815563668339",
+            "   API Secret:    ul_5HAkewevM14trmtf7onSxZtU",
+            "   CDN Base:      https://res.cloudinary.com/dwerzrgya/image/upload/",
+            "",
+            "   ¿Cómo usarlo en la plataforma?:",
+            "   * Logo de Empresa:  http://localhost:5175/perfil",
+            "     Entra al perfil de socio, sube o arrastra el logo de tu comercio.",
+            "     Se guarda en Cloudinary y se sincroniza en la App Móvil, Kioscos y Terminal.",
+            "   * Fotos de Premios: http://localhost:5175/premios",
+            "     Al crear o editar premios, sube la foto del producto directo a Cloudinary.",
+            "",
+            "   Endpoints de Backend disponibles:",
+            "   * POST /api/v1/socio/media/upload (multipart: file, tipo='logo'|'premio')",
+            "   * POST /api/v1/socio/comunicados/uploads/firma (firma para upload directo)",
+            "",
+            "2. ACCESO ADMINISTRADOR GENERAL (Superadmin)",
             "   URL:        http://localhost:5173",
             "   Email:      admin@yapai.com",
             "   Password:   Admin123!",
             "   Funciones:  Dashboard global, socios, liquidaciones, planes SaaS, auditoría.",
             "",
-            "2. ACCESO SOCIOS COMERCIALES (Owners, Cajeros y Kioscos)",
+            "3. ACCESO SOCIOS COMERCIALES (Owners, Cajeros y Kioscos)",
             "   Portal Socio:     http://localhost:5175",
             "   Terminal de Caja: http://localhost:5175/terminal",
             "",
@@ -522,13 +566,14 @@ def poblar():
 
         for s in SOCIOS_DEF:
             lineas.append(f"   [{s['nombre_comercial']}] ({s['categoria'].upper()} - Plan {s['plan'].upper()})")
+            lineas.append(f"   * Logo URL: {s['logo_url']}")
             lineas.append(f"   * Owner:    {s['email']}  /  Owner123!")
             lineas.append(f"   * Cajero:   {s['cajero_email']}  /  Cajero123!")
             lineas.append(f"   * Kiosco:   http://localhost:5175/kiosco/{s['sucursales'][0]['pantalla']}  (PIN: {s['sucursales'][0]['pin']})")
             lineas.append("")
 
         lineas.extend([
-            "3. ACCESO APP MÓVIL CLIENTE (50 Clientes Registrados)",
+            "4. ACCESO APP MÓVIL CLIENTE (50 Clientes Registrados)",
             "   En la app móvil ingresa con cualquier combinación de Teléfono y CI:",
             "-" * 78,
             f"{'N°':<4} | {'Nombre':<30} | {'Teléfono':<12} | {'CI':<12} | {'Puntos':<8} | {'Comercio':<20}",
@@ -539,7 +584,7 @@ def poblar():
             lineas.append(f"{c['numero']:<4} | {c['nombre'][:30]:<30} | {c['telefono']:<12} | {c['ci']:<12} | {c['saldo_puntos']:<8} | {c['comercio_registro'][:20]:<20}")
 
         lineas.append("-" * 78)
-        lineas.append("\nTodos los datos están sincronizados en la base de datos PostgreSQL yapai_db.")
+        lineas.append("\nTodos los datos y configuraciones están sincronizados en PostgreSQL yapai_db y Cloudinary.")
 
         with open(datos_txt_path, "w", encoding="utf-8") as f:
             f.write("\n".join(lineas))

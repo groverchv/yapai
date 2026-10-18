@@ -97,6 +97,9 @@ export interface KpisSocio {
 	puntos_consumidos: number;
 	canjes_exitosos: number;
 	horas_a_primer_giro: number | null;
+	transacciones_totales?: number;
+	total_clientes_unicos?: number;
+	serie_diaria?: Array<{ fecha: string; total: number }>;
 }
 
 export interface UsuarioListItem {
