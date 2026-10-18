@@ -12,6 +12,7 @@ from app.models.puntos import MovimientoPuntos, PaseDigital, TipoMovimiento, Est
 from app.models.liquidacion import Liquidacion, AuditLog, EstadoLiquidacion
 from app.models.factura import FacturaPlan, EstadoFactura
 from app.models.campana import Campana
+from app.models.comunicado import Comunicado, EstadoComunicado
 from app.models.tokens import OnboardingToken, PasswordReset, RefreshToken, SujetoTipo
 
 __all__ = [
@@ -24,6 +25,6 @@ __all__ = [
     "Premio", "RuletaSegmento", "EstadoPremio",
     "MovimientoPuntos", "PaseDigital", "TipoMovimiento", "EstadoPase",
     "Liquidacion", "AuditLog", "EstadoLiquidacion",
-    "FacturaPlan", "EstadoFactura", "Campana",
+    "FacturaPlan", "EstadoFactura", "Campana", "Comunicado", "EstadoComunicado",
     "OnboardingToken", "PasswordReset", "RefreshToken", "SujetoTipo",
 ]

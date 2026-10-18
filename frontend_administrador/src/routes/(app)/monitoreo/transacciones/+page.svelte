@@ -25,7 +25,7 @@
 	];
 
 	function qs() {
-		const p = new URLSearchParams({ page: String(page), size: '20' });
+		const p = new URLSearchParams({ page: String(page), size: '10' });
 		for (const [k, v] of Object.entries(f)) if (v) p.set(k, v);
 		return p.toString();
 	}

@@ -19,7 +19,7 @@ from app.models import (
     SujetoTipo, Tenant, Usuario,
 )
 from app.schemas.auth import (
-    ClienteLoginRequest, ClienteMe, ForgotPasswordRequest, LoginRequest,
+    ClienteLoginRequest, ClienteRegistroRequest, ClienteMe, ForgotPasswordRequest, LoginRequest,
     LoginResponse, LogoutRequest, MeResponse, MessageResponse,
     OnboardingRequest, PlanPublico, RefreshRequest, ResetPasswordRequest,
     SignupRequest, SignupResponse, TokenPair, TotpCodigoIn, TotpDesactivarIn,
@@ -27,7 +27,7 @@ from app.schemas.auth import (
 )
 from app.services.audit import registrar_audit
 from app.services.auth import emitir_par_tokens, revocar_refresh, revocar_todos_refresh, rotar_refresh
-from app.services.campanas import asegurar_codigo_referido
+from app.services.campanas import asegurar_codigo_referido, generar_codigo_referido
 from app.services.totp import (
     nuevo_secret as totp_nuevo_secret,
     provisioning_uri as totp_uri,
@@ -147,6 +147,44 @@ def login_cliente(data: ClienteLoginRequest, db: Session = Depends(get_db)):
     if not cliente or cliente.estado != EstadoCliente.activo:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Credenciales inválidas")
     asegurar_codigo_referido(db, cliente)  # backfill para clientes anteriores a referidos
+    tokens = emitir_par_tokens(db, SujetoTipo.cliente, cliente.id, "cliente")
+    db.commit()
+    return LoginResponse(tokens=tokens, cliente=ClienteMe.model_validate(cliente))
+
+
+@router.post("/cliente/registro", response_model=LoginResponse,
+             status_code=status.HTTP_201_CREATED,
+             dependencies=[Depends(signup_limiter)])
+def registro_cliente(data: ClienteRegistroRequest, db: Session = Depends(get_db)):
+    """Registro directo del cliente desde la app móvil."""
+    tel = data.telefono.strip().replace(" ", "").replace("-", "")
+    ci = data.ci.strip().replace(" ", "").replace("-", "")
+    if db.scalar(select(Cliente).where(Cliente.ci == ci)):
+        raise HTTPException(status.HTTP_409_CONFLICT, "La cédula de identidad ya está registrada")
+    if db.scalar(select(Cliente).where(Cliente.telefono == tel)):
+        raise HTTPException(status.HTTP_409_CONFLICT, "El teléfono ya está registrado")
+
+    referidor = None
+    if data.codigo_referido and data.codigo_referido.strip():
+        referidor = db.scalar(
+            select(Cliente).where(
+                Cliente.codigo_referido == data.codigo_referido.strip().upper(),
+                Cliente.estado == EstadoCliente.activo,
+            )
+        )
+
+    cliente = Cliente(
+        nombre=data.nombre.strip(),
+        ci=ci,
+        telefono=tel,
+        estado=EstadoCliente.activo,
+        codigo_referido=generar_codigo_referido(db),
+        referido_por_id=referidor.id if referidor else None,
+        saldo_puntos=0,
+    )
+    db.add(cliente)
+    db.flush()
+
     tokens = emitir_par_tokens(db, SujetoTipo.cliente, cliente.id, "cliente")
     db.commit()
     return LoginResponse(tokens=tokens, cliente=ClienteMe.model_validate(cliente))

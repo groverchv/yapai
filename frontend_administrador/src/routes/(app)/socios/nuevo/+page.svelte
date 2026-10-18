@@ -4,16 +4,19 @@
 	import { api, ApiError } from '#lib/api/client';
 	import type { CategoriaOut, EsquemaOut, SocioDetalle } from '#lib/types';
 	import { formatDinero } from '#lib/utils/format';
+	import { subirImagenCloudinary } from '#lib/utils/upload';
 
 	let categorias = $state<CategoriaOut[]>([]);
 	let esquemas = $state<EsquemaOut[]>([]);
 	let enviando = $state(false);
+	let subiendoLogo = $state(false);
 	let error = $state('');
 	let creado = $state<{ socio: SocioDetalle; onboarding_link: string } | null>(null);
 
 	let f = $state({
 		nombre_comercial: '', razon_social: '', nit_rut: '',
-		email_contacto: '', telefono: '', categoria_id: '', esquema_comision_id: '',
+		email_contacto: '', telefono: '', logo_url: '',
+		categoria_id: '', esquema_comision_id: '',
 		owner_nombre: '', owner_email: ''
 	});
 
@@ -23,6 +26,23 @@
 			api.get<EsquemaOut[]>('/admin/esquemas')
 		]);
 	});
+
+	async function manejarSeleccionArchivo(e: Event) {
+		const input = e.target as HTMLInputElement;
+		const archivo = input.files?.[0];
+		if (!archivo) return;
+
+		subiendoLogo = true;
+		error = '';
+		try {
+			const url = await subirImagenCloudinary(archivo, { carpeta: 'logos' });
+			f.logo_url = url;
+		} catch (err) {
+			error = err instanceof ApiError ? err.detail : 'Error al subir el logo a Cloudinary';
+		} finally {
+			subiendoLogo = false;
+		}
+	}
 
 	async function crear(e: SubmitEvent) {
 		e.preventDefault();
@@ -35,6 +55,7 @@
 				nit_rut: f.nit_rut,
 				email_contacto: f.email_contacto || null,
 				telefono: f.telefono || null,
+				logo_url: f.logo_url || null,
 				categoria_id: f.categoria_id ? Number(f.categoria_id) : null,
 				esquema_comision_id: f.esquema_comision_id ? Number(f.esquema_comision_id) : null,
 				owner: { nombre: f.owner_nombre, email: f.owner_email }
@@ -109,6 +130,31 @@
 				<div>
 					<label for="tel" class={label}>Teléfono</label>
 					<input id="tel" bind:value={f.telefono} class={input} />
+				</div>
+				<div class="sm:col-span-2">
+					<span class={label}>Logotipo del comercio (Cloudinary)</span>
+					<div class="flex items-center gap-4 rounded-lg border border-dashed border-slate-300 p-4 bg-slate-50/50">
+						{#if f.logo_url}
+							<img src={f.logo_url} alt="Logo" class="h-16 w-16 rounded-lg object-cover border border-slate-200 shadow-xs" />
+						{:else}
+							<div class="flex h-16 w-16 items-center justify-center rounded-lg bg-slate-200 text-slate-400">
+								<Icon name="camera" clase="h-8 w-8 text-slate-400" />
+							</div>
+						{/if}
+						<div class="flex-1">
+							<label class="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-xs hover:bg-slate-50">
+								<Icon name="upload" clase="h-4 w-4 text-slate-500" />
+								<span>{subiendoLogo ? 'Subiendo a Cloudinary…' : f.logo_url ? 'Cambiar logotipo' : 'Seleccionar archivo'}</span>
+								<input type="file" accept="image/*" onchange={manejarSeleccionArchivo} disabled={subiendoLogo} class="hidden" />
+							</label>
+							<p class="mt-1 text-xs text-slate-400">PNG, JPG o WEBP recomendados (cuadrado, min 200x200px).</p>
+							{#if f.logo_url}
+								<button type="button" onclick={() => (f.logo_url = '')} class="mt-1 text-xs text-red-600 hover:underline">
+									Eliminar logo
+								</button>
+							{/if}
+						</div>
+					</div>
 				</div>
 			</div>
 		</section>

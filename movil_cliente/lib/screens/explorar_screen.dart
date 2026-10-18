@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../auth_state.dart';
@@ -19,11 +22,26 @@ class _ExplorarScreenState extends State<ExplorarScreen> {
   int? _categoriaId;
   bool _cargando = true;
   String? _error;
+  Timer? _debounce;
 
   @override
   void initState() {
     super.initState();
     _cargar();
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    super.dispose();
+  }
+
+  void _buscar(String v) {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 350), () {
+      _busqueda = v;
+      _cargar();
+    });
   }
 
   Future<void> _cargar() async {
@@ -65,7 +83,7 @@ class _ExplorarScreenState extends State<ExplorarScreen> {
                 prefixIcon: const Icon(Icons.search),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
-              onChanged: (v) { _busqueda = v; _cargar(); },
+              onChanged: _buscar,
             ),
             const SizedBox(height: 12),
             SizedBox(
@@ -110,7 +128,12 @@ class _ExplorarScreenState extends State<ExplorarScreen> {
                     child: ListTile(
                       leading: CircleAvatar(
                         backgroundColor: Colors.green[50],
-                        child: const Icon(Icons.storefront, color: Colors.green),
+                        backgroundImage: c.logoUrl != null
+                            ? NetworkImage(cloudinaryThumb(c.logoUrl!, w: 100))
+                            : null,
+                        child: c.logoUrl == null
+                            ? const Icon(Icons.storefront, color: Colors.green)
+                            : null,
                       ),
                       title: Text(c.nombre,
                           style: const TextStyle(fontWeight: FontWeight.bold)),
@@ -287,7 +310,8 @@ class _PremioCard extends StatelessWidget {
           children: [
             Expanded(
               child: premio.imagenUrl != null
-                  ? Image.network(premio.imagenUrl!, fit: BoxFit.cover,
+                  ? Image.network(cloudinaryThumb(premio.imagenUrl!),
+                      fit: BoxFit.cover,
                       errorBuilder: (_, _, _) => _placeholder())
                   : _placeholder(),
             ),
@@ -302,6 +326,15 @@ class _PremioCard extends StatelessWidget {
                   Text('${premio.costoPuntos} pts',
                       style: TextStyle(color: Colors.green[700],
                           fontWeight: FontWeight.bold)),
+                  if (premio.vigenciaHasta != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2),
+                      child: Text(
+                        'Vence ${_vence(premio.vigenciaHasta!)}',
+                        style: TextStyle(color: Colors.orange[800],
+                            fontSize: 11),
+                      ),
+                    ),
                   const SizedBox(height: 6),
                   SizedBox(
                     width: double.infinity,
@@ -329,4 +362,12 @@ class _PremioCard extends StatelessWidget {
         color: Colors.grey[200],
         child: const Center(child: Icon(Icons.card_giftcard, size: 40, color: Colors.grey)),
       );
+
+  String _vence(String iso) {
+    try {
+      return DateFormat('dd/MM').format(DateTime.parse(iso).toLocal());
+    } catch (_) {
+      return '';
+    }
+  }
 }

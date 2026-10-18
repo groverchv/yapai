@@ -30,7 +30,7 @@
 	async function cargar() {
 		cargando = true;
 		try {
-			const p = new URLSearchParams({ page: String(page), size: '20' });
+			const p = new URLSearchParams({ page: String(page), size: '10' });
 			if (periodo) p.set('periodo', periodo);
 			if (estado) p.set('estado', estado);
 			datos = await api.get(`/admin/liquidaciones?${p}`);

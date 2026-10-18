@@ -5,16 +5,29 @@ class Cliente {
   final String telefono;
   final int saldoPuntos;
   final int puntosCongelados;
+  final String? codigoReferido;
 
   Cliente({
     required this.id, required this.nombre, required this.ci,
     required this.telefono, required this.saldoPuntos, required this.puntosCongelados,
+    this.codigoReferido,
   });
 
   factory Cliente.fromJson(Map<String, dynamic> j) => Cliente(
         id: j['id'], nombre: j['nombre'], ci: j['ci'], telefono: j['telefono'],
         saldoPuntos: j['saldo_puntos'], puntosCongelados: j['puntos_congelados'],
+        codigoReferido: j['codigo_referido'],
       );
+}
+
+/// Genera una URL de Cloudinary con transformación on-the-fly (miniaturas).
+/// Deja intactas URLs que no son de Cloudinary.
+String cloudinaryThumb(String url, {int w = 400}) {
+  if (url.contains('res.cloudinary.com') && url.contains('/image/upload/')) {
+    return url.replaceFirst(
+        '/image/upload/', '/image/upload/w_$w,c_fill,q_auto,f_auto/');
+  }
+  return url;
 }
 
 class Wallet {
@@ -28,11 +41,14 @@ class Movimiento {
   final int id, puntos;
   final String tipo, createdAt;
   final String? comercio, sucursal, premio;
+  final Map<String, dynamic>? detalle;
   Movimiento({required this.id, required this.puntos, required this.tipo,
-      required this.createdAt, this.comercio, this.sucursal, this.premio});
+      required this.createdAt, this.comercio, this.sucursal, this.premio,
+      this.detalle});
   factory Movimiento.fromJson(Map<String, dynamic> j) => Movimiento(
         id: j['id'], puntos: j['puntos'], tipo: j['tipo'], createdAt: j['created_at'],
-        comercio: j['comercio'], sucursal: j['sucursal'], premio: j['premio']);
+        comercio: j['comercio'], sucursal: j['sucursal'], premio: j['premio'],
+        detalle: j['detalle'] as Map<String, dynamic>?);
 }
 
 class Comercio {
@@ -58,14 +74,34 @@ class SucursalInfo {
 class Premio {
   final int id, costoPuntos;
   final String nombre;
-  final String? descripcion, imagenUrl;
+  final String? descripcion, imagenUrl, vigenciaHasta;
   final bool alcanzable;
   Premio({required this.id, required this.nombre, this.descripcion,
-      this.imagenUrl, required this.costoPuntos, required this.alcanzable});
+      this.imagenUrl, this.vigenciaHasta, required this.costoPuntos,
+      required this.alcanzable});
   factory Premio.fromJson(Map<String, dynamic> j) => Premio(
         id: j['id'], nombre: j['nombre'], descripcion: j['descripcion'],
-        imagenUrl: j['imagen_url'], costoPuntos: j['costo_puntos'],
-        alcanzable: j['alcanzable']);
+        imagenUrl: j['imagen_url'], vigenciaHasta: j['vigencia_hasta'],
+        costoPuntos: j['costo_puntos'], alcanzable: j['alcanzable']);
+}
+
+/// Comunicado/oferta publicado por un comercio (feed de la billetera).
+class Comunicado {
+  final int id, tenantId;
+  final String titulo, imagenUrl, comercio;
+  final String? descripcion, logoUrl, publicadoEn, vigenciaHasta;
+  final int? premioId;
+
+  Comunicado({required this.id, required this.titulo, required this.imagenUrl,
+      required this.comercio, required this.tenantId, this.descripcion,
+      this.logoUrl, this.publicadoEn, this.vigenciaHasta, this.premioId});
+
+  factory Comunicado.fromJson(Map<String, dynamic> j) => Comunicado(
+        id: j['id'], titulo: j['titulo'], imagenUrl: j['imagen_url'],
+        comercio: j['comercio'], tenantId: j['tenant_id'],
+        descripcion: j['descripcion'], logoUrl: j['logo_url'],
+        publicadoEn: j['publicado_en'], vigenciaHasta: j['vigencia_hasta'],
+        premioId: j['premio_id']);
 }
 
 class Pase {

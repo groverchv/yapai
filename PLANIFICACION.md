@@ -696,6 +696,116 @@ Admin → POST /admin/liquidaciones/{id}/pagar → estado 'pagada' + aprobada_po
 - [x] `test_seguridad.py`: 5 tests — **45/45 pasando**
 - [ ] Pendiente crecimiento: ejecutar k6 en staging, axe automatizado, i18n completo por página
 
+### Fase 14 — App cliente: tarjeta ID + feed de ofertas + Cloudinary ✅
+
+Referencia visual (app UAGRM): tarjeta de identidad navy con datos del usuario
+y botón QR, debajo un feed de comunicados con imagen destacada.
+
+**Objetivo:** la billetera deja de ser una lista y se convierte en el "hogar"
+del cliente — identidad + descubrimiento de ofertas. Activa además el canal
+de marketing directo socio→cliente y la viralidad del código de referido.
+
+#### 14.1 Tarjeta ID del cliente (app)
+
+- [x] Rediseño de `WalletScreen`: header con tarjeta navy (sin AppBar clásico):
+  - Avatar con inicial del cliente (o foto futura)
+  - Nombre + CI + saldo de puntos destacado
+  - Botón QR → modal con QR grande `yapai:ref:{codigo_referido}` —
+    doble propósito: identifica al cliente y comparte su código de referido
+  - Badge de puntos congelados si aplica (ya existe)
+- [x] Debajo, sección "Movimientos" (lo que ya existe) u "Ofertas" (ver 14.3)
+- [x] Modelo `Cliente` parsea `codigo_referido` (backend ya lo envía — gap real)
+- [x] Botón "Compartir mi código" → `share_plus` con texto armado
+      ("Regístrate en YAPAI con mi código XXXX y gana puntos extra")
+- [x] Decisión abierta: ¿el QR también sirve para que el cajero identifique al
+      cliente escaneándolo? (endpoint `/caja/buscar-qr` — fase posterior)
+
+#### 14.2 Cloudinary — capa de imágenes
+
+Necesidad: los comunicados necesitan fotos, y hoy `premio.imagen_url` y
+`tenant.logo_url` son campos de texto manual — invendibles para un socio.
+
+- [x] `.env`: `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`,
+      `CLOUDINARY_API_SECRET` (el usuario crea la cuenta — free tier alcanza para MVP)
+- [x] `POST /socio/uploads/firma` → devuelve `{signature, timestamp, api_key,
+      cloud_name, folder}` — firma SHA-1 con el secret (SDK oficial `cloudinary`)
+- [x] El frontend sube directo a `api.cloudinary.com/{cloud}/image/upload`
+      (ancho de banda cero para nuestro server) y guarda `secure_url`+`public_id`
+- [x] Componente `ImageUploader.svelte` (socio): drag&drop/picker → preview →
+      progreso → devuelve URL — reutilizable en comunicados, premios y logo
+- [x] Transformaciones on-the-fly por URL (sin procesar nosotros):
+      `w_800,c_limit,q_auto,f_auto` para detalle · `w_400,h_400,c_fill,g_auto`
+      para grid 3 columnas · thumbnails `w_96` para listas admin
+- [x] Migrar `premios.imagen_url` y `tenant.logo_url` al uploader (mismo componente)
+- [ ] `DELETE` best-effort via API cuando se borra/reemplaza imagen (o lifecycle
+      en Cloudinary: auto-eliminar huérfanas — decisión operativa)
+
+#### 14.3 Comunicados (ofertas) — backend
+
+Nuevo módulo: los socios publican ofertas/novedades que aparecen en la app
+de todos los clientes (canal de marketing directo).
+
+- [x] Modelo `Comunicado`: `id, tenant_id, titulo, descripcion, imagen_url,
+      imagen_public_id, premio_id (opcional), estado(borrador|publicado|archivado),
+      publicado_en, vigencia_hasta, created_at` — migración Alembic
+- [x] `GET/POST /socio/comunicados`, `PATCH/DELETE /socio/comunicados/{id}` —
+      solo owner; publicar/archivar; auditado
+- [x] `GET /cliente/comunicados` (cliente auth): vigentes+publicados,
+      `ORDER BY publicado_en DESC`, paginado — incluye `comercio`, `logo_url`
+      y `premio_id` para deep-link al catálogo del comercio
+- [x] Scope del feed (decisión tomada): **todos los tenants activos** —
+      el marketplace gana valor mostrando todo; filtro "mis comercios" queda
+      como flag futuro
+- [ ] Admin: listado read-only + archivar (moderación básica anti-abuso)
+- [x] Índice `(estado, publicado_en)` + `(tenant_id, estado)`
+
+#### 14.4 Comunicados — portal socio
+
+- [x] `/comunicados` en sidebar (sección Marketing): grid de cards con imagen,
+      estado, vigencia; crear/editar modal con `ImageUploader`
+- [x] Selector opcional "vincular a premio" → el comunicado apunta al canje
+- [x] Vista previa móvil (mock del feed) en el modal — vende la feature
+
+#### 14.5 Feed de ofertas — app
+
+- [x] Debajo de la tarjeta ID en Wallet: sección "Ofertas" con
+      **grid 3 columnas** de imágenes (`GridView` aspect 1:1, rounded, lazy)
+      — como la referencia pero en mosaico, no lista
+- [x] Tap en imagen → bottom sheet/detalle: imagen grande, título, descripción,
+      comercio, "válido hasta", botón "Ver premio" si `premio_id` != null
+      (navega al ComercioScreen)
+- [x] Estado vacío elegante ("Aún no hay ofertas — explorá los comercios")
+- [ ] Badge "NUEVO" en comunicados < 7 días
+- [x] Pull-to-refresh ya existente recarga feed también
+
+#### 14.6 Calidad transversal
+
+- [x] Debounce 300ms en búsqueda de Explorar (hoy spamea API por tecla)
+- [x] Errores limpios (quitar prefijo `ApiException:`) en todas las pantallas
+- [x] Quitar botón "Cargar usuario demo" detrás de `--dart-define DEMO=true`
+- [x] Tests: parser `Comunicado` + `Cliente.codigo_referido`; tests backend
+      CRUD comunicados + scope del feed + firma Cloudinary
+- [x] `premio.vigencia_hasta` visible en catálogo app ("vence en Xd")
+- [x] Logo real del comercio en Explorar (CircleAvatar con `logo_url`)
+#### Estimación de orden de ejecución
+
+```
+1. Cloudinary config + /socio/uploads/firma + ImageUploader    (desbloquea todo)
+2. Comunicado modelo + migración + CRUD socio + feed cliente   (backend)
+3. /comunicados en portal socio                                (productor de contenido)
+4. Tarjeta ID + grid ofertas + detalle + share referido        (app)
+5. Migrar premios/logo al uploader + calidad transversal       (pulido)
+```
+
+#### Decisiones que validar con el usuario
+
+1. ¿Feed con todas las ofertas o solo de comercios donde el cliente tiene puntos?
+   → propuesta: todas (descubrimiento = valor del marketplace)
+2. ¿QR de la tarjeta = código de referido (viralidad) o identificación en caja?
+   → propuesta: referido ahora; identificación en caja es fase posterior
+3. ¿Push cuando hay oferta nueva? → depende de FCM (pendiente de plan)
+4. ¿El socio sube también video? → no v1; solo imagen
+
 > Las fases restantes del crecimiento están en `PLANIFICACION_STARTUP.md`.
 
 ---

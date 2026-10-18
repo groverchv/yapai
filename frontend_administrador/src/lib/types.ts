@@ -25,10 +25,19 @@ export interface SocioListItem {
 	id: number;
 	nombre_comercial: string;
 	nit_rut: string;
+	logo_url: string | null;
 	categoria: string | null;
 	esquema: string | null;
 	estado: 'activo' | 'suspendido';
 	created_at: string;
+}
+
+export interface FirmaUploadOut {
+	cloud_name: string;
+	api_key: string;
+	timestamp: number;
+	folder: string;
+	signature: string;
 }
 
 export interface OwnerOut {
@@ -176,6 +185,8 @@ export interface KpisGlobales {
 	monto_pendiente: number;
 	clientes_totales: number;
 	ttfs_medio_h: number | null;
+	facturas_pendientes: number;
+	monto_facturacion_pendiente: number;
 }
 
 export interface SerieDia {
@@ -183,10 +194,26 @@ export interface SerieDia {
 	total: number;
 }
 
+export interface TopSocioItem {
+	id: number;
+	nombre: string;
+	logo_url: string | null;
+	transacciones: number;
+	clientes: number;
+}
+
+export interface DistribucionTipoItem {
+	tipo: string;
+	cantidad: number;
+	porcentaje: number;
+}
+
 export interface DashboardOut {
 	kpis: KpisGlobales;
 	transacciones_30d: SerieDia[];
 	ultimas_transacciones: TransaccionOut[];
+	top_socios: TopSocioItem[];
+	distribucion_tipos: DistribucionTipoItem[];
 }
 
 export interface FacturaOut {

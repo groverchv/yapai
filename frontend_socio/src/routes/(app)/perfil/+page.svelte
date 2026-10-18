@@ -3,12 +3,14 @@
 	import { goto } from '$app/navigation';
 	import { api } from '#lib/api/client';
 	import { auth } from '#lib/stores/auth.svelte';
+	import ImageUploader from '#lib/components/ui/ImageUploader.svelte';
 	import Seguridad2fa from '#lib/components/ui/Seguridad2fa.svelte';
 	import { i18n, type Locale } from '#lib/i18n.svelte';
 	import type { Perfil } from '#lib/types';
 
 	let perfil = $state<Perfil | null>(null);
 	let nombre = $state('');
+	let logo = $state<string | null>(null);
 	let error = $state('');
 	let mensaje = $state('');
 	let guardando = $state(false);
@@ -28,6 +30,7 @@
 		try {
 			perfil = await api.get<Perfil>('/socio/perfil');
 			nombre = perfil.nombre;
+			logo = perfil.logo_url;
 		} catch (e) {
 			error = e instanceof Error ? e.message : 'Error al cargar';
 		}
@@ -39,7 +42,10 @@
 		error = '';
 		mensaje = '';
 		try {
-			perfil = await api.patch<Perfil>('/socio/perfil', { nombre });
+			perfil = await api.patch<Perfil>('/socio/perfil', {
+				nombre,
+				...(logo ? { logo_url: logo } : {})
+			});
 			if (auth.usuario) auth.usuario = { ...auth.usuario, nombre: perfil.nombre };
 			mensaje = 'Perfil actualizado';
 		} catch (err) {
@@ -96,6 +102,11 @@
 					<label for="nom" class="mb-1 block text-sm font-medium text-slate-700">Nombre</label>
 					<input id="nom" type="text" bind:value={nombre} required minlength="2"
 						class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />
+				</div>
+				<div>
+					<span class="mb-1 block text-sm font-medium text-slate-700">Logo del comercio</span>
+					<ImageUploader bind:value={logo} carpeta="logo" aspecto="square" />
+					<p class="mt-1 text-xs text-slate-400">Aparece en la app de clientes y en el kiosco.</p>
 				</div>
 				<div>
 					<label for="cor" class="mb-1 block text-sm font-medium text-slate-700">Correo</label>

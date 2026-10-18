@@ -51,7 +51,9 @@ async function intentarRefresh(): Promise<boolean> {
 
 async function request<T>(path: string, init: RequestInit = {}, retry = true): Promise<T> {
 	const headers = new Headers(init.headers);
-	if (!headers.has('Content-Type') && init.body) headers.set('Content-Type', 'application/json');
+	if (!headers.has('Content-Type') && init.body && !(init.body instanceof FormData)) {
+		headers.set('Content-Type', 'application/json');
+	}
 	if (auth.accessToken) headers.set('Authorization', `Bearer ${auth.accessToken}`);
 
 	const res = await fetch(`${API_BASE}${path}`, { ...init, headers });
@@ -78,6 +80,8 @@ export const api = {
 	get: <T>(path: string) => request<T>(path),
 	post: <T>(path: string, body?: unknown) =>
 		request<T>(path, { method: 'POST', body: body !== undefined ? JSON.stringify(body) : undefined }),
+	upload: <T>(path: string, formData: FormData) =>
+		request<T>(path, { method: 'POST', body: formData }),
 	patch: <T>(path: string, body: unknown) =>
 		request<T>(path, { method: 'PATCH', body: JSON.stringify(body) }),
 	put: <T>(path: string, body: unknown) =>

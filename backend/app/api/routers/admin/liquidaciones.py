@@ -38,7 +38,7 @@ def listar_liquidaciones(
     periodo: str | None = Query(None, pattern=r"^\d{4}-(0[1-9]|1[0-2])$"),
     estado: EstadoLiquidacion | None = None,
     tenant_id: int | None = None,
-    page: int = Query(1, ge=1), size: int = Query(20, ge=1, le=200),
+    page: int = Query(1, ge=1), size: int = Query(10, ge=1, le=200),
     db: Session = Depends(get_db),
 ):
     filtros = []

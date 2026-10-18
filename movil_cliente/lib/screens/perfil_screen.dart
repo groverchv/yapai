@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../auth_state.dart';
 
@@ -71,6 +73,72 @@ class PerfilScreen extends StatelessWidget {
               ),
             ),
           ),
+          if (cliente?.codigoReferido != null) ...[
+            const SizedBox(height: 16),
+            Card(
+              color: const Color(0xFF14213D),
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  children: [
+                    const Text('Tu código de referido',
+                        style: TextStyle(color: Colors.white70, fontSize: 13)),
+                    const SizedBox(height: 6),
+                    Text(cliente!.codigoReferido!,
+                        style: const TextStyle(color: Colors.white,
+                            fontSize: 26, fontWeight: FontWeight.bold,
+                            letterSpacing: 3)),
+                    const SizedBox(height: 6),
+                    const Text(
+                      'Gana puntos por cada amigo que se registre con tu código',
+                      style: TextStyle(color: Colors.white70, fontSize: 12),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 14),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.white,
+                              side: const BorderSide(color: Colors.white54),
+                            ),
+                            onPressed: () {
+                              Clipboard.setData(ClipboardData(
+                                  text: cliente.codigoReferido!));
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text('Código copiado')),
+                              );
+                            },
+                            icon: const Icon(Icons.copy, size: 18),
+                            label: const Text('Copiar'),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: FilledButton.icon(
+                            style: FilledButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              foregroundColor: const Color(0xFF14213D),
+                            ),
+                            onPressed: () => SharePlus.instance.share(
+                              ShareParams(
+                                text: '¡Únete a YAPAI con mi código '
+                                    '${cliente.codigoReferido} y gana puntos!',
+                              ),
+                            ),
+                            icon: const Icon(Icons.share, size: 18),
+                            label: const Text('Compartir'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
           const SizedBox(height: 24),
           SizedBox(
             width: double.infinity,

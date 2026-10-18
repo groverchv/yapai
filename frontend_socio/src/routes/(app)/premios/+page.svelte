@@ -3,6 +3,7 @@
 	import { onMount } from 'svelte';
 	import { api } from '#lib/api/client';
 	import Badge from '#lib/components/ui/Badge.svelte';
+	import ImageUploader from '#lib/components/ui/ImageUploader.svelte';
 	import Modal from '#lib/components/ui/Modal.svelte';
 	import type { Premio } from '#lib/types';
 	import { formatFecha } from '#lib/utils/format';
@@ -17,7 +18,7 @@
 	let formNombre = $state('');
 	let formDescripcion = $state('');
 	let formCosto = $state(100);
-	let formImagen = $state('');
+	let formImagen = $state<string | null>('');
 	let formStockLimitado = $state(false);
 	let formStock = $state(0);
 	let formVigencia = $state('');
@@ -201,9 +202,8 @@
 				{/if}
 			</div>
 			<div>
-				<label for="pi" class="mb-1 block text-sm font-medium text-slate-700">Imagen (URL)</label>
-				<input id="pi" type="url" bind:value={formImagen}
-					class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />
+				<span class="mb-1 block text-sm font-medium text-slate-700">Imagen</span>
+				<ImageUploader bind:value={formImagen} carpeta="premios" aspecto="square" />
 			</div>
 		</div>
 		<label class="flex items-center gap-2 text-sm text-slate-700">

@@ -29,7 +29,7 @@
 	];
 
 	function queryString() {
-		const p = new URLSearchParams({ page: String(page), size: '20' });
+		const p = new URLSearchParams({ page: String(page), size: '10' });
 		if (estado) p.set('estado', estado);
 		if (q) p.set('q', q);
 		if (nit) p.set('nit', nit);
@@ -124,7 +124,18 @@
 		{#snippet celda({ key, fila })}
 			{@const s = fila as unknown as SocioListItem}
 			{#if key === 'nombre_comercial'}
-				<a href="/socios/{s.id}" class="font-medium text-indigo-600 hover:underline">{s.nombre_comercial}</a>
+				<div class="flex items-center gap-3">
+					{#if s.logo_url}
+						<img src={s.logo_url} alt={s.nombre_comercial} class="h-9 w-9 rounded-lg object-cover border border-slate-200 shadow-xs" />
+					{:else}
+						<div class="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-50 text-xs font-bold text-indigo-600 border border-indigo-100">
+							{s.nombre_comercial.slice(0, 2).toUpperCase()}
+						</div>
+					{/if}
+					<a href="/socios/{s.id}" class="font-semibold text-slate-800 hover:text-indigo-600 transition">
+						{s.nombre_comercial}
+					</a>
+				</div>
 			{:else if key === 'estado'}
 				<Badge texto={s.estado} variante={s.estado === 'activo' ? 'ok' : 'bad'} />
 			{:else if key === 'created_at'}

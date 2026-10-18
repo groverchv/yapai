@@ -14,6 +14,13 @@ class ClienteLoginRequest(BaseModel):
     ci: str = Field(min_length=3, max_length=50)
 
 
+class ClienteRegistroRequest(BaseModel):
+    nombre: str = Field(min_length=2, max_length=160)
+    telefono: str = Field(min_length=4, max_length=30)
+    ci: str = Field(min_length=3, max_length=50)
+    codigo_referido: str | None = None
+
+
 class RefreshRequest(BaseModel):
     refresh_token: str
 

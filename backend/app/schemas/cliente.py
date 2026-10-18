@@ -87,3 +87,18 @@ class PaseOut(BaseModel):
     premio_nombre: str
     comercio: str
     created_at: datetime
+
+
+# --- Comunicados (feed de ofertas) ---
+
+class ComunicadoClienteOut(BaseModel):
+    id: int
+    titulo: str
+    descripcion: str | None
+    imagen_url: str
+    premio_id: int | None
+    publicado_en: datetime | None
+    vigencia_hasta: datetime | None
+    tenant_id: int
+    comercio: str
+    logo_url: str | None

@@ -1,0 +1,666 @@
+{
+  "resumen": {
+    "superadministradores": 1,
+    "socios_comercios": 8,
+    "total_clientes": 50,
+    "total_premios": 14,
+    "fecha_generacion": "2026-10-18T01:26:03.485995+00:00"
+  },
+  "credenciales_acceso": {
+    "administrador": {
+      "url": "http://localhost:5173",
+      "email": "admin@yapai.com",
+      "password": "Admin123!",
+      "descripcion": "Panel general con métricas globales, socios, esquemas, facturación SaaS y liquidaciones."
+    },
+    "socios_demo": [
+      {
+        "comercio": "Pizzería Don Yapai",
+        "categoria": "gastronomia",
+        "plan": "pro",
+        "url_socio": "http://localhost:5175/login",
+        "url_terminal_caja": "http://localhost:5175/terminal",
+        "url_kiosco": "http://localhost:5175/kiosco/kiosco-demo-001",
+        "pin_kiosco": "4521",
+        "owner_login": {
+          "email": "owner@demo.com",
+          "password": "Owner123!"
+        },
+        "cajero_login": {
+          "email": "cajero@demo.com",
+          "password": "Cajero123!"
+        }
+      },
+      {
+        "comercio": "Café Aroma Urbano",
+        "categoria": "gastronomia",
+        "plan": "starter",
+        "url_socio": "http://localhost:5175/login",
+        "url_terminal_caja": "http://localhost:5175/terminal",
+        "url_kiosco": "http://localhost:5175/kiosco/kiosco-cafe-001",
+        "pin_kiosco": "1234",
+        "owner_login": {
+          "email": "owner.cafe@yapai.com",
+          "password": "Owner123!"
+        },
+        "cajero_login": {
+          "email": "cajero.cafe@yapai.com",
+          "password": "Cajero123!"
+        }
+      },
+      {
+        "comercio": "Burger Kingpin Gourmet",
+        "categoria": "gastronomia",
+        "plan": "pro",
+        "url_socio": "http://localhost:5175/login",
+        "url_terminal_caja": "http://localhost:5175/terminal",
+        "url_kiosco": "http://localhost:5175/kiosco/kiosco-burger-001",
+        "pin_kiosco": "7890",
+        "owner_login": {
+          "email": "owner.burger@yapai.com",
+          "password": "Owner123!"
+        },
+        "cajero_login": {
+          "email": "cajero.burger@yapai.com",
+          "password": "Cajero123!"
+        }
+      },
+      {
+        "comercio": "Barbería El Barón",
+        "categoria": "salud-y-belleza",
+        "plan": "starter",
+        "url_socio": "http://localhost:5175/login",
+        "url_terminal_caja": "http://localhost:5175/terminal",
+        "url_kiosco": "http://localhost:5175/kiosco/kiosco-baron-001",
+        "pin_kiosco": "3321",
+        "owner_login": {
+          "email": "owner.barberia@yapai.com",
+          "password": "Owner123!"
+        },
+        "cajero_login": {
+          "email": "cajero.barberia@yapai.com",
+          "password": "Cajero123!"
+        }
+      },
+      {
+        "comercio": "TechZone Gadgets",
+        "categoria": "tecnologia",
+        "plan": "enterprise",
+        "url_socio": "http://localhost:5175/login",
+        "url_terminal_caja": "http://localhost:5175/terminal",
+        "url_kiosco": "http://localhost:5175/kiosco/kiosco-tech-001",
+        "pin_kiosco": "9911",
+        "owner_login": {
+          "email": "owner.tech@yapai.com",
+          "password": "Owner123!"
+        },
+        "cajero_login": {
+          "email": "cajero.tech@yapai.com",
+          "password": "Cajero123!"
+        }
+      },
+      {
+        "comercio": "Boutique Bella Moda",
+        "categoria": "indumentaria",
+        "plan": "pro",
+        "url_socio": "http://localhost:5175/login",
+        "url_terminal_caja": "http://localhost:5175/terminal",
+        "url_kiosco": "http://localhost:5175/kiosco/kiosco-moda-001",
+        "pin_kiosco": "5544",
+        "owner_login": {
+          "email": "owner.moda@yapai.com",
+          "password": "Owner123!"
+        },
+        "cajero_login": {
+          "email": "cajero.moda@yapai.com",
+          "password": "Cajero123!"
+        }
+      },
+      {
+        "comercio": "Iron Fitness Gym",
+        "categoria": "salud-y-belleza",
+        "plan": "enterprise",
+        "url_socio": "http://localhost:5175/login",
+        "url_terminal_caja": "http://localhost:5175/terminal",
+        "url_kiosco": "http://localhost:5175/kiosco/kiosco-gym-001",
+        "pin_kiosco": "6677",
+        "owner_login": {
+          "email": "owner.gym@yapai.com",
+          "password": "Owner123!"
+        },
+        "cajero_login": {
+          "email": "cajero.gym@yapai.com",
+          "password": "Cajero123!"
+        }
+      },
+      {
+        "comercio": "CleanExpress Lavanderías",
+        "categoria": "servicios",
+        "plan": "starter",
+        "url_socio": "http://localhost:5175/login",
+        "url_terminal_caja": "http://localhost:5175/terminal",
+        "url_kiosco": "http://localhost:5175/kiosco/kiosco-clean-001",
+        "pin_kiosco": "1122",
+        "owner_login": {
+          "email": "owner.clean@yapai.com",
+          "password": "Owner123!"
+        },
+        "cajero_login": {
+          "email": "cajero.clean@yapai.com",
+          "password": "Cajero123!"
+        }
+      }
+    ],
+    "movil_cliente": {
+      "app": "Flutter Movil Cliente (Android / Web)",
+      "instrucciones": "Ingresa con el Teléfono y Cédula de Identidad de cualquiera de los 50 clientes.",
+      "cliente_demo_principal": {
+        "telefono": "70000001",
+        "ci": "10000001",
+        "nombre": "Juan Carlos Pérez Morales"
+      }
+    }
+  },
+  "clientes_50": [
+    {
+      "numero": 1,
+      "nombre": "Cliente Demo",
+      "telefono": "70000001",
+      "ci": "12345678",
+      "saldo_puntos": 350,
+      "puntos_congelados": 0,
+      "codigo_referido": null,
+      "comercio_registro": "Pizzería Don Yapai"
+    },
+    {
+      "numero": 2,
+      "nombre": "María Elena Gómez Suárez",
+      "telefono": "70000002",
+      "ci": "10000002",
+      "saldo_puntos": 240,
+      "puntos_congelados": 180,
+      "codigo_referido": "YAP002BO",
+      "comercio_registro": "Café Aroma Urbano"
+    },
+    {
+      "numero": 3,
+      "nombre": "Carlos Alberto Mamani Flores",
+      "telefono": "70000003",
+      "ci": "10000003",
+      "saldo_puntos": 600,
+      "puntos_congelados": 220,
+      "codigo_referido": "YAP003BO",
+      "comercio_registro": "Burger Kingpin Gourmet"
+    },
+    {
+      "numero": 4,
+      "nombre": "Lucía Fernanda Rojas Quispe",
+      "telefono": "70000004",
+      "ci": "10000004",
+      "saldo_puntos": 100,
+      "puntos_congelados": 220,
+      "codigo_referido": "YAP004BO",
+      "comercio_registro": "Iron Fitness Gym"
+    },
+    {
+      "numero": 5,
+      "nombre": "Alejandro Vargas Torrico",
+      "telefono": "70000005",
+      "ci": "10000005",
+      "saldo_puntos": 640,
+      "puntos_congelados": 180,
+      "codigo_referido": "YAP005BO",
+      "comercio_registro": "Barbería El Barón"
+    },
+    {
+      "numero": 6,
+      "nombre": "Sofía Belén Choque Condori",
+      "telefono": "70000006",
+      "ci": "10000006",
+      "saldo_puntos": 250,
+      "puntos_congelados": 350,
+      "codigo_referido": "YAP006BO",
+      "comercio_registro": "Iron Fitness Gym"
+    },
+    {
+      "numero": 7,
+      "nombre": "Roberto Flores Mendizábal",
+      "telefono": "70000007",
+      "ci": "10000007",
+      "saldo_puntos": 200,
+      "puntos_congelados": 400,
+      "codigo_referido": "YAP007BO",
+      "comercio_registro": "Pizzería Don Yapai"
+    },
+    {
+      "numero": 8,
+      "nombre": "Valeria Gutiérrez Hurtado",
+      "telefono": "70000008",
+      "ci": "10000008",
+      "saldo_puntos": 230,
+      "puntos_congelados": 220,
+      "codigo_referido": "YAP008BO",
+      "comercio_registro": "Burger Kingpin Gourmet"
+    },
+    {
+      "numero": 9,
+      "nombre": "Mateo Fernández Paz",
+      "telefono": "70000009",
+      "ci": "10000009",
+      "saldo_puntos": 420,
+      "puntos_congelados": 0,
+      "codigo_referido": "YAP009BO",
+      "comercio_registro": "Iron Fitness Gym"
+    },
+    {
+      "numero": 10,
+      "nombre": "Camila Andrea Sánchez Pinto",
+      "telefono": "70000010",
+      "ci": "10000010",
+      "saldo_puntos": 150,
+      "puntos_congelados": 250,
+      "codigo_referido": "YAP010BO",
+      "comercio_registro": "Boutique Bella Moda"
+    },
+    {
+      "numero": 11,
+      "nombre": "Diego Armando Romero Cruz",
+      "telefono": "70000011",
+      "ci": "10000011",
+      "saldo_puntos": 450,
+      "puntos_congelados": 0,
+      "codigo_referido": "YAP011BO",
+      "comercio_registro": "Café Aroma Urbano"
+    },
+    {
+      "numero": 12,
+      "nombre": "Gabriela Villanueva Ríos",
+      "telefono": "70000012",
+      "ci": "10000012",
+      "saldo_puntos": 900,
+      "puntos_congelados": 0,
+      "codigo_referido": "YAP012BO",
+      "comercio_registro": "TechZone Gadgets"
+    },
+    {
+      "numero": 13,
+      "nombre": "Rodrigo Navarro Calle",
+      "telefono": "70000013",
+      "ci": "10000013",
+      "saldo_puntos": 320,
+      "puntos_congelados": 0,
+      "codigo_referido": "YAP013BO",
+      "comercio_registro": "Barbería El Barón"
+    },
+    {
+      "numero": 14,
+      "nombre": "Daniela Paola Morales Ortiz",
+      "telefono": "70000014",
+      "ci": "10000014",
+      "saldo_puntos": 400,
+      "puntos_congelados": 0,
+      "codigo_referido": "YAP014BO",
+      "comercio_registro": "Barbería El Barón"
+    },
+    {
+      "numero": 15,
+      "nombre": "Andrés Felipe Castillo Soliz",
+      "telefono": "70000015",
+      "ci": "10000015",
+      "saldo_puntos": 570,
+      "puntos_congelados": 0,
+      "codigo_referido": "YAP015BO",
+      "comercio_registro": "Barbería El Barón"
+    },
+    {
+      "numero": 16,
+      "nombre": "Mariana Aparicio Baldivieso",
+      "telefono": "70000016",
+      "ci": "10000016",
+      "saldo_puntos": 550,
+      "puntos_congelados": 0,
+      "codigo_referido": "YAP016BO",
+      "comercio_registro": "TechZone Gadgets"
+    },
+    {
+      "numero": 17,
+      "nombre": "José Luis Delgado Guzmán",
+      "telefono": "70000017",
+      "ci": "10000017",
+      "saldo_puntos": 500,
+      "puntos_congelados": 0,
+      "codigo_referido": "YAP017BO",
+      "comercio_registro": "Burger Kingpin Gourmet"
+    },
+    {
+      "numero": 18,
+      "nombre": "Natalia Mendoza Claros",
+      "telefono": "70000018",
+      "ci": "10000018",
+      "saldo_puntos": 400,
+      "puntos_congelados": 0,
+      "codigo_referido": "YAP018BO",
+      "comercio_registro": "Barbería El Barón"
+    },
+    {
+      "numero": 19,
+      "nombre": "Fernando Aguilar Montaño",
+      "telefono": "70000019",
+      "ci": "10000019",
+      "saldo_puntos": 400,
+      "puntos_congelados": 0,
+      "codigo_referido": "YAP019BO",
+      "comercio_registro": "Burger Kingpin Gourmet"
+    },
+    {
+      "numero": 20,
+      "nombre": "Paola Andrea Cabrera Zeballos",
+      "telefono": "70000020",
+      "ci": "10000020",
+      "saldo_puntos": 550,
+      "puntos_congelados": 0,
+      "codigo_referido": "YAP020BO",
+      "comercio_registro": "CleanExpress Lavanderías"
+    },
+    {
+      "numero": 21,
+      "nombre": "Ignacio Salazar Peñaranda",
+      "telefono": "70000021",
+      "ci": "10000021",
+      "saldo_puntos": 400,
+      "puntos_congelados": 0,
+      "codigo_referido": "YAP021BO",
+      "comercio_registro": "Barbería El Barón"
+    },
+    {
+      "numero": 22,
+      "nombre": "Claudia Paredes Terán",
+      "telefono": "70000022",
+      "ci": "10000022",
+      "saldo_puntos": 420,
+      "puntos_congelados": 0,
+      "codigo_referido": "YAP022BO",
+      "comercio_registro": "Barbería El Barón"
+    },
+    {
+      "numero": 23,
+      "nombre": "Hugo Espinoza Arteaga",
+      "telefono": "70000023",
+      "ci": "10000023",
+      "saldo_puntos": 400,
+      "puntos_congelados": 0,
+      "codigo_referido": "YAP023BO",
+      "comercio_registro": "Iron Fitness Gym"
+    },
+    {
+      "numero": 24,
+      "nombre": "Lorena Benítez Cossio",
+      "telefono": "70000024",
+      "ci": "10000024",
+      "saldo_puntos": 450,
+      "puntos_congelados": 0,
+      "codigo_referido": "YAP024BO",
+      "comercio_registro": "Barbería El Barón"
+    },
+    {
+      "numero": 25,
+      "nombre": "Javier Ramos Escalante",
+      "telefono": "70000025",
+      "ci": "10000025",
+      "saldo_puntos": 700,
+      "puntos_congelados": 0,
+      "codigo_referido": "YAP025BO",
+      "comercio_registro": "CleanExpress Lavanderías"
+    },
+    {
+      "numero": 26,
+      "nombre": "Adriana Camacho Rivera",
+      "telefono": "70000026",
+      "ci": "10000026",
+      "saldo_puntos": 450,
+      "puntos_congelados": 0,
+      "codigo_referido": "YAP026BO",
+      "comercio_registro": "Burger Kingpin Gourmet"
+    },
+    {
+      "numero": 27,
+      "nombre": "Mauricio Guzmán Saavedra",
+      "telefono": "70000027",
+      "ci": "10000027",
+      "saldo_puntos": 900,
+      "puntos_congelados": 0,
+      "codigo_referido": "YAP027BO",
+      "comercio_registro": "Barbería El Barón"
+    },
+    {
+      "numero": 28,
+      "nombre": "Silvia Torres Mercado",
+      "telefono": "70000028",
+      "ci": "10000028",
+      "saldo_puntos": 550,
+      "puntos_congelados": 0,
+      "codigo_referido": "YAP028BO",
+      "comercio_registro": "Iron Fitness Gym"
+    },
+    {
+      "numero": 29,
+      "nombre": "Sebastián Alarcón Medina",
+      "telefono": "70000029",
+      "ci": "10000029",
+      "saldo_puntos": 850,
+      "puntos_congelados": 0,
+      "codigo_referido": "YAP029BO",
+      "comercio_registro": "Barbería El Barón"
+    },
+    {
+      "numero": 30,
+      "nombre": "Patricia Quinteros Vaca",
+      "telefono": "70000030",
+      "ci": "10000030",
+      "saldo_puntos": 320,
+      "puntos_congelados": 0,
+      "codigo_referido": "YAP030BO",
+      "comercio_registro": "CleanExpress Lavanderías"
+    },
+    {
+      "numero": 31,
+      "nombre": "Marcos Heredia Justiniano",
+      "telefono": "70000031",
+      "ci": "10000031",
+      "saldo_puntos": 400,
+      "puntos_congelados": 0,
+      "codigo_referido": "YAP031BO",
+      "comercio_registro": "Café Aroma Urbano"
+    },
+    {
+      "numero": 32,
+      "nombre": "Verónica Chávez Cuéllar",
+      "telefono": "70000032",
+      "ci": "10000032",
+      "saldo_puntos": 570,
+      "puntos_congelados": 0,
+      "codigo_referido": "YAP032BO",
+      "comercio_registro": "Iron Fitness Gym"
+    },
+    {
+      "numero": 33,
+      "nombre": "Joaquín Peralta Villarroel",
+      "telefono": "70000033",
+      "ci": "10000033",
+      "saldo_puntos": 950,
+      "puntos_congelados": 0,
+      "codigo_referido": "YAP033BO",
+      "comercio_registro": "Iron Fitness Gym"
+    },
+    {
+      "numero": 34,
+      "nombre": "Jimena Zambrana Ledezma",
+      "telefono": "70000034",
+      "ci": "10000034",
+      "saldo_puntos": 320,
+      "puntos_congelados": 0,
+      "codigo_referido": "YAP034BO",
+      "comercio_registro": "TechZone Gadgets"
+    },
+    {
+      "numero": 35,
+      "nombre": "Gonzalo Callejas Barrientos",
+      "telefono": "70000035",
+      "ci": "10000035",
+      "saldo_puntos": 400,
+      "puntos_congelados": 0,
+      "codigo_referido": "YAP035BO",
+      "comercio_registro": "TechZone Gadgets"
+    },
+    {
+      "numero": 36,
+      "nombre": "Beatriz Velasco Montero",
+      "telefono": "70000036",
+      "ci": "10000036",
+      "saldo_puntos": 500,
+      "puntos_congelados": 0,
+      "codigo_referido": "YAP036BO",
+      "comercio_registro": "TechZone Gadgets"
+    },
+    {
+      "numero": 37,
+      "nombre": "Emilio Carvalho Roca",
+      "telefono": "70000037",
+      "ci": "10000037",
+      "saldo_puntos": 420,
+      "puntos_congelados": 0,
+      "codigo_referido": "YAP037BO",
+      "comercio_registro": "CleanExpress Lavanderías"
+    },
+    {
+      "numero": 38,
+      "nombre": "Flavia Daza Aramayo",
+      "telefono": "70000038",
+      "ci": "10000038",
+      "saldo_puntos": 420,
+      "puntos_congelados": 0,
+      "codigo_referido": "YAP038BO",
+      "comercio_registro": "Burger Kingpin Gourmet"
+    },
+    {
+      "numero": 39,
+      "nombre": "Bruno Soliz Osinaga",
+      "telefono": "70000039",
+      "ci": "10000039",
+      "saldo_puntos": 450,
+      "puntos_congelados": 0,
+      "codigo_referido": "YAP039BO",
+      "comercio_registro": "Barbería El Barón"
+    },
+    {
+      "numero": 40,
+      "nombre": "Renata Llanos Bustillos",
+      "telefono": "70000040",
+      "ci": "10000040",
+      "saldo_puntos": 820,
+      "puntos_congelados": 0,
+      "codigo_referido": "YAP040BO",
+      "comercio_registro": "Burger Kingpin Gourmet"
+    },
+    {
+      "numero": 41,
+      "nombre": "Nicolás Chirinos Prado",
+      "telefono": "70000041",
+      "ci": "10000041",
+      "saldo_puntos": 450,
+      "puntos_congelados": 0,
+      "codigo_referido": "YAP041BO",
+      "comercio_registro": "Boutique Bella Moda"
+    },
+    {
+      "numero": 42,
+      "nombre": "Tatiana Sucre Loayza",
+      "telefono": "70000042",
+      "ci": "10000042",
+      "saldo_puntos": 500,
+      "puntos_congelados": 0,
+      "codigo_referido": "YAP042BO",
+      "comercio_registro": "Café Aroma Urbano"
+    },
+    {
+      "numero": 43,
+      "nombre": "Lucas Arze Cardona",
+      "telefono": "70000043",
+      "ci": "10000043",
+      "saldo_puntos": 370,
+      "puntos_congelados": 0,
+      "codigo_referido": "YAP043BO",
+      "comercio_registro": "Barbería El Barón"
+    },
+    {
+      "numero": 44,
+      "nombre": "Romina Terceros Vallejos",
+      "telefono": "70000044",
+      "ci": "10000044",
+      "saldo_puntos": 570,
+      "puntos_congelados": 0,
+      "codigo_referido": "YAP044BO",
+      "comercio_registro": "Café Aroma Urbano"
+    },
+    {
+      "numero": 45,
+      "nombre": "Fabián Monje Camacho",
+      "telefono": "70000045",
+      "ci": "10000045",
+      "saldo_puntos": 400,
+      "puntos_congelados": 0,
+      "codigo_referido": "YAP045BO",
+      "comercio_registro": "Café Aroma Urbano"
+    },
+    {
+      "numero": 46,
+      "nombre": "Carla Urquidi Antelo",
+      "telefono": "70000046",
+      "ci": "10000046",
+      "saldo_puntos": 450,
+      "puntos_congelados": 0,
+      "codigo_referido": "YAP046BO",
+      "comercio_registro": "CleanExpress Lavanderías"
+    },
+    {
+      "numero": 47,
+      "nombre": "Álvaro Peña Soria",
+      "telefono": "70000047",
+      "ci": "10000047",
+      "saldo_puntos": 850,
+      "puntos_congelados": 0,
+      "codigo_referido": "YAP047BO",
+      "comercio_registro": "Iron Fitness Gym"
+    },
+    {
+      "numero": 48,
+      "nombre": "Jessica Villarroel Lanza",
+      "telefono": "70000048",
+      "ci": "10000048",
+      "saldo_puntos": 650,
+      "puntos_congelados": 0,
+      "codigo_referido": "YAP048BO",
+      "comercio_registro": "Barbería El Barón"
+    },
+    {
+      "numero": 49,
+      "nombre": "Leonardo Céspedes Claure",
+      "telefono": "70000049",
+      "ci": "10000049",
+      "saldo_puntos": 950,
+      "puntos_congelados": 0,
+      "codigo_referido": "YAP049BO",
+      "comercio_registro": "Boutique Bella Moda"
+    },
+    {
+      "numero": 50,
+      "nombre": "Vanessa Zelada Tórrez",
+      "telefono": "70000050",
+      "ci": "10000050",
+      "saldo_puntos": 370,
+      "puntos_congelados": 0,
+      "codigo_referido": "YAP050BO",
+      "comercio_registro": "CleanExpress Lavanderías"
+    }
+  ]
+}

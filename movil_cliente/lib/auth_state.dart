@@ -83,6 +83,32 @@ class AuthState extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> registro(String nombre, String telefono, String ci, [String? codigoReferido]) async {
+    final payload = <String, dynamic>{
+      'nombre': nombre,
+      'telefono': telefono,
+      'ci': ci,
+    };
+    if (codigoReferido != null && codigoReferido.trim().isNotEmpty) {
+      payload['codigo_referido'] = codigoReferido.trim().toUpperCase();
+    }
+    final res = await http.post(
+      Uri.parse('$apiBase/auth/cliente/registro'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(payload),
+    );
+    final data = jsonDecode(utf8.decode(res.bodyBytes));
+    if (res.statusCode != 201) {
+      throw ApiException(res.statusCode, data['detail'] ?? 'Error al registrar cliente');
+    }
+    api.accessToken = data['tokens']['access_token'];
+    api.refreshToken = data['tokens']['refresh_token'];
+    cliente = Cliente.fromJson(data['cliente']);
+    await _guardarTokens();
+    await _guardarCliente();
+    notifyListeners();
+  }
+
   Future<void> cerrarSesion() async {
     final refresh = api.refreshToken;
     api.accessToken = null;
@@ -123,6 +149,7 @@ class AuthState extends ChangeNotifier {
         'id': cliente!.id, 'nombre': cliente!.nombre, 'ci': cliente!.ci,
         'telefono': cliente!.telefono, 'saldo_puntos': cliente!.saldoPuntos,
         'puntos_congelados': cliente!.puntosCongelados,
+        'codigo_referido': cliente!.codigoReferido,
       }));
     }
   }

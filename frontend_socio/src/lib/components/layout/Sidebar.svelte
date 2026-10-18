@@ -15,7 +15,8 @@
 				{ label: 'nav.transacciones', href: '/transacciones', icono: 'trending-up' },
 				{ label: 'nav.premios', href: '/premios', icono: 'gift' },
 				{ label: 'nav.ruleta', href: '/ruleta', icono: 'ruleta' },
-				{ label: 'nav.campanas', href: '/campanas', icono: 'sparkles' }
+				{ label: 'nav.campanas', href: '/campanas', icono: 'sparkles' },
+				{ label: 'nav.comunicados', href: '/comunicados', icono: 'image-plus' }
 			]
 		},
 		{

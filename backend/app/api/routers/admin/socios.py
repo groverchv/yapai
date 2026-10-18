@@ -26,9 +26,24 @@ from app.services.email import email_service
 from app.services.export import csv_response
 from app.services.kpis import calcular_kpis_socio
 from app.services.tenants import reactivar_tenant, suspender_tenant
+from app.schemas.socio import FirmaUploadOut
+from app.services.uploads import firma_disponible, generar_firma
 from app.models import SujetoTipo
 
 router = APIRouter(dependencies=[Depends(require_superadmin)])
+
+
+@router.post("/uploads/firma", response_model=FirmaUploadOut)
+def firma_upload_socio(carpeta: str = Query("logos", max_length=40, pattern=r"^[a-z0-9_\-]+$"),
+                       tenant_id: int | None = Query(None)):
+    """Firma para subir el logo a Cloudinary directamente desde el frontend admin."""
+    if not firma_disponible():
+        raise HTTPException(
+            status.HTTP_503_SERVICE_UNAVAILABLE,
+            "Almacenamiento de imágenes no configurado (Cloudinary)",
+        )
+    return FirmaUploadOut(**generar_firma(tenant_id=tenant_id, carpeta=carpeta))
+
 
 
 def _detalle(db: Session, tenant: Tenant) -> SocioDetalle:
@@ -85,7 +100,7 @@ def listar_socios(
     q: str | None = None,
     nit: str | None = None,
     page: int = Query(1, ge=1),
-    size: int = Query(20, ge=1, le=200),
+    size: int = Query(10, ge=1, le=200),
     format: str | None = Query(None, pattern="^csv$"),
     db: Session = Depends(get_db),
 ):
@@ -111,7 +126,8 @@ def listar_socios(
     items = [
         SocioListItem(
             id=t.id, nombre_comercial=t.nombre_comercial, nit_rut=t.nit_rut,
-            categoria=cat, esquema=esq, estado=t.estado.value, created_at=t.created_at,
+            logo_url=t.logo_url, categoria=cat, esquema=esq, estado=t.estado.value,
+            created_at=t.created_at,
         )
         for t, cat, esq in rows
     ]
@@ -269,7 +285,7 @@ def kpis_socio(tenant_id: int, desde: date | None = None, hasta: date | None = N
 def clientes_del_socio(
     tenant_id: int,
     q: str | None = None,
-    page: int = Query(1, ge=1), size: int = Query(20, ge=1, le=200),
+    page: int = Query(1, ge=1), size: int = Query(10, ge=1, le=200),
     db: Session = Depends(get_db),
 ):
     _get_tenant(db, tenant_id)

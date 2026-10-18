@@ -58,6 +58,11 @@
 		'log-out':
 			'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/>',
 		search: '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+		'chart-pie': '<path d="M21 12c0-4.97-4.03-9-9-9v9Z"/><path d="M12 21a9 9 0 1 0-9-9c0 4.97 4.03 9 9 9Z"/>',
+		activity: '<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>',
+		clock: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+		camera: '<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/>',
+		upload: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/>',
 	};
 
 	let { name, clase = 'h-4 w-4' }: { name: string; clase?: string } = $props();

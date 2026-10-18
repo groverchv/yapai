@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime, time, timedelta
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import func, select
@@ -7,11 +7,11 @@ from sqlalchemy.orm import Session
 from app.core.deps import require_owner
 from app.db.session import get_db
 from app.models import (
-    Cliente, EstadoPremio, MovimientoPuntos, Premio, RolUsuario,
+    Cliente, EstadoPase, EstadoPremio, MovimientoPuntos, PaseDigital, Premio, RolUsuario,
     Sucursal, TipoMovimiento, Usuario,
 )
-from app.schemas.admin import Pagina, TransaccionOut
-from app.schemas.socio import PremioStockBajo, ResumenSocio
+from app.schemas.admin import Pagina, SerieDia, TransaccionOut
+from app.schemas.socio import PremioStockBajo, ResumenSocio, TopPremioSocio
 from app.services.export import csv_response
 from app.services.kpis import calcular_kpis_socio
 from app.services.transacciones import (
@@ -36,6 +36,66 @@ def resumen(desde: date | None = None, hasta: date | None = None,
             Premio.estado != EstadoPremio.inactivo,
         )
     ).all()
+
+    hoy = datetime.combine(date.today(), time.min)
+    hace_30 = hoy - timedelta(days=29)
+
+    base_t = [MovimientoPuntos.tenant_id == usuario.tenant_id]
+    if sucursal_id:
+        base_t.append(MovimientoPuntos.sucursal_id == sucursal_id)
+
+    tx_hoy = db.scalar(
+        select(func.count(MovimientoPuntos.id)).where(*base_t, MovimientoPuntos.created_at >= hoy)
+    ) or 0
+
+    clientes_totales = db.scalar(
+        select(func.count(Cliente.id)).where(Cliente.tenant_registro_id == usuario.tenant_id)
+    ) or 0
+
+    pases_activos = db.scalar(
+        select(func.count(PaseDigital.id)).where(
+            PaseDigital.tenant_id == usuario.tenant_id,
+            PaseDigital.estado == EstadoPase.activo,
+        )
+    ) or 0
+
+    # Serie diaria 30d
+    por_dia = db.execute(
+        select(func.date(MovimientoPuntos.created_at), func.count(MovimientoPuntos.id))
+        .where(*base_t, MovimientoPuntos.created_at >= hace_30)
+        .group_by(func.date(MovimientoPuntos.created_at))
+    ).all()
+    mapa = {str(f): c for f, c in por_dia}
+    serie = [
+        SerieDia(fecha=(hace_30 + timedelta(days=i)).date().isoformat(),
+                 total=mapa.get((hace_30 + timedelta(days=i)).date().isoformat(), 0))
+        for i in range(30)
+    ]
+
+    # Top Premios más canjeados
+    top_premios_rows = db.execute(
+        select(
+            Premio.id, Premio.nombre, Premio.costo_puntos, Premio.stock, Premio.imagen_url,
+            func.count(MovimientoPuntos.id).label("total_canjes")
+        )
+        .outerjoin(MovimientoPuntos, MovimientoPuntos.premio_id == Premio.id)
+        .where(Premio.tenant_id == usuario.tenant_id, Premio.estado != EstadoPremio.inactivo)
+        .group_by(Premio.id, Premio.nombre, Premio.costo_puntos, Premio.stock, Premio.imagen_url)
+        .order_by(func.count(MovimientoPuntos.id).desc(), Premio.id)
+        .limit(6)
+    ).all()
+
+    top_premios = [
+        TopPremioSocio(
+            id=r[0], nombre=r[1], costo_puntos=r[2], stock=r[3], imagen_url=r[4], total_canjes=r[5]
+        )
+        for r in top_premios_rows
+    ]
+
+    tasa_redencion = 0.0
+    if kpis.puntos_emitidos > 0:
+        tasa_redencion = round((kpis.puntos_consumidos / kpis.puntos_emitidos) * 100, 1)
+
     return ResumenSocio(
         clientes_nuevos=kpis.clientes_nuevos,
         puntos_otorgados=kpis.puntos_emitidos,
@@ -43,6 +103,12 @@ def resumen(desde: date | None = None, hasta: date | None = None,
         canjes_exitosos=kpis.canjes_exitosos,
         stock_critico=[PremioStockBajo(id=p.id, nombre=p.nombre, stock=p.stock or 0)
                        for p in stock_bajo],
+        clientes_totales=clientes_totales,
+        tasa_redencion=tasa_redencion,
+        transacciones_hoy=tx_hoy,
+        pases_activos=pases_activos,
+        transacciones_30d=serie,
+        top_premios=top_premios,
     )
 
 

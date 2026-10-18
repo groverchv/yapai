@@ -16,9 +16,15 @@ router = APIRouter(dependencies=[Depends(require_owner)])
 def mi_perfil(usuario: Usuario = Depends(require_owner), db: Session = Depends(get_db)):
     tenant = db.get(Tenant, usuario.tenant_id)
     return PerfilOut(
-        id=usuario.id, nombre=usuario.nombre, email=usuario.email,
-        rol=usuario.rol.value, tenant_id=usuario.tenant_id,
+        id=usuario.id,
+        nombre=usuario.nombre,
+        email=usuario.email,
+        rol=usuario.rol.value,
+        tenant_id=usuario.tenant_id,
         tenant_nombre=tenant.nombre_comercial if tenant else "",
+        logo_url=tenant.logo_url if tenant else None,
+        telefono=tenant.telefono if tenant else None,
+        email_contacto=tenant.email_contacto if tenant else None,
     )
 
 
@@ -26,6 +32,14 @@ def mi_perfil(usuario: Usuario = Depends(require_owner), db: Session = Depends(g
 def actualizar_perfil(data: PerfilUpdate, usuario: Usuario = Depends(require_owner),
                       db: Session = Depends(get_db)):
     usuario.nombre = data.nombre
+    tenant = db.get(Tenant, usuario.tenant_id)
+    if tenant:
+        if data.tenant_nombre is not None:
+            tenant.nombre_comercial = data.tenant_nombre
+        if data.logo_url is not None:
+            tenant.logo_url = data.logo_url
+        if data.telefono is not None:
+            tenant.telefono = data.telefono
     db.commit()
     return mi_perfil(usuario, db)
 

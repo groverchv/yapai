@@ -47,6 +47,7 @@ class SocioListItem(BaseModel):
     id: int
     nombre_comercial: str
     nit_rut: str
+    logo_url: str | None = None
     categoria: str | None
     esquema: str | None
     estado: str
@@ -98,6 +99,9 @@ class KpisSocio(BaseModel):
     puntos_consumidos: int
     canjes_exitosos: int
     horas_a_primer_giro: float | None = None
+    transacciones_totales: int = 0
+    total_clientes_unicos: int = 0
+    serie_diaria: list[dict] = []
 
 
 class UsuarioListItem(BaseModel):
@@ -235,6 +239,8 @@ class KpisGlobales(BaseModel):
     monto_pendiente: float
     clientes_totales: int
     ttfs_medio_h: float | None = None  # tiempo medio hasta el primer giro (activación)
+    facturas_pendientes: int = 0
+    monto_facturacion_pendiente: float = 0.0
 
 
 class SerieDia(BaseModel):
@@ -242,10 +248,27 @@ class SerieDia(BaseModel):
     total: int
 
 
+class TopSocioItem(BaseModel):
+    id: int
+    nombre: str
+    logo_url: str | None = None
+    transacciones: int
+    clientes: int
+
+
+class DistribucionTipoItem(BaseModel):
+    tipo: str
+    cantidad: int
+    porcentaje: float
+
+
 class DashboardOut(BaseModel):
     kpis: KpisGlobales
     transacciones_30d: list[SerieDia]
     ultimas_transacciones: list[TransaccionOut]
+    top_socios: list[TopSocioItem] = []
+    distribucion_tipos: list[DistribucionTipoItem] = []
+
 
 
 # --- Planes SaaS ---

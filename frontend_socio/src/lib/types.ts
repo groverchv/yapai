@@ -29,6 +29,7 @@ export interface Perfil {
 	rol: string;
 	tenant_id: number;
 	tenant_nombre: string;
+	logo_url: string | null;
 }
 
 // --- Empleados ---
@@ -114,13 +115,27 @@ export interface Segmento {
 	activo: boolean;
 }
 
-// --- Métricas ---
+export interface TopPremioSocio {
+	id: number;
+	nombre: string;
+	costo_puntos: number;
+	stock: number | null;
+	imagen_url: string | null;
+	total_canjes: number;
+}
+
 export interface ResumenSocio {
 	clientes_nuevos: number;
 	puntos_otorgados: number;
 	puntos_consumidos: number;
 	canjes_exitosos: number;
 	stock_critico: { id: number; nombre: string; stock: number }[];
+	clientes_totales: number;
+	tasa_redencion: number;
+	transacciones_hoy: number;
+	pases_activos: number;
+	transacciones_30d: { fecha: string; total: number }[];
+	top_premios: TopPremioSocio[];
 }
 
 // --- Transacciones ---
@@ -214,4 +229,19 @@ export interface FacturaSocio {
 export interface EstadoCuenta {
 	estado: 'al_dia' | 'pendiente' | 'vencida';
 	facturas: FacturaSocio[];
+}
+
+export interface Comunicado {
+	id: number;
+	tenant_id: number;
+	titulo: string;
+	descripcion: string | null;
+	imagen_url: string;
+	imagen_public_id: string | null;
+	premio_id: number | null;
+	premio_nombre: string | null;
+	estado: 'borrador' | 'publicado' | 'archivado';
+	publicado_en: string | null;
+	vigencia_hasta: string | null;
+	created_at: string;
 }

@@ -86,7 +86,6 @@ def upgrade() -> None:
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.ForeignKeyConstraint(['categoria_id'], ['categorias_negocio.id'], ),
     sa.ForeignKeyConstraint(['esquema_comision_id'], ['esquemas_comision.id'], ),
-    sa.ForeignKeyConstraint(['suspendido_por'], ['usuarios.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_tenants_nit_rut'), 'tenants', ['nit_rut'], unique=True)
@@ -107,6 +106,7 @@ def upgrade() -> None:
     op.create_index(op.f('ix_usuarios_email'), 'usuarios', ['email'], unique=True)
     op.create_index(op.f('ix_usuarios_id'), 'usuarios', ['id'], unique=False)
     op.create_index(op.f('ix_usuarios_tenant_id'), 'usuarios', ['tenant_id'], unique=False)
+    op.create_foreign_key('fk_tenants_suspendido_por_usuarios', 'tenants', 'usuarios', ['suspendido_por'], ['id'])
     op.create_table('audit_log',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('actor_id', sa.Integer(), nullable=True),
@@ -346,6 +346,7 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_usuarios_tenant_id'), table_name='usuarios')
     op.drop_index(op.f('ix_usuarios_id'), table_name='usuarios')
     op.drop_index(op.f('ix_usuarios_email'), table_name='usuarios')
+    op.drop_constraint('fk_tenants_suspendido_por_usuarios', 'tenants', type_='foreignkey')
     op.drop_table('usuarios')
     op.drop_index(op.f('ix_tenants_nombre_comercial'), table_name='tenants')
     op.drop_index(op.f('ix_tenants_nit_rut'), table_name='tenants')

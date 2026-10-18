@@ -12,10 +12,21 @@ class PerfilOut(BaseModel):
     rol: str
     tenant_id: int
     tenant_nombre: str
+    logo_url: str | None = None
+    telefono: str | None = None
+    email_contacto: str | None = None
 
 
 class PerfilUpdate(BaseModel):
     nombre: str = Field(min_length=2, max_length=160)
+    tenant_nombre: str | None = Field(default=None, max_length=200)
+    logo_url: str | None = Field(default=None, max_length=500)
+    telefono: str | None = Field(default=None, max_length=50)
+
+
+class MediaUploadOut(BaseModel):
+    url: str
+    public_id: str | None = None
 
 
 class CambiarPasswordIn(BaseModel):
@@ -203,10 +214,22 @@ class SegmentoOut(BaseModel):
 
 # --- Métricas ---
 
+from app.schemas.admin import SerieDia
+
+
 class PremioStockBajo(BaseModel):
     id: int
     nombre: str
     stock: int
+
+
+class TopPremioSocio(BaseModel):
+    id: int
+    nombre: str
+    costo_puntos: int
+    stock: int | None = None
+    imagen_url: str | None = None
+    total_canjes: int = 0
 
 
 class ResumenSocio(BaseModel):
@@ -215,6 +238,12 @@ class ResumenSocio(BaseModel):
     puntos_consumidos: int
     canjes_exitosos: int
     stock_critico: list[PremioStockBajo]
+    clientes_totales: int = 0
+    tasa_redencion: float = 0.0
+    transacciones_hoy: int = 0
+    pases_activos: int = 0
+    transacciones_30d: list[SerieDia] = []
+    top_premios: list[TopPremioSocio] = []
 
 
 # --- Plan del socio ---
@@ -284,3 +313,49 @@ class EstadoCuentaOut(BaseModel):
 class PantallaQrOut(BaseModel):
     svg: str
     url: str
+
+
+# --- Comunicados (ofertas) ---
+
+class ComunicadoIn(BaseModel):
+    titulo: str = Field(min_length=3, max_length=160)
+    descripcion: str | None = Field(default=None, max_length=2000)
+    imagen_url: str = Field(max_length=500)
+    imagen_public_id: str | None = Field(default=None, max_length=200)
+    premio_id: int | None = None
+    vigencia_hasta: datetime | None = None
+
+
+class ComunicadoUpdate(BaseModel):
+    titulo: str | None = Field(default=None, min_length=3, max_length=160)
+    descripcion: str | None = Field(default=None, max_length=2000)
+    imagen_url: str | None = Field(default=None, max_length=500)
+    imagen_public_id: str | None = Field(default=None, max_length=200)
+    premio_id: int | None = None
+    vigencia_hasta: datetime | None = None
+
+
+class ComunicadoOut(BaseModel):
+    id: int
+    tenant_id: int
+    titulo: str
+    descripcion: str | None
+    imagen_url: str
+    imagen_public_id: str | None
+    premio_id: int | None
+    premio_nombre: str | None = None
+    estado: str
+    publicado_en: datetime | None
+    vigencia_hasta: datetime | None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class FirmaUploadOut(BaseModel):
+    cloud_name: str
+    api_key: str
+    timestamp: int
+    folder: str
+    signature: str

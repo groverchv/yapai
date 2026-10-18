@@ -13,6 +13,9 @@
 	} from '#lib/types';
 	import { formatFecha, formatFechaCorta } from '#lib/utils/format';
 
+	import Icon from '#lib/components/ui/Icon.svelte';
+	import { subirImagenCloudinary } from '#lib/utils/upload';
+
 	const id = Number(page.params.id);
 
 	let socio = $state<SocioDetalle | null>(null);
@@ -22,6 +25,7 @@
 	let planes = $state<PlanOut[]>([]);
 	let planSel = $state<string>('');
 	let guardandoPlan = $state(false);
+	let subiendoLogo = $state(false);
 	let tab = $state<'perfil' | 'usuarios' | 'sucursales' | 'clientes'>('perfil');
 	let usuarios = $state<UsuarioListItem[]>([]);
 	let sucursales = $state<SucursalListItem[]>([]);
@@ -33,7 +37,8 @@
 
 	let f = $state({
 		nombre_comercial: '', razon_social: '', nit_rut: '',
-		email_contacto: '', telefono: '', categoria_id: '', esquema_comision_id: ''
+		email_contacto: '', telefono: '', logo_url: '',
+		categoria_id: '', esquema_comision_id: ''
 	});
 
 	function llenarForm() {
@@ -44,9 +49,27 @@
 			nit_rut: socio.nit_rut,
 			email_contacto: socio.email_contacto ?? '',
 			telefono: socio.telefono ?? '',
+			logo_url: socio.logo_url ?? '',
 			categoria_id: socio.categoria_id ? String(socio.categoria_id) : '',
 			esquema_comision_id: socio.esquema_comision_id ? String(socio.esquema_comision_id) : ''
 		};
+	}
+
+	async function manejarSeleccionLogo(e: Event) {
+		const input = e.target as HTMLInputElement;
+		const archivo = input.files?.[0];
+		if (!archivo) return;
+
+		subiendoLogo = true;
+		mensaje = '';
+		try {
+			const url = await subirImagenCloudinary(archivo, { carpeta: 'logos', tenantId: id });
+			f.logo_url = url;
+		} catch (err) {
+			mensaje = err instanceof ApiError ? err.detail : 'Error al subir imagen a Cloudinary';
+		} finally {
+			subiendoLogo = false;
+		}
 	}
 
 	async function cargar() {
@@ -73,7 +96,7 @@
 		if (tab === 'usuarios') usuarios = await api.get(`/admin/socios/${id}/usuarios`);
 		if (tab === 'sucursales') sucursales = await api.get(`/admin/socios/${id}/sucursales`);
 		if (tab === 'clientes') {
-			clientes = await api.get(`/admin/socios/${id}/clientes?page=${pageClientes}&size=20`);
+			clientes = await api.get(`/admin/socios/${id}/clientes?page=${pageClientes}&size=10`);
 		}
 	}
 
@@ -85,6 +108,7 @@
 				nit_rut: f.nit_rut,
 				email_contacto: f.email_contacto || null,
 				telefono: f.telefono || null,
+				logo_url: f.logo_url || null,
 				categoria_id: f.categoria_id ? Number(f.categoria_id) : null,
 				esquema_comision_id: f.esquema_comision_id ? Number(f.esquema_comision_id) : null
 			});
@@ -134,7 +158,14 @@
 {#if !socio}
 	<p class="text-slate-400">Cargando…</p>
 {:else}
-	<div class="mb-5 flex flex-wrap items-center gap-3">
+	<div class="mb-5 flex flex-wrap items-center gap-4">
+		{#if socio.logo_url}
+			<img src={socio.logo_url} alt={socio.nombre_comercial} class="h-14 w-14 rounded-xl object-cover border border-slate-200 shadow-xs" />
+		{:else}
+			<div class="flex h-14 w-14 items-center justify-center rounded-xl bg-indigo-50 text-base font-bold text-indigo-600 border border-indigo-100">
+				{socio.nombre_comercial.slice(0, 2).toUpperCase()}
+			</div>
+		{/if}
 		<div>
 			<h2 class="text-2xl font-bold text-slate-800">{socio.nombre_comercial}</h2>
 			<p class="text-sm text-slate-500">NIT {socio.nit_rut} · alta {formatFechaCorta(socio.created_at)}</p>
@@ -218,6 +249,37 @@
 							<option value="">—</option>
 							{#each esquemas as es}<option value={es.id}>{es.nombre} ({es.costo_registro}/{es.costo_canje} {es.moneda})</option>{/each}
 						</select></div>
+					<div class="sm:col-span-2">
+						<span class={label}>Logotipo comercial (Cloudinary)</span>
+						<div class="flex items-center gap-4 rounded-lg border border-slate-200 bg-slate-50/50 p-4">
+							{#if f.logo_url}
+								<img src={f.logo_url} alt="Logo" class="h-16 w-16 rounded-lg object-cover border border-slate-200 shadow-xs" />
+							{:else}
+								<div class="flex h-16 w-16 items-center justify-center rounded-lg bg-slate-200 text-slate-400">
+									<Icon name="camera" clase="h-8 w-8 text-slate-400" />
+								</div>
+							{/if}
+							<div class="flex-1">
+								{#if editando}
+									<label class="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-xs hover:bg-slate-50">
+										<Icon name="upload" clase="h-4 w-4 text-slate-500" />
+										<span>{subiendoLogo ? 'Subiendo a Cloudinary…' : f.logo_url ? 'Cambiar logotipo' : 'Subir imagen'}</span>
+										<input type="file" accept="image/*" onchange={manejarSeleccionLogo} disabled={subiendoLogo} class="hidden" />
+									</label>
+									<p class="mt-1 text-xs text-slate-400">Formato cuadrado PNG, JPG o WEBP.</p>
+									{#if f.logo_url}
+										<button type="button" onclick={() => (f.logo_url = '')} class="mt-1 text-xs text-rose-600 hover:underline">
+											Remover logo
+										</button>
+									{/if}
+								{:else}
+									<p class="text-xs text-slate-500 font-medium">
+										{f.logo_url ? 'Logotipo activo en Cloudinary' : 'Sin logotipo cargado'}
+									</p>
+								{/if}
+							</div>
+						</div>
+					</div>
 				</div>
 				{#if editando}
 					<button type="submit" class="mt-5 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">
