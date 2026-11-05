@@ -19,6 +19,11 @@ jobs:
       - name: Lint
         run: ruff check .
         working-directory: backend
+      - name: Migrations (dialecto SQLite)
+        # Valida que las migraciones aplican limpio en SQLite — atrapa defaults
+        # tipo now() que no existen en SQLite antes de llegar a producción.
+        run: DATABASE_URL="sqlite:///ci_migrations.db" python -m alembic upgrade head
+        working-directory: backend
       - name: Invariant tests
         run: python -m pytest tests/ -q
         working-directory: backend

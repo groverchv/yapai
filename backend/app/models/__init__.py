@@ -7,6 +7,7 @@ from app.models.liquidacion import AuditLog, EstadoLiquidacion, Liquidacion
 from app.models.plan import Plan
 from app.models.premio import EstadoPremio, Premio, RuletaSegmento
 from app.models.puntos import EstadoPase, MovimientoPuntos, PaseDigital, TipoMovimiento
+from app.models.push import PushSuscripcion
 from app.models.tenant import (
     ConfigPin,
     EmpleadoSucursal,
@@ -35,4 +36,5 @@ __all__ = [
     "Liquidacion", "AuditLog", "EstadoLiquidacion",
     "FacturaPlan", "EstadoFactura", "Campana", "Comunicado", "EstadoComunicado",
     "OnboardingToken", "PasswordReset", "RefreshToken", "SujetoTipo",
+    "PushSuscripcion",
 ]

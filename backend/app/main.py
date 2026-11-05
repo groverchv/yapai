@@ -60,6 +60,12 @@ if settings.JWT_SECRET == "yapai-dev-secret-cambiar-en-produccion":
         "JWT_SECRET usa el valor por defecto de desarrollo — definí uno propio en .env antes de producción"
     )
 
+if settings.ENV == "production" and not settings.REDIS_URL:
+    logging.getLogger("yapai").warning(
+        "REDIS_URL no definido en producción — el rate limiting corre en memoria "
+        "y no se comparte entre instancias/workers"
+    )
+
 
 @app.get("/metrics", include_in_schema=False)
 def metrics():

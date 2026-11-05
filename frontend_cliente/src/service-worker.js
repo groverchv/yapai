@@ -13,6 +13,41 @@ sw.addEventListener('activate', (event) => {
 	event.waitUntil(sw.clients.claim());
 });
 
+// --- Notificaciones push ---
+sw.addEventListener('push', (event) => {
+	let datos = { titulo: 'YAPAI', cuerpo: '', url: '/' };
+	try {
+		if (event.data) datos = { ...datos, ...event.data.json() };
+	} catch {
+		if (event.data) datos.cuerpo = event.data.text();
+	}
+	event.waitUntil(
+		sw.registration.showNotification(datos.titulo, {
+			body: datos.cuerpo,
+			icon: '/icons/icon-192.png',
+			badge: '/icons/icon-192.png',
+			data: { url: datos.url }
+		})
+	);
+});
+
+// Click en notificación: enfocar pestaña abierta o abrir la URL destino.
+sw.addEventListener('notificationclick', (event) => {
+	event.notification.close();
+	const url = event.notification.data?.url || '/';
+	event.waitUntil(
+		sw.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((lista) => {
+			for (const c of lista) {
+				if (c.url.startsWith(sw.location.origin) && 'focus' in c) {
+					c.navigate(url);
+					return c.focus();
+				}
+			}
+			return sw.clients.openWindow(url);
+		})
+	);
+});
+
 sw.addEventListener('fetch', (event) => {
 	const url = new URL(event.request.url);
 	if (event.request.method !== 'GET' || url.origin !== location.origin) return;

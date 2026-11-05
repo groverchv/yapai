@@ -66,6 +66,11 @@ class Settings(BaseSettings):
     # Rate limiting compartido entre workers (vacío = en memoria, single-instance)
     REDIS_URL: str | None = None
 
+    # Web Push (VAPID) — generar con: py-vapid --gen. Vacío = push desactivado.
+    VAPID_PUBLIC_KEY: str = ""
+    VAPID_PRIVATE_KEY: str = ""
+    VAPID_SUBJECT: str = "mailto:soporte@yapai.com"
+
     # Pasarela de Pagos Stripe
     STRIPE_SECRET_KEY: str = ""
     STRIPE_PUBLISHABLE_KEY: str = ""

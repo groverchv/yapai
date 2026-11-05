@@ -32,6 +32,11 @@ Este repositorio contiene la arquitectura completa de la solución Yapai:
    Credenciales demo: `admin@yapai.com` / `Admin123!` (superadmin) · `owner@demo.com` / `Owner123!` · `cajero@demo.com` / `Cajero123!` · cliente CI `12345678` tel `70000001`.
 4. Iniciar el servidor FastAPI:
    ```bash
+   # Con hot-reload y SQLite de demo (recomendado en dev):
+   .\dev.ps1          # Windows
+   ./dev.sh           # Linux/macOS
+
+   # O manual:
    python run.py
    ```
    - Swagger / Documentación interactiva: [http://localhost:8000/docs](http://localhost:8000/docs)

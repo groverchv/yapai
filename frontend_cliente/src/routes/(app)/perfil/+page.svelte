@@ -1,9 +1,11 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { onMount } from 'svelte';
 	import { auth } from '#lib/stores/auth.svelte';
 	import { pwa } from '#lib/stores/pwa.svelte';
 	import { toast } from '#lib/stores/toast.svelte';
 	import { mensajeError } from '#lib/api/client';
+	import { activarPush, estadoPush, pushSoportado, type EstadoPush } from '#lib/push';
 	import { cloudinaryThumb, compartir, iniciales } from '#lib/utils/format';
 	import Dialog from '#lib/components/ui/Dialog.svelte';
 	import Icon from '#lib/components/ui/Icon.svelte';
@@ -14,6 +16,20 @@
 	let subiendo = $state(false);
 	let confirmarEliminar = $state(false);
 	let inputFoto: HTMLInputElement;
+	let estadoNotif = $state<EstadoPush | 'cargando'>('cargando');
+	let activandoNotif = $state(false);
+
+	onMount(async () => {
+		if (!pushSoportado()) {
+			estadoNotif = 'no-soportado';
+			return;
+		}
+		try {
+			estadoNotif = await estadoPush();
+		} catch {
+			estadoNotif = 'desactivado';
+		}
+	});
 
 	async function subir(e: Event) {
 		const input = e.target as HTMLInputElement;
@@ -46,6 +62,23 @@
 		const acepto = await pwa.instalar();
 		if (!acepto && !pwa.instalada) {
 			toast.info('Abre el menú del navegador y elige "Instalar app" o "Añadir a pantalla de inicio"');
+		}
+	}
+
+	async function activarNotificaciones() {
+		activandoNotif = true;
+		try {
+			const estado = await activarPush();
+			estadoNotif = estado;
+			if (estado === 'activado') toast.exito('Notificaciones activadas');
+			else if (estado === 'denegado')
+				toast.error('Bloqueaste las notificaciones. Actívalas en la configuración del navegador.');
+			else if (estado === 'no-configurado')
+				toast.error('Las notificaciones no están disponibles por el momento.');
+		} catch (e) {
+			toast.error(mensajeError(e));
+		} finally {
+			activandoNotif = false;
 		}
 	}
 
@@ -127,6 +160,22 @@
 				class="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 py-3 text-sm font-semibold text-white hover:bg-indigo-700">
 				<Icon name="download" clase="h-4 w-4" /> Instalar app
 			</button>
+		{/if}
+		{#if estadoNotif === 'desactivado'}
+			<button onclick={activarNotificaciones} disabled={activandoNotif}
+				class="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 py-3 text-sm font-semibold text-indigo-700 hover:bg-indigo-100 disabled:opacity-60">
+				{#if activandoNotif}<Spinner clase="h-4 w-4" />{:else}<Icon name="bell" clase="h-4 w-4" />{/if}
+				Activar notificaciones
+			</button>
+		{:else if estadoNotif === 'activado'}
+			<div class="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-green-200 bg-green-50 py-3 text-sm font-medium text-green-700">
+				<Icon name="bell" clase="h-4 w-4" /> Notificaciones activas
+			</div>
+		{:else if estadoNotif === 'denegado'}
+			<p class="mt-3 rounded-xl bg-gray-50 px-3 py-2.5 text-center text-xs text-gray-500">
+				<Icon name="bell-off" clase="mr-1 inline h-3.5 w-3.5" />
+				Notificaciones bloqueadas — actívalas en la configuración del navegador
+			</p>
 		{/if}
 		<button onclick={salir}
 			class="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-gray-300 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50">

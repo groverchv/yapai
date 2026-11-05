@@ -35,6 +35,7 @@ from app.schemas.caja import (
     SucursalOpcion,
 )
 from app.services.puntos import canjear_pase, expirar_si_corresponde, otorgar
+from app.services.push import push_async
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -199,6 +200,8 @@ def otorgar_bonus(data: BonusIn, usuario: Usuario = Depends(require_caja),
         ejecutado_por=usuario.id, detalle={"motivo": data.motivo},
     )
     db.commit()
+    push_async(cliente.id, f"+{data.puntos} pts en {tenant.nombre_comercial}",
+               "Acreditamos puntos por tu compra", "/billetera")
     return BonusOut(
         detail=f"+{data.puntos} pts otorgados a {cliente.nombre}",
         puntos=data.puntos, saldo_cliente=cliente.saldo_puntos,

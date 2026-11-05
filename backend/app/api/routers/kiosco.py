@@ -39,6 +39,7 @@ from app.schemas.kiosco import (
 from app.services.campanas import generar_codigo_referido, multiplicador_activo
 from app.services.planes import verificar_limite, verificar_ruleta
 from app.services.puntos import otorgar, registrar_movimiento
+from app.services.push import push_async
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -185,6 +186,9 @@ def registro(device_token: str, data: RegistroKioscoIn, db: Session = Depends(ge
         )
 
     db.commit()
+    if referidor:
+        push_async(referidor.id, f"+{tenant.puntos_referido} pts por tu referido",
+                   f"{cliente.nombre} se registró con tu código", "/billetera")
     return RegistroKioscoOut(
         cliente_id=cliente.id, nombre=cliente.nombre, nuevo=True,
         puntos_otorgados=puntos, saldo=cliente.saldo_puntos,
@@ -238,6 +242,9 @@ def girar(device_token: str, data: GirarIn, db: Session = Depends(get_db)):
                  **({"campana_id": campana.id, "multiplicador": mult} if campana else {})},
     )
     db.commit()
+    if puntos > 0:
+        push_async(cliente.id, f"+{puntos} pts en la ruleta",
+                   f"Ganaste en {tenant.nombre_comercial}", "/billetera")
     return GirarOut(
         etiqueta=elegido.etiqueta, puntos=puntos,
         color=elegido.color, saldo=cliente.saldo_puntos, indice=indice,
