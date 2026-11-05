@@ -78,7 +78,7 @@
 	const label = 'mb-1 block text-xs font-medium text-slate-500';
 </script>
 
-<div class="mb-4 flex items-center justify-between">
+<div class="mb-4 flex flex-wrap items-center justify-between gap-3">
 	{#if mensaje}<p class="rounded-lg bg-sky-50 px-4 py-2 text-sm text-sky-700">{mensaje}</p>{:else}<span></span>{/if}
 	<button onclick={abrirNuevo}
 		class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">
@@ -113,7 +113,7 @@
 
 <Modal abierto={modal !== null} titulo={modal === 'nuevo' ? 'Nuevo plan' : `Editar ${modal?.nombre}`} onclose={() => (modal = null)}>
 	<form onsubmit={(e) => { e.preventDefault(); guardar(); }} class="space-y-4">
-		<div class="grid grid-cols-2 gap-3">
+		<div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
 			<div><span class={label}>Slug *</span>
 				<input bind:value={f.slug} required disabled={modal !== 'nuevo'} pattern="[a-z0-9-]+" class={input} placeholder="starter" /></div>
 			<div><span class={label}>Nombre *</span>
@@ -121,7 +121,7 @@
 		</div>
 		<div><span class={label}>Descripción</span>
 			<input bind:value={f.descripcion} class={input} /></div>
-		<div class="grid grid-cols-3 gap-3">
+		<div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
 			<div><span class={label}>Precio/mes</span>
 				<input type="number" step="0.01" min="0" bind:value={f.precio_mensual} class={input} /></div>
 			<div><span class={label}>Moneda</span>
@@ -131,7 +131,7 @@
 		</div>
 		<fieldset class="rounded-lg border border-slate-200 p-3">
 			<legend class="px-1 text-xs font-medium text-slate-500">Límites (0 = ilimitado)</legend>
-			<div class="grid grid-cols-2 gap-3">
+			<div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
 				<div><span class={label}>Sucursales</span>
 					<input type="number" min="0" bind:value={f.max_sucursales} class={input} /></div>
 				<div><span class={label}>Pantallas</span>

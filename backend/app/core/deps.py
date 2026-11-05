@@ -2,14 +2,13 @@ from dataclasses import dataclass
 from typing import Callable
 
 import jwt
+from app.core.security import decodificar_token
+from app.db.session import get_db
+from app.models import Cliente, EstadoCliente, EstadoUsuario, RolUsuario, Usuario
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-
-from app.core.security import decodificar_token
-from app.db.session import get_db
-from app.models import Cliente, EstadoCliente, EstadoUsuario, RolUsuario, Usuario
 
 bearer = HTTPBearer(auto_error=False)
 
@@ -47,7 +46,7 @@ def get_current_subject(
     try:
         payload = decodificar_token(cred.credentials)
     except jwt.PyJWTError:
-        raise _credenciales_invalidas()
+        raise _credenciales_invalidas() from None
 
     if payload.get("type") != "access":
         raise _credenciales_invalidas()

@@ -1,6 +1,3 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
-
 from app.core.deps import require_owner
 from app.core.security import hash_secret, verify_secret
 from app.db.session import get_db
@@ -8,6 +5,8 @@ from app.models import SujetoTipo, Tenant, Usuario
 from app.schemas.auth import MessageResponse
 from app.schemas.socio import CambiarPasswordIn, PerfilOut, PerfilUpdate
 from app.services.auth import revocar_todos_refresh
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
 
 router = APIRouter(dependencies=[Depends(require_owner)])
 

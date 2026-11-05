@@ -1,6 +1,5 @@
-from fastapi import APIRouter
-
 from app.db.postgrest_client import postgrest_client
+from fastapi import APIRouter
 
 router = APIRouter()
 

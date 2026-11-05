@@ -70,7 +70,7 @@
 	const input = 'w-full rounded-lg border border-slate-300 px-3 py-2 text-sm disabled:bg-slate-100 focus:border-indigo-500 focus:outline-none';
 </script>
 
-<div class="mb-4 flex items-center justify-between">
+<div class="mb-4 flex flex-wrap items-center justify-between gap-3">
 	{#if mensaje}<p class="rounded-lg bg-sky-50 px-4 py-2 text-sm text-sky-700">{mensaje}</p>{:else}<span></span>{/if}
 	<button onclick={abrirNuevo}
 		class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">
@@ -115,7 +115,7 @@
 			<label for="n" class="mb-1 block text-sm font-medium text-slate-700">Nombre *</label>
 			<input id="n" bind:value={f.nombre} required class={input} />
 		</div>
-		<div class="grid grid-cols-3 gap-3">
+		<div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
 			<div>
 				<label for="cr" class="mb-1 block text-sm font-medium text-slate-700">Costo registro</label>
 				<input id="cr" type="number" step="0.01" min="0" bind:value={f.costo_registro} disabled={montosBloqueados} class={input} />

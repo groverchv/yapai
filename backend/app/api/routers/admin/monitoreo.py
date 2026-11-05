@@ -1,24 +1,38 @@
 from datetime import date, datetime, time, timedelta
 
-from fastapi import APIRouter, Depends, Query
-from sqlalchemy import func, select
-from sqlalchemy.orm import Session
-
 from app.core.deps import require_superadmin
 from app.db.session import get_db
 from app.models import (
-    Cliente, EstadoFactura, EstadoLiquidacion, EstadoTenant, FacturaPlan,
-    Liquidacion, MovimientoPuntos, Tenant, TipoMovimiento,
+    Cliente,
+    EstadoFactura,
+    EstadoLiquidacion,
+    EstadoTenant,
+    FacturaPlan,
+    Liquidacion,
+    MovimientoPuntos,
+    Tenant,
+    TipoMovimiento,
 )
 from app.schemas.admin import (
-    DashboardOut, DistribucionTipoItem, KpisGlobales, KpisSocio, Pagina, SerieDia,
-    TopSocioItem, TransaccionOut,
+    DashboardOut,
+    DistribucionTipoItem,
+    KpisGlobales,
+    KpisSocio,
+    Pagina,
+    SerieDia,
+    TopSocioItem,
+    TransaccionOut,
 )
 from app.services.export import csv_response
 from app.services.kpis import calcular_kpis_socio
 from app.services.transacciones import (
-    filtros_transacciones, stmt_transacciones, to_transaccion_out,
+    filtros_transacciones,
+    stmt_transacciones,
+    to_transaccion_out,
 )
+from fastapi import APIRouter, Depends, Query
+from sqlalchemy import func, select
+from sqlalchemy.orm import Session
 
 router = APIRouter(dependencies=[Depends(require_superadmin)])
 

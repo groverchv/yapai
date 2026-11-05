@@ -1,7 +1,7 @@
 from datetime import datetime
 
+from app.schemas.admin import SerieDia
 from pydantic import BaseModel, EmailStr, Field
-
 
 # --- Perfil ---
 
@@ -39,11 +39,13 @@ class CambiarPasswordIn(BaseModel):
 class EmpleadoIn(BaseModel):
     nombre: str = Field(min_length=2, max_length=160)
     email: EmailStr
+    foto_url: str | None = None
     sucursal_ids: list[int] = []
 
 
 class EmpleadoUpdate(BaseModel):
     nombre: str | None = Field(default=None, min_length=2, max_length=160)
+    foto_url: str | None = None
     sucursal_ids: list[int] | None = None
 
 
@@ -51,6 +53,7 @@ class EmpleadoOut(BaseModel):
     id: int
     nombre: str
     email: str
+    foto_url: str | None = None
     estado: str
     onboarding_pendiente: bool
     sucursales: list[str]
@@ -62,13 +65,19 @@ class EmpleadoOut(BaseModel):
 class SucursalIn(BaseModel):
     nombre: str = Field(min_length=2, max_length=160)
     direccion: str | None = None
+    latitud: float | None = None
+    longitud: float | None = None
     encargado_nombre: str | None = None
+    imagen_url: str | None = None
 
 
 class SucursalUpdate(BaseModel):
     nombre: str | None = Field(default=None, min_length=2, max_length=160)
     direccion: str | None = None
+    latitud: float | None = None
+    longitud: float | None = None
     encargado_nombre: str | None = None
+    imagen_url: str | None = None
 
 
 class PantallaOut(BaseModel):
@@ -83,7 +92,10 @@ class SucursalDetalleOut(BaseModel):
     id: int
     nombre: str
     direccion: str | None
+    latitud: float | None = None
+    longitud: float | None = None
     encargado_nombre: str | None
+    imagen_url: str | None = None
     estado: str
     pin_set: bool
     pantallas: list[PantallaOut]
@@ -214,8 +226,6 @@ class SegmentoOut(BaseModel):
 
 # --- Métricas ---
 
-from app.schemas.admin import SerieDia
-
 
 class PremioStockBajo(BaseModel):
     id: int
@@ -232,6 +242,14 @@ class TopPremioSocio(BaseModel):
     total_canjes: int = 0
 
 
+class ResumenPrevio(BaseModel):
+    """KPIs del período espejo anterior (solo cuando hay rango desde/hasta)."""
+    clientes_nuevos: int
+    puntos_otorgados: int
+    puntos_consumidos: int
+    canjes_exitosos: int
+
+
 class ResumenSocio(BaseModel):
     clientes_nuevos: int
     puntos_otorgados: int
@@ -244,6 +262,7 @@ class ResumenSocio(BaseModel):
     pases_activos: int = 0
     transacciones_30d: list[SerieDia] = []
     top_premios: list[TopPremioSocio] = []
+    previos: ResumenPrevio | None = None
 
 
 # --- Plan del socio ---

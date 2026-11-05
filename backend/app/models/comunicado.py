@@ -1,9 +1,10 @@
 import enum
 from datetime import datetime
-from sqlalchemy import DateTime, Enum, ForeignKey, String, Text
+
+from app.db.session import Base
+from sqlalchemy import DateTime, Enum, ForeignKey, Index, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import func
-from app.db.session import Base
 
 
 class EstadoComunicado(str, enum.Enum):
@@ -20,6 +21,7 @@ class Comunicado(Base):
     - `imagen_public_id`: public_id de Cloudinary para borrarla al reemplazar.
     """
     __tablename__ = "comunicados"
+    __table_args__ = (Index("ix_comunicados_estado_fecha", "estado", "publicado_en"),)
 
     id: Mapped[int] = mapped_column(primary_key=True)
     tenant_id: Mapped[int] = mapped_column(ForeignKey("tenants.id"), index=True)

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
-	import { API_BASE } from '#lib/api/client';
+	import { API_BASE, fetchRed } from '#lib/api/client';
 	import { auth } from '#lib/stores/auth.svelte';
 	import Icon from '#lib/components/ui/Icon.svelte';
 	import type { PlanPublico } from '#lib/types';
@@ -15,7 +15,7 @@
 			return;
 		}
 		try {
-			const res = await fetch(`${API_BASE}/auth/planes`);
+			const res = await fetchRed(`${API_BASE}/auth/planes`);
 			planes = await res.json();
 		} catch {
 			errorPlanes = 'No se pudieron cargar los planes';

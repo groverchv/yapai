@@ -1,9 +1,10 @@
 import enum
 from datetime import datetime
-from sqlalchemy import String, DateTime, Enum, ForeignKey, Integer
+
+from app.db.session import Base
+from sqlalchemy import DateTime, Enum, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import func
-from app.db.session import Base
 
 
 class EstadoTenant(str, enum.Enum):
@@ -63,7 +64,11 @@ class Sucursal(Base):
     tenant_id: Mapped[int] = mapped_column(ForeignKey("tenants.id"), index=True)
     nombre: Mapped[str] = mapped_column(String(160))
     direccion: Mapped[str | None] = mapped_column(String(300), nullable=True)
+    # Coordenadas para "cómo llegar" (deep-link a GPS/Maps desde la app del cliente)
+    latitud: Mapped[float | None] = mapped_column(Float, nullable=True)
+    longitud: Mapped[float | None] = mapped_column(Float, nullable=True)
     encargado_nombre: Mapped[str | None] = mapped_column(String(160), nullable=True)
+    imagen_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     estado: Mapped[EstadoSucursal] = mapped_column(
         Enum(EstadoSucursal, native_enum=False, length=20, validate_strings=True),
         default=EstadoSucursal.activa,

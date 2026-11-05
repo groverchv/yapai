@@ -1,22 +1,30 @@
 import secrets
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select, update
-from sqlalchemy.orm import Session
-
+from app.core.config import settings
 from app.core.deps import require_owner
 from app.db.session import get_db
 from app.models import (
-    EstadoPantalla, EstadoSucursal, Pantalla, PinSucursal, Sucursal, Tenant, Usuario,
+    EstadoPantalla,
+    EstadoSucursal,
+    Pantalla,
+    PinSucursal,
+    Sucursal,
+    Tenant,
+    Usuario,
 )
-from app.core.config import settings
-from app.schemas.auth import MessageResponse
 from app.schemas.socio import (
-    PantallaIn, PantallaOut, PantallaQrOut, SucursalDetalleOut, SucursalIn,
+    PantallaIn,
+    PantallaOut,
+    PantallaQrOut,
+    SucursalDetalleOut,
+    SucursalIn,
     SucursalUpdate,
 )
 from app.services.audit import registrar_audit
 from app.services.planes import verificar_limite
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import select, update
+from sqlalchemy.orm import Session
 
 
 def _tenant(db: Session, tenant_id: int) -> Tenant:
@@ -42,7 +50,9 @@ def _out(db: Session, s: Sucursal) -> SucursalDetalleOut:
     pin_set = db.scalar(select(PinSucursal.sucursal_id).where(PinSucursal.sucursal_id == s.id)) is not None
     return SucursalDetalleOut(
         id=s.id, nombre=s.nombre, direccion=s.direccion,
-        encargado_nombre=s.encargado_nombre, estado=s.estado.value, pin_set=pin_set,
+        latitud=s.latitud, longitud=s.longitud,
+        encargado_nombre=s.encargado_nombre, imagen_url=s.imagen_url,
+        estado=s.estado.value, pin_set=pin_set,
         pantallas=[PantallaOut(
             id=p.id, nombre=p.nombre, device_token=p.device_token,
             estado=p.estado.value, habilitada_hasta=p.habilitada_hasta,

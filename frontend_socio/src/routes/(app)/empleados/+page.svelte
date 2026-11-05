@@ -3,6 +3,7 @@
 	import { api } from '#lib/api/client';
 	import Badge from '#lib/components/ui/Badge.svelte';
 	import DataTable from '#lib/components/ui/DataTable.svelte';
+	import ImageUploader from '#lib/components/ui/ImageUploader.svelte';
 	import Modal from '#lib/components/ui/Modal.svelte';
 	import Pagination from '#lib/components/ui/Pagination.svelte';
 	import { formatFecha } from '#lib/utils/format';
@@ -22,12 +23,13 @@
 	let modalEditar = $state<Empleado | null>(null);
 	let formNombre = $state('');
 	let formEmail = $state('');
+	let formFoto = $state('');
 	let formSucursales = $state<number[]>([]);
 	let guardando = $state(false);
 	let errorModal = $state('');
 
 	const columnas = [
-		{ key: 'nombre', label: 'Nombre' },
+		{ key: 'nombre', label: 'Empleado' },
 		{ key: 'email', label: 'Correo' },
 		{ key: 'sucursales', label: 'Sucursales' },
 		{ key: 'estado', label: 'Estado' },
@@ -39,7 +41,7 @@
 		error = '';
 		page = p;
 		try {
-			const params = new URLSearchParams({ page: String(p), size: '20' });
+			const params = new URLSearchParams({ page: String(p), size: '10' });
 			if (q) params.set('q', q);
 			if (estado) params.set('estado', estado);
 			datos = await api.get<Pagina<Empleado>>(`/socio/empleados?${params}`);
@@ -53,6 +55,7 @@
 	function abrirCrear() {
 		formNombre = '';
 		formEmail = '';
+		formFoto = '';
 		formSucursales = [];
 		errorModal = '';
 		modalCrear = true;
@@ -60,6 +63,7 @@
 
 	function abrirEditar(emp: Empleado) {
 		formNombre = emp.nombre;
+		formFoto = emp.foto_url ?? '';
 		formSucursales = sucursales
 			.filter((s) => emp.sucursales.includes(s.nombre))
 			.map((s) => s.id);
@@ -79,7 +83,10 @@
 		errorModal = '';
 		try {
 			await api.post('/socio/empleados', {
-				nombre: formNombre, email: formEmail, sucursal_ids: formSucursales
+				nombre: formNombre,
+				email: formEmail,
+				foto_url: formFoto || null,
+				sucursal_ids: formSucursales
 			});
 			modalCrear = false;
 			mensaje = 'Empleado creado. Se enviaron las credenciales por correo.';
@@ -98,7 +105,9 @@
 		errorModal = '';
 		try {
 			await api.patch(`/socio/empleados/${modalEditar.id}`, {
-				nombre: formNombre, sucursal_ids: formSucursales
+				nombre: formNombre,
+				foto_url: formFoto || null,
+				sucursal_ids: formSucursales
 			});
 			modalEditar = null;
 			cargar(page);
@@ -164,7 +173,18 @@
 		<DataTable {columnas} filas={(datos?.items ?? []) as unknown as Record<string, unknown>[]} {cargando}>
 			{#snippet celda({ key, fila })}
 				{@const emp = fila as unknown as Empleado}
-				{#if key === 'sucursales'}
+				{#if key === 'nombre'}
+					<div class="flex items-center gap-3">
+						{#if emp.foto_url}
+							<img src={emp.foto_url} alt={emp.nombre} class="h-9 w-9 shrink-0 rounded-full object-cover ring-1 ring-slate-200" />
+						{:else}
+							<div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-100 font-semibold text-emerald-800 text-sm">
+								{emp.nombre.charAt(0).toUpperCase()}
+							</div>
+						{/if}
+						<span class="font-medium text-slate-800">{emp.nombre}</span>
+					</div>
+				{:else if key === 'sucursales'}
 					{emp.sucursales.length > 0 ? emp.sucursales.join(', ') : '—'}
 				{:else if key === 'estado'}
 					<Badge texto={emp.estado === 'activo' ? 'Activo' : 'Suspendido'}
@@ -202,6 +222,10 @@
 <Modal abierto={modalCrear} titulo="Nuevo empleado (cajero)" onclose={() => (modalCrear = false)}>
 	<form onsubmit={crear} class="space-y-4">
 		<div>
+			<span class="mb-1 block text-sm font-medium text-slate-700">Foto de perfil</span>
+			<ImageUploader bind:value={formFoto} carpeta="empleados" aspecto="square" />
+		</div>
+		<div>
 			<label for="en" class="mb-1 block text-sm font-medium text-slate-700">Nombre completo</label>
 			<input id="en" type="text" bind:value={formNombre} required minlength="2"
 				class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />
@@ -238,6 +262,10 @@
 
 <Modal abierto={modalEditar !== null} titulo="Editar empleado" onclose={() => (modalEditar = null)}>
 	<form onsubmit={editar} class="space-y-4">
+		<div>
+			<span class="mb-1 block text-sm font-medium text-slate-700">Foto de perfil</span>
+			<ImageUploader bind:value={formFoto} carpeta="empleados" aspecto="square" />
+		</div>
 		<div>
 			<label for="en2" class="mb-1 block text-sm font-medium text-slate-700">Nombre completo</label>
 			<input id="en2" type="text" bind:value={formNombre} required minlength="2"

@@ -1,17 +1,20 @@
 from datetime import timezone
 
 import jwt
-from fastapi import HTTPException, status
-from sqlalchemy import select, update
-from sqlalchemy.orm import Session
-
 from app.core.config import settings
 from app.core.security import (
-    crear_access_token, crear_refresh_token, decodificar_token,
-    generar_token_plano, sha256_hex, utcnow,
+    crear_access_token,
+    crear_refresh_token,
+    decodificar_token,
+    generar_token_plano,
+    sha256_hex,
+    utcnow,
 )
 from app.models import Cliente, RefreshToken, SujetoTipo, Usuario
 from app.schemas.auth import TokenPair
+from fastapi import HTTPException, status
+from sqlalchemy import select, update
+from sqlalchemy.orm import Session
 
 
 def _aware(dt):
@@ -45,7 +48,7 @@ def rotar_refresh(db: Session, refresh_token: str) -> tuple[TokenPair, str, int]
     try:
         payload = decodificar_token(refresh_token)
     except jwt.PyJWTError:
-        raise _refresh_invalido()
+        raise _refresh_invalido() from None
     if payload.get("type") != "refresh":
         raise _refresh_invalido()
 
@@ -89,6 +92,7 @@ def revocar_todos_refresh(db: Session, sujeto_tipo: SujetoTipo, sujeto_id: int) 
 def crear_onboarding_token(db: Session, email: str, tenant_id: int) -> str:
     """Genera token plano (se envía por email); en DB queda solo el hash."""
     from datetime import timedelta
+
     from app.models import OnboardingToken
     plano = generar_token_plano()
     db.add(OnboardingToken(

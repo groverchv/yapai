@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { API_BASE } from '#lib/api/client';
+	import { API_BASE, fetchRed } from '#lib/api/client';
 
 	let password = $state('');
 	let confirmar = $state('');
@@ -19,7 +19,7 @@
 		}
 		cargando = true;
 		try {
-			const res = await fetch(`${API_BASE}/auth/onboarding`, {
+			const res = await fetchRed(`${API_BASE}/auth/onboarding`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ token, password })

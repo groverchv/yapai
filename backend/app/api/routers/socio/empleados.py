@@ -1,16 +1,18 @@
 from datetime import timedelta
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import func, select
-from sqlalchemy.orm import Session
-
 from app.core.config import settings
 from app.core.deps import require_owner
 from app.core.security import generar_token_plano, sha256_hex, utcnow
 from app.db.session import get_db
 from app.models import (
-    EmpleadoSucursal, EstadoUsuario, PasswordReset, RolUsuario,
-    Sucursal, SujetoTipo, Tenant, Usuario,
+    EmpleadoSucursal,
+    EstadoUsuario,
+    PasswordReset,
+    RolUsuario,
+    Sucursal,
+    SujetoTipo,
+    Tenant,
+    Usuario,
 )
 from app.schemas.admin import Pagina
 from app.schemas.auth import MessageResponse
@@ -19,6 +21,9 @@ from app.services.audit import registrar_audit
 from app.services.auth import crear_onboarding_token, revocar_todos_refresh
 from app.services.email import email_service
 from app.services.planes import verificar_limite
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import func, select
+from sqlalchemy.orm import Session
 
 router = APIRouter(dependencies=[Depends(require_owner)])
 
@@ -30,8 +35,8 @@ def _empleado_out(db: Session, u: Usuario) -> EmpleadoOut:
         .where(EmpleadoSucursal.usuario_id == u.id)
     ).all()
     return EmpleadoOut(
-        id=u.id, nombre=u.nombre, email=u.email, estado=u.estado.value,
-        onboarding_pendiente=u.password_hash is None,
+        id=u.id, nombre=u.nombre, email=u.email, foto_url=u.foto_url,
+        estado=u.estado.value, onboarding_pendiente=u.password_hash is None,
         sucursales=list(sucursales), ultimo_login=u.ultimo_login,
     )
 
@@ -61,7 +66,7 @@ def _validar_sucursales(db: Session, tenant_id: int, ids: list[int]) -> None:
 @router.get("", response_model=Pagina[EmpleadoOut])
 def listar_empleados(
     q: str | None = None, estado: EstadoUsuario | None = None,
-    page: int = Query(1, ge=1), size: int = Query(20, ge=1, le=200),
+    page: int = Query(1, ge=1), size: int = Query(10, ge=1, le=200),
     usuario: Usuario = Depends(require_owner), db: Session = Depends(get_db),
 ):
     filtros = [Usuario.tenant_id == usuario.tenant_id, Usuario.rol == RolUsuario.cajero]
@@ -88,8 +93,8 @@ def crear_empleado(data: EmpleadoIn, usuario: Usuario = Depends(require_owner),
     _validar_sucursales(db, usuario.tenant_id, data.sucursal_ids)
 
     empleado = Usuario(
-        email=data.email, nombre=data.nombre, rol=RolUsuario.cajero,
-        tenant_id=usuario.tenant_id, password_hash=None,
+        email=data.email, nombre=data.nombre, foto_url=data.foto_url,
+        rol=RolUsuario.cajero, tenant_id=usuario.tenant_id, password_hash=None,
     )
     db.add(empleado)
     db.flush()
@@ -109,13 +114,15 @@ def editar_empleado(empleado_id: int, data: EmpleadoUpdate,
                     usuario: Usuario = Depends(require_owner), db: Session = Depends(get_db)):
     emp = _get_empleado(db, usuario.tenant_id, empleado_id)
     cambios = data.model_dump(exclude_unset=True)
-    if "nombre" in cambios:
-        emp.nombre = cambios["nombre"]
-    if "sucursal_ids" in cambios and cambios["sucursal_ids"] is not None:
-        _validar_sucursales(db, usuario.tenant_id, cambios["sucursal_ids"])
-        db.query(EmpleadoSucursal).filter(EmpleadoSucursal.usuario_id == emp.id).delete()
-        for sid in set(cambios["sucursal_ids"]):
-            db.add(EmpleadoSucursal(usuario_id=emp.id, sucursal_id=sid))
+    if "sucursal_ids" in cambios:
+        sids = cambios.pop("sucursal_ids")
+        if sids is not None:
+            _validar_sucursales(db, usuario.tenant_id, sids)
+            db.query(EmpleadoSucursal).where(EmpleadoSucursal.usuario_id == emp.id).delete()
+            for sid in set(sids):
+                db.add(EmpleadoSucursal(usuario_id=emp.id, sucursal_id=sid))
+    for campo, valor in cambios.items():
+        setattr(emp, campo, valor)
     registrar_audit(db, usuario.id, "editar_empleado", "usuario", emp.id, cambios)
     db.commit()
     return _empleado_out(db, emp)

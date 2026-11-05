@@ -3,11 +3,10 @@ segmento de clientes inactivos."""
 import secrets
 from datetime import timedelta
 
-from sqlalchemy import func, or_, select
-from sqlalchemy.orm import Session
-
 from app.core.security import utcnow
 from app.models import Campana, Cliente, EstadoCliente, MovimientoPuntos
+from sqlalchemy import func, or_, select
+from sqlalchemy.orm import Session
 
 _ALFABETO_CODIGO = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"  # sin 0/O/1/I/L — fácil de dictar
 

@@ -6,22 +6,38 @@ asignadas (si tiene asignaciones); el owner en cualquiera del tenant.
 
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import func, select
-from sqlalchemy.orm import Session
-
 from app.core.deps import require_caja
 from app.db.session import get_db
 from app.models import (
-    Cliente, EmpleadoSucursal, EstadoCliente, EstadoPase, EstadoSucursal,
-    MovimientoPuntos, PaseDigital, Premio, RolUsuario, Sucursal, Tenant,
-    TipoMovimiento, Usuario, ConfigPin, ModoPin,
+    Cliente,
+    ConfigPin,
+    EmpleadoSucursal,
+    EstadoCliente,
+    EstadoSucursal,
+    ModoPin,
+    MovimientoPuntos,
+    PaseDigital,
+    Premio,
+    RolUsuario,
+    Sucursal,
+    Tenant,
+    TipoMovimiento,
+    Usuario,
 )
 from app.schemas.caja import (
-    BonusIn, BonusOut, CanjearIn, CanjearOut, ClienteBusquedaOut,
-    ContextoCajaOut, PasePreviewOut, SucursalOpcion,
+    BonusIn,
+    BonusOut,
+    CanjearIn,
+    CanjearOut,
+    ClienteBusquedaOut,
+    ContextoCajaOut,
+    PasePreviewOut,
+    SucursalOpcion,
 )
 from app.services.puntos import canjear_pase, expirar_si_corresponde, otorgar
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import func, select
+from sqlalchemy.orm import Session
 
 router = APIRouter(dependencies=[Depends(require_caja)])
 

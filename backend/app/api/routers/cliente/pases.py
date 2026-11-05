@@ -1,12 +1,11 @@
+from app.core.deps import get_current_cliente
+from app.db.session import get_db
+from app.models import Cliente, PaseDigital, Premio, Tenant
+from app.schemas.cliente import PaseCreateIn, PaseOut
+from app.services.puntos import cancelar_pase, expirar_si_corresponde, generar_pase
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-
-from app.core.deps import get_current_cliente
-from app.db.session import get_db
-from app.models import Cliente, EstadoPase, PaseDigital, Premio, Tenant
-from app.schemas.cliente import PaseCreateIn, PaseOut
-from app.services.puntos import cancelar_pase, expirar_si_corresponde, generar_pase
 
 router = APIRouter(dependencies=[Depends(get_current_cliente)])
 

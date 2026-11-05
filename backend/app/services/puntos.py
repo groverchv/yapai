@@ -12,19 +12,34 @@ import secrets
 import string
 from datetime import timedelta
 
+from app.core.security import utcnow
+from app.models import (
+    Cliente,
+    EstadoPase,
+    EstadoPremio,
+    EstadoTenant,
+    MovimientoPuntos,
+    PaseDigital,
+    Premio,
+    Tenant,
+    TipoMovimiento,
+)
 from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.core.security import utcnow
-from app.models import (
-    Cliente, EstadoPase, EstadoPremio, MovimientoPuntos, PaseDigital,
-    Premio, Tenant, EstadoTenant, TipoMovimiento,
-)
-
 PASE_TTL_HOURS = 24
 _ALFABETO_PIN = "".join(c for c in string.ascii_uppercase + string.digits
                         if c not in "O0I1")  # sin caracteres ambiguos
+
+# Tipos que otorgan puntos al cliente (congelar/liberar son bookkeeping interno;
+# sumar 'compra' aquí cuando se implemente Fase 15)
+TIPOS_GANANCIA = (
+    TipoMovimiento.registro,
+    TipoMovimiento.ruleta,
+    TipoMovimiento.bonus_manual,
+    TipoMovimiento.referido,
+)
 
 
 def saldo_disponible(cliente: Cliente) -> int:

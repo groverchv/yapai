@@ -1,8 +1,3 @@
-from datetime import timedelta
-
-from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import select
-from sqlalchemy.orm import Session
 
 from app.core.deps import require_owner
 from app.core.security import utcnow
@@ -11,6 +6,9 @@ from app.models import Campana, Sucursal, Usuario
 from app.schemas.socio import CampanaIn, CampanaOut, CampanaUpdate, InactivoOut
 from app.services.campanas import inactivos as servicio_inactivos
 from app.services.export import csv_response
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 router = APIRouter(dependencies=[Depends(require_owner)])
 

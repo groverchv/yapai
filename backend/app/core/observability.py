@@ -11,12 +11,11 @@ import time
 import uuid
 from contextvars import ContextVar
 
+from app.core.config import settings
 from prometheus_client import CONTENT_TYPE_LATEST, Counter, Histogram, generate_latest
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
-
-from app.core.config import settings
 
 request_id_ctx: ContextVar[str | None] = ContextVar("request_id", default=None)
 

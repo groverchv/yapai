@@ -11,9 +11,8 @@ import time
 from collections import defaultdict, deque
 from typing import Callable, Protocol
 
-from fastapi import HTTPException, Request, status
-
 from app.core.config import settings
+from fastapi import HTTPException, Request, status
 
 logger = logging.getLogger(__name__)
 

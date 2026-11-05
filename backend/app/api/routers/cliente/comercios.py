@@ -1,18 +1,27 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import func, or_, select
-from sqlalchemy.orm import Session
-
 from app.core.deps import get_current_cliente
 from app.core.security import utcnow
 from app.db.session import get_db
 from app.models import (
-    CategoriaNegocio, Cliente, EstadoPremio, EstadoSucursal, EstadoTenant,
-    Premio, Sucursal, Tenant,
+    CategoriaNegocio,
+    Cliente,
+    EstadoPremio,
+    EstadoSucursal,
+    EstadoTenant,
+    MovimientoPuntos,
+    Premio,
+    Sucursal,
+    Tenant,
 )
 from app.schemas.cliente import (
-    ComercioDetalleOut, ComercioListOut, PremioClienteOut, SucursalClienteOut,
+    ComercioDetalleOut,
+    ComercioListOut,
+    PremioClienteOut,
+    SucursalClienteOut,
 )
-from app.services.puntos import saldo_disponible
+from app.services.puntos import TIPOS_GANANCIA, saldo_disponible
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import func, or_, select
+from sqlalchemy.orm import Session
 
 router = APIRouter(dependencies=[Depends(get_current_cliente)])
 
@@ -28,6 +37,7 @@ def _tenant_activo(db: Session, tenant_id: int) -> Tenant:
 
 @router.get("/comercios", response_model=list[ComercioListOut])
 def directorio(q: str | None = None, categoria_id: int | None = None,
+               cliente: Cliente = Depends(get_current_cliente),
                db: Session = Depends(get_db)):
     filtros = [Tenant.estado == EstadoTenant.activo]
     if q:
@@ -43,10 +53,20 @@ def directorio(q: str | None = None, categoria_id: int | None = None,
         .group_by(Tenant.id, CategoriaNegocio.nombre)
         .order_by(Tenant.nombre_comercial)
     ).all()
+    # Puntos que el cliente ganó por comercio (un solo aggregate, evita N+1)
+    ganados = dict(db.execute(
+        select(MovimientoPuntos.tenant_id, func.sum(MovimientoPuntos.puntos))
+        .where(MovimientoPuntos.cliente_id == cliente.id,
+               MovimientoPuntos.tenant_id.is_not(None),
+               MovimientoPuntos.tipo.in_(TIPOS_GANANCIA),
+               MovimientoPuntos.puntos > 0)
+        .group_by(MovimientoPuntos.tenant_id)
+    ).all())
     return [
         ComercioListOut(
             id=t.id, nombre_comercial=t.nombre_comercial, logo_url=t.logo_url,
             categoria=categoria, total_premios=total,
+            puntos_ganados=ganados.get(t.id) or 0,
         ) for t, categoria, total in rows
     ]
 
@@ -73,7 +93,8 @@ def detalle_comercio(tenant_id: int, db: Session = Depends(get_db)):
     return ComercioDetalleOut(
         id=t.id, nombre_comercial=t.nombre_comercial, logo_url=t.logo_url,
         categoria=categoria.nombre if categoria else None,
-        sucursales=[SucursalClienteOut(id=s.id, nombre=s.nombre, direccion=s.direccion)
+        sucursales=[SucursalClienteOut(id=s.id, nombre=s.nombre, direccion=s.direccion,
+                                     latitud=s.latitud, longitud=s.longitud)
                     for s in sucursales],
     )
 

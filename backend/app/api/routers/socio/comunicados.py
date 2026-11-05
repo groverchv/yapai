@@ -1,18 +1,20 @@
 """Comunicados del socio: ofertas/novedades que aparecen en el feed de la app."""
-from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import select
-from sqlalchemy.orm import Session
-
 from app.core.deps import require_owner
 from app.core.security import utcnow
 from app.db.session import get_db
 from app.models import Comunicado, EstadoComunicado, EstadoPremio, Premio, Usuario
 from app.schemas.auth import MessageResponse
 from app.schemas.socio import (
-    ComunicadoIn, ComunicadoOut, ComunicadoUpdate, FirmaUploadOut,
+    ComunicadoIn,
+    ComunicadoOut,
+    ComunicadoUpdate,
+    FirmaUploadOut,
 )
 from app.services.audit import registrar_audit
 from app.services.uploads import firma_disponible, generar_firma
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 router = APIRouter(dependencies=[Depends(require_owner)])
 

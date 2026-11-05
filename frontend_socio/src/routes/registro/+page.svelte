@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { API_BASE } from '#lib/api/client';
+	import { API_BASE, fetchRed } from '#lib/api/client';
 	import { auth } from '#lib/stores/auth.svelte';
 	import Icon from '#lib/components/ui/Icon.svelte';
 	import type { SignupResponse } from '#lib/types';
@@ -19,7 +19,7 @@
 		error = '';
 		cargando = true;
 		try {
-			const res = await fetch(`${API_BASE}/auth/signup`, {
+			const res = await fetchRed(`${API_BASE}/auth/signup`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
@@ -86,7 +86,7 @@
 						class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
 						placeholder="Mario Pérez" />
 				</div>
-				<div class="grid grid-cols-2 gap-3">
+				<div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
 					<div>
 						<label for="em" class="mb-1 block text-sm font-medium text-slate-700">Correo</label>
 						<input id="em" type="email" bind:value={email} required

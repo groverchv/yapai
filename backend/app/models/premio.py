@@ -1,9 +1,10 @@
 import enum
 from datetime import datetime
-from sqlalchemy import String, Boolean, DateTime, Enum, ForeignKey, Integer
+
+from app.db.session import Base
+from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Index, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import func
-from app.db.session import Base
 
 
 class EstadoPremio(str, enum.Enum):
@@ -15,6 +16,7 @@ class EstadoPremio(str, enum.Enum):
 class Premio(Base):
     """Recompensa canjeable por puntos en un comercio."""
     __tablename__ = "premios"
+    __table_args__ = (Index("ix_premios_tenant_estado", "tenant_id", "estado"),)
 
     id: Mapped[int] = mapped_column(primary_key=True)
     tenant_id: Mapped[int] = mapped_column(ForeignKey("tenants.id"), index=True)

@@ -2,7 +2,7 @@
 	import Icon from '#lib/components/ui/Icon.svelte';
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
-	import { API_BASE } from '#lib/api/client';
+	import { API_BASE, fetchRed } from '#lib/api/client';
 
 	interface Segmento { etiqueta: string; puntos: number; peso: number; color: string | null }
 	interface Config {
@@ -32,6 +32,7 @@
 	let nombre = $state('');
 	let ci = $state('');
 	let telefono = $state('');
+	let acepta = $state(false);
 	let cargandoForm = $state(false);
 
 	let clienteId = $state(0);
@@ -65,7 +66,7 @@
 
 	async function cargar() {
 		try {
-			const res = await fetch(`${API_BASE}/kiosco/${token}/config`);
+			const res = await fetchRed(`${API_BASE}/kiosco/${token}/config`);
 			const data = await res.json();
 			if (!res.ok) throw new Error(data.detail ?? 'Pantalla no disponible');
 			config = data;
@@ -83,7 +84,7 @@
 
 	async function cargarPinInfo() {
 		try {
-			const res = await fetch(`${API_BASE}/kiosco/${token}/pin-info`);
+			const res = await fetchRed(`${API_BASE}/kiosco/${token}/pin-info`);
 			pinInfo = await res.json();
 			if (pinInfo && pinInfo.cajeros.length > 0) cajeroPin = pinInfo.cajeros[0].id;
 		} catch { /* se muestra el formulario genérico */ }
@@ -94,7 +95,7 @@
 		desbloqueando = true;
 		error = '';
 		try {
-			const res = await fetch(`${API_BASE}/caja/pantalla/habilitar`, {
+			const res = await fetchRed(`${API_BASE}/caja/pantalla/habilitar`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
@@ -119,10 +120,10 @@
 		error = '';
 		cargandoForm = true;
 		try {
-			const res = await fetch(`${API_BASE}/kiosco/${token}/registro`, {
+			const res = await fetchRed(`${API_BASE}/kiosco/${token}/registro`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ nombre, ci, telefono })
+				body: JSON.stringify({ nombre, ci, telefono, acepto_terminos: acepta })
 			});
 			const data = await res.json();
 			if (!res.ok) throw new Error(data.detail ?? 'Error de registro');
@@ -145,7 +146,7 @@
 		error = '';
 		girando = true;
 		try {
-			const res = await fetch(`${API_BASE}/kiosco/${token}/ruleta/girar`, {
+			const res = await fetchRed(`${API_BASE}/kiosco/${token}/ruleta/girar`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ cliente_id: clienteId })
@@ -170,7 +171,7 @@
 	function siguiente() {
 		paso = 'identificacion';
 		resultado = null;
-		nombre = ''; ci = ''; telefono = '';
+		nombre = ''; ci = ''; telefono = ''; acepta = false;
 		error = '';
 		cargar(); // revalida que siga habilitada
 	}
@@ -311,7 +312,16 @@
 					<input id="kt" type="tel" bind:value={telefono} required minlength="4"
 						class="w-full rounded-xl border border-slate-700 bg-slate-800 px-4 py-3 text-lg focus:border-emerald-500 focus:outline-none" />
 				</div>
-				<button type="submit" disabled={cargandoForm}
+				<label class="flex items-start gap-2.5 text-xs text-slate-400">
+					<input type="checkbox" bind:checked={acepta}
+						class="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-600 bg-slate-800 accent-emerald-500" />
+					<span>
+						Acepto los <a href="/legal/terminos" target="_blank" class="text-emerald-400 underline">Términos</a>
+						y la <a href="/legal/privacidad" target="_blank" class="text-emerald-400 underline">Política de privacidad</a>,
+						y el uso de mis datos para el programa de puntos.
+					</span>
+				</label>
+				<button type="submit" disabled={cargandoForm || !acepta}
 					class="w-full rounded-xl bg-emerald-600 py-4 text-lg font-bold hover:bg-emerald-500 disabled:opacity-50">
 					{cargandoForm ? 'Registrando…' : `Continuar (gana ${config.puntos_registro} pts)`}
 				</button>

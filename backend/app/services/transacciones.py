@@ -1,11 +1,16 @@
 from datetime import date, datetime, time
 
-from sqlalchemy import or_, select
-
 from app.models import (
-    Cliente, MovimientoPuntos, Premio, Sucursal, Tenant, TipoMovimiento, Usuario,
+    Cliente,
+    MovimientoPuntos,
+    Premio,
+    Sucursal,
+    Tenant,
+    TipoMovimiento,
+    Usuario,
 )
 from app.schemas.admin import TransaccionOut
+from sqlalchemy import or_, select
 
 
 def stmt_transacciones(filtros: list):

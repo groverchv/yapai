@@ -1,13 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
-from sqlalchemy.orm import Session
-
 from app.core.deps import require_owner
 from app.db.session import get_db
 from app.models import RuletaSegmento, Tenant, Usuario
 from app.schemas.socio import SegmentoIn, SegmentoOut, SegmentoUpdate
 from app.services.audit import registrar_audit
 from app.services.planes import verificar_ruleta
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 router = APIRouter(dependencies=[Depends(require_owner)])
 

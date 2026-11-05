@@ -1,16 +1,20 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
-from sqlalchemy.orm import Session
-
 from app.core.deps import require_owner
 from app.core.security import hash_secret
 from app.db.session import get_db
 from app.models import (
-    ConfigPin, ModoPin, PinCajero, PinSucursal, RolUsuario,
-    Sucursal, Usuario,
+    ConfigPin,
+    ModoPin,
+    PinCajero,
+    PinSucursal,
+    RolUsuario,
+    Sucursal,
+    Usuario,
 )
 from app.schemas.socio import PinConfigOut, PinModoIn, PinSetIn
 from app.services.audit import registrar_audit
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 router = APIRouter(dependencies=[Depends(require_owner)])
 

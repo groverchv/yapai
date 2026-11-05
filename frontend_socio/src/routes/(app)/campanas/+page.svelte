@@ -156,7 +156,7 @@
 
 <div class="space-y-8">
 	<div>
-		<div class="mb-4 flex items-center justify-between">
+		<div class="mb-4 flex flex-wrap items-center justify-between gap-3">
 			<div>
 				<h2 class="text-lg font-semibold text-slate-800">Campañas multiplicadoras</h2>
 				<p class="text-sm text-slate-500">Duplica o triplica los puntos que tus clientes ganan en el kiosco (registro y ruleta).</p>
@@ -252,7 +252,7 @@
 			<input id="cn" type="text" bind:value={formNombre} required minlength="2"
 				placeholder="Ej: x2 Fin de semana" class={input} />
 		</div>
-		<div class="grid grid-cols-2 gap-3">
+		<div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
 			<div>
 				<label for="cm" class="mb-1 block text-sm font-medium text-slate-700">Multiplicador</label>
 				<select id="cm" bind:value={formMultiplicador} class={input}>
@@ -267,7 +267,7 @@
 				</select>
 			</div>
 		</div>
-		<div class="grid grid-cols-2 gap-3">
+		<div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
 			<div>
 				<label for="ci" class="mb-1 block text-sm font-medium text-slate-700">Inicio</label>
 				<input id="ci" type="datetime-local" bind:value={formInicio} required class={input} />

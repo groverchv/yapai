@@ -1,10 +1,11 @@
 import enum
 from datetime import datetime
-from sqlalchemy import String, DateTime, Enum, ForeignKey, Integer, Numeric, UniqueConstraint, JSON
+
+from app.db.session import Base
+from sqlalchemy import JSON, DateTime, Enum, ForeignKey, Integer, Numeric, String, UniqueConstraint
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import func
-from app.db.session import Base
 
 _JSONB = JSON().with_variant(postgresql.JSONB, "postgresql")
 

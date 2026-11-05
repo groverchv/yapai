@@ -1,12 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
-from sqlalchemy.orm import Session
-
 from app.core.deps import require_owner
 from app.db.session import get_db
 from app.models import EstadoFactura, FacturaPlan, Tenant, Usuario
 from app.schemas.socio import EstadoCuentaOut, FacturaSocioOut
 from app.services.billing import estado_cuenta
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 router = APIRouter(dependencies=[Depends(require_owner)])
 

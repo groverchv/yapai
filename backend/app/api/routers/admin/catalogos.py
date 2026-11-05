@@ -1,16 +1,19 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import func, select
-from sqlalchemy.orm import Session
-
 from app.core.deps import require_superadmin
 from app.core.utils import slugify
 from app.db.session import get_db
 from app.models import CategoriaNegocio, EsquemaComision, Liquidacion, Tenant, Usuario
 from app.schemas.admin import (
-    CategoriaIn, CategoriaOut, CategoriaUpdate,
-    EsquemaIn, EsquemaOut, EsquemaUpdate,
+    CategoriaIn,
+    CategoriaOut,
+    CategoriaUpdate,
+    EsquemaIn,
+    EsquemaOut,
+    EsquemaUpdate,
 )
 from app.services.audit import registrar_audit
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import func, select
+from sqlalchemy.orm import Session
 
 router = APIRouter(dependencies=[Depends(require_superadmin)])
 

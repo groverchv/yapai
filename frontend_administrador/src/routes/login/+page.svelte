@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { API_BASE } from '#lib/api/client';
+	import { API_BASE, fetchRed } from '#lib/api/client';
 	import { i18n } from '#lib/i18n.svelte';
 	import { auth } from '#lib/stores/auth.svelte';
 	import type { TokenPair, UsuarioMe } from '#lib/types';
@@ -27,7 +27,7 @@
 		error = '';
 		cargando = true;
 		try {
-			const res = await fetch(`${API_BASE}/auth/login`, {
+			const res = await fetchRed(`${API_BASE}/auth/login`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ email, password })
@@ -52,7 +52,7 @@
 		error = '';
 		cargando = true;
 		try {
-			const res = await fetch(`${API_BASE}/auth/login/2fa`, {
+			const res = await fetchRed(`${API_BASE}/auth/login/2fa`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ pre_token: preToken, codigo: codigo.replace(/\s/g, '') })
@@ -68,12 +68,46 @@
 	}
 </script>
 
-<div class="flex min-h-screen items-center justify-center bg-slate-100 p-4">
-	<div class="w-full max-w-sm rounded-2xl bg-white p-8 shadow-lg">
-		<div class="mb-8 text-center">
+<div class="flex min-h-screen items-center justify-center bg-slate-100 p-4 lg:bg-gradient-to-br lg:from-indigo-900 lg:via-indigo-950 lg:to-indigo-800 lg:p-8">
+	<div class="w-full max-w-sm lg:grid lg:max-w-4xl lg:grid-cols-2 lg:overflow-hidden lg:rounded-3xl lg:shadow-2xl">
+
+		<!-- Panel de marca (solo desktop) -->
+		<div class="hidden flex-col justify-between bg-gradient-to-br from-indigo-800 to-indigo-950 p-10 text-white lg:flex">
+			<div>
+				<div class="flex items-center gap-2">
+					<img src="/logo.png" alt="YAPAI" class="h-14 rounded-xl bg-white p-2" />
+					<span class="rounded bg-indigo-600 px-2 py-1 text-xs font-bold text-white">ADMIN</span>
+				</div>
+				<h1 class="mt-8 text-3xl font-bold leading-tight">Control total de<br />la plataforma.</h1>
+				<p class="mt-3 text-sm leading-relaxed text-white/70">
+					Gestión centralizada de comercios afiliados, planes,
+					facturación y configuración del sistema.
+				</p>
+			</div>
+			<div class="space-y-3">
+				{#each [
+					'Métricas globales y salud del sistema',
+					'Gestión de tenants, planes y liquidaciones',
+					'Configuración de esquemas y categorías',
+				] as f}
+					<div class="flex items-center gap-3 text-sm text-white/80">
+						<span class="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 text-emerald-400">✓</span>
+						{f}
+					</div>
+				{/each}
+			</div>
+		</div>
+
+		<!-- Formulario -->
+		<div class="rounded-2xl bg-white p-8 shadow-lg lg:rounded-none lg:shadow-none">
+		<div class="mb-8 text-center lg:hidden">
 			<img src="/logo.png" alt="YAPAI" class="inline-block h-10" />
 			<span class="ml-2 rounded bg-indigo-600 px-1.5 py-0.5 text-[10px] font-bold text-white align-middle">ADMIN</span>
 			<p class="mt-2 text-sm text-slate-500">Portal de administración interna</p>
+		</div>
+		<div class="mb-8 hidden lg:block">
+			<h2 class="text-xl font-bold text-slate-900">Bienvenido de nuevo</h2>
+			<p class="text-sm text-slate-500">Portal de administración interna</p>
 		</div>
 
 		{#if etapa === 'credenciales'}
@@ -124,5 +158,6 @@
 				class="w-full text-sm text-slate-500 hover:underline">{i18n.t('login.volver')}</button>
 		</form>
 		{/if}
+		</div>
 	</div>
 </div>

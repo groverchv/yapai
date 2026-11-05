@@ -38,7 +38,7 @@
 		if (cliente) params.set('cliente', cliente);
 		if (tipo) params.set('tipo', tipo);
 		params.set('page', String(p));
-		params.set('size', '20');
+		params.set('size', '10');
 		return params.toString();
 	}
 

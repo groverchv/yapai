@@ -118,7 +118,7 @@
 </script>
 
 <div class="space-y-6">
-	<div class="flex items-center justify-between">
+	<div class="flex flex-wrap items-center justify-between gap-3">
 		<div>
 			<h2 class="text-lg font-semibold text-slate-800">Ofertas y comunicados</h2>
 			<p class="text-sm text-slate-500">Aparecen en el feed de la app de tus clientes.</p>
@@ -210,7 +210,7 @@
 				class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
 				placeholder="Detalle de la promoción"></textarea>
 		</div>
-		<div class="grid grid-cols-2 gap-3">
+		<div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
 			<div>
 				<label for="cp" class="mb-1 block text-sm font-medium text-slate-700">Vincular premio</label>
 				<select id="cp" bind:value={formPremio}

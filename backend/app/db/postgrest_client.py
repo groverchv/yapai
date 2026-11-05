@@ -1,6 +1,8 @@
-import httpx
 from typing import Any, Dict, List, Optional
+
+import httpx
 from app.core.config import settings
+
 
 class PostgrestClient:
     """Cliente para interactuar con PostgREST si se utiliza como capa de API sobre PostgreSQL"""

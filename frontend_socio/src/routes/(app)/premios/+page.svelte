@@ -103,7 +103,7 @@
 </script>
 
 <div class="space-y-4">
-	<div class="flex items-center justify-between">
+	<div class="flex flex-wrap items-center justify-between gap-3">
 		<p class="text-sm text-slate-500">
 			El costo en puntos no puede editarse mientras haya pases digitales activos del premio.
 		</p>
@@ -191,7 +191,7 @@
 			<input id="pd" type="text" bind:value={formDescripcion}
 				class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />
 		</div>
-		<div class="grid grid-cols-2 gap-3">
+		<div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
 			<div>
 				<label for="pc" class="mb-1 block text-sm font-medium text-slate-700">Costo en puntos</label>
 				<input id="pc" type="number" bind:value={formCosto} required min="1"

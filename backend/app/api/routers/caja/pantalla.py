@@ -7,19 +7,29 @@ Según `config_pin.modo` se valida el PIN de la sucursal o el del cajero
 
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel, Field
-from sqlalchemy import select
-from sqlalchemy.orm import Session
-
 from app.core.ratelimit import pin_limiter
 from app.core.security import verify_secret
 from app.db.session import get_db
 from app.models import (
-    ConfigPin, EstadoPantalla, EstadoSucursal, EstadoTenant, EstadoUsuario,
-    ModoPin, Pantalla, PinCajero, PinSucursal, RolUsuario, Sucursal, Tenant, Usuario,
+    ConfigPin,
+    EstadoPantalla,
+    EstadoSucursal,
+    EstadoTenant,
+    EstadoUsuario,
+    ModoPin,
+    Pantalla,
+    PinCajero,
+    PinSucursal,
+    RolUsuario,
+    Sucursal,
+    Tenant,
+    Usuario,
 )
 from app.services.audit import registrar_audit
+from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel, Field
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 

@@ -4,11 +4,10 @@ Convenciones:
 - Límite 0 = ilimitado.
 - Tenant sin plan asignado = sin restricciones (cuentas históricas/admin).
 """
+from app.models import Cliente, Pantalla, Plan, Sucursal, Tenant, Usuario
 from fastapi import HTTPException, status
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
-
-from app.models import Cliente, Pantalla, Plan, Sucursal, Tenant, Usuario
 
 RECURSOS = ("sucursales", "pantallas", "clientes", "empleados")
 

@@ -7,17 +7,21 @@ Reglas:
 - vencida + FACTURA_GRACIA_DIAS sin pagar → tenant suspendido (regla de negocio).
 - El admin marca pagada con método + referencia (manual hoy; pasarela después).
 """
-from datetime import date, timedelta
 from calendar import monthrange
-
-from sqlalchemy import select
-from sqlalchemy.orm import Session
+from datetime import date, datetime, timedelta
 
 from app.core.config import settings
 from app.core.security import utcnow
 from app.models import (
-    EstadoFactura, EstadoTenant, FacturaPlan, Plan, Tenant, Usuario,
+    EstadoFactura,
+    EstadoTenant,
+    FacturaPlan,
+    Plan,
+    Tenant,
+    Usuario,
 )
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 
 def periodo_de(fecha: date | None = None) -> str:
@@ -79,9 +83,16 @@ def marcar_vencidas(db: Session) -> int:
     ).all()
     for f in pendientes:
         vence = f.vence_en
-        if vence.tzinfo is None:
-            vence = vence.replace(tzinfo=utcnow().tzinfo)
-        if vence < utcnow():
+        if isinstance(vence, datetime):
+            if vence.tzinfo is None:
+                vence = vence.replace(tzinfo=utcnow().tzinfo)
+            es_vencida = vence < utcnow()
+        elif isinstance(vence, date):
+            es_vencida = vence < utcnow().date()
+        else:
+            es_vencida = False
+
+        if es_vencida:
             f.estado = EstadoFactura.vencida
             n += 1
     db.flush()

@@ -1,13 +1,12 @@
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
-
 from app.core.deps import require_owner
 from app.db.session import get_db
 from app.models import Tenant, Usuario
 from app.schemas.socio import PlanLimitesOut, PlanUsoOut, SocioPlanOut
 from app.services.planes import plan_de, uso_actual
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
 
 router = APIRouter(dependencies=[Depends(require_owner)])
 

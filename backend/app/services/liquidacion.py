@@ -1,13 +1,18 @@
 from datetime import datetime, timedelta
 
-from sqlalchemy import func, select
-from sqlalchemy.orm import Session
-
 from app.models import (
-    EstadoLiquidacion, EstadoPase, EsquemaComision, Liquidacion,
-    MovimientoPuntos, PaseDigital, Tenant, TipoMovimiento,
+    EsquemaComision,
+    EstadoLiquidacion,
+    EstadoPase,
+    Liquidacion,
+    MovimientoPuntos,
+    PaseDigital,
+    Tenant,
+    TipoMovimiento,
 )
 from app.services.audit import registrar_audit
+from sqlalchemy import func, select
+from sqlalchemy.orm import Session
 
 
 def rango_periodo(periodo: str) -> tuple[datetime, datetime]:

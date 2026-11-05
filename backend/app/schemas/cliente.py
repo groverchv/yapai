@@ -2,10 +2,11 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field
 
-
 # --- Cuenta ---
 
 class PerfilClienteOut(BaseModel):
+    model_config = {"from_attributes": True}
+
     id: int
     nombre: str
     ci: str
@@ -48,12 +49,28 @@ class ComercioListOut(BaseModel):
     logo_url: str | None
     categoria: str | None
     total_premios: int
+    puntos_ganados: int = 0  # puntos que el cliente acumuló en este comercio
+
+
+class ProximoPremioOut(BaseModel):
+    premio_id: int
+    tenant_id: int
+    nombre: str
+    imagen_url: str | None
+    costo_puntos: int
+    comercio: str
+    logo_url: str | None
+    saldo: int
+    faltante: int
+    alcanzable: bool
 
 
 class SucursalClienteOut(BaseModel):
     id: int
     nombre: str
     direccion: str | None
+    latitud: float | None = None
+    longitud: float | None = None
 
 
 class ComercioDetalleOut(BaseModel):

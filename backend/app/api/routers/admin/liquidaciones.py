@@ -1,16 +1,18 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import func, select
-from sqlalchemy.orm import Session
-
 from app.core.deps import require_superadmin
 from app.core.security import utcnow
 from app.db.session import get_db
 from app.models import EstadoLiquidacion, Liquidacion, Tenant, Usuario
 from app.schemas.admin import (
-    GenerarLiquidacionesIn, LiquidacionGenerada, LiquidacionOut, Pagina,
+    GenerarLiquidacionesIn,
+    LiquidacionGenerada,
+    LiquidacionOut,
+    Pagina,
 )
 from app.services.audit import registrar_audit
 from app.services.liquidacion import generar_liquidaciones
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import func, select
+from sqlalchemy.orm import Session
 
 router = APIRouter(dependencies=[Depends(require_superadmin)])
 
@@ -54,7 +56,7 @@ def listar_liquidaciones(
         .order_by(Liquidacion.periodo.desc(), Liquidacion.id.desc())
         .offset((page - 1) * size).limit(size)
     ).all()
-    return Pagina(items=[_out(db, l) for l in rows], total=total, page=page, size=size)
+    return Pagina(items=[_out(db, liq) for liq in rows], total=total, page=page, size=size)
 
 
 @router.post("/generar", response_model=LiquidacionGenerada)

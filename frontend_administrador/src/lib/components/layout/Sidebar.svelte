@@ -2,7 +2,12 @@
 	import { page } from '$app/state';
 	import { i18n } from '#lib/i18n.svelte';
 	import { auth } from '../../stores/auth.svelte';
+	import { pwa } from '../../stores/pwa.svelte';
+	import { toast } from '../../stores/toast.svelte';
 	import Icon from '../ui/Icon.svelte';
+
+	// onnavegar: el layout cierra el drawer móvil al tocar un enlace
+	let { onnavegar }: { onnavegar?: () => void } = $props();
 
 	const secciones = [
 		{
@@ -44,6 +49,13 @@
 		if (href === '/socios') return p === '/socios' || (p.startsWith('/socios/') && p !== '/socios/nuevo');
 		return p === href || p.startsWith(href + '/');
 	}
+
+	async function instalar() {
+		const acepto = await pwa.instalar();
+		if (!acepto && !pwa.instalada) {
+			toast.info('Abre el menú del navegador y elige "Instalar app" o "Añadir a pantalla de inicio"');
+		}
+	}
 </script>
 
 <aside class="flex h-screen w-64 flex-col bg-indigo-950 text-slate-300">
@@ -61,7 +73,7 @@
 					{i18n.t(seccion.titulo as never)}
 				</p>
 				{#each seccion.items as item}
-					<a href={item.href}
+					<a href={item.href} onclick={onnavegar}
 						class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition
 							{activo(item.href) ? 'bg-indigo-600 text-white' : 'hover:bg-indigo-900 hover:text-white'}">
 						<Icon name={item.icono} clase="h-4 w-4 shrink-0" /> {i18n.t(item.label as never)}
@@ -70,6 +82,15 @@
 			</div>
 		{/each}
 	</nav>
+
+	{#if !pwa.instalada}
+		<div class="px-3 pb-2">
+			<button onclick={instalar}
+				class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-indigo-300 transition hover:bg-indigo-900 hover:text-white">
+				<Icon name="download" clase="h-4 w-4 shrink-0" /> {i18n.t('nav.instalar')}
+			</button>
+		</div>
+	{/if}
 
 	<div class="border-t border-slate-800 px-4 py-4">
 		<p class="truncate text-sm font-medium text-white">{auth.usuario?.nombre ?? '—'}</p>

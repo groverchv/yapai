@@ -1,6 +1,19 @@
+from app.api.routers.socio import (
+    campanas,
+    comunicados,
+    empleados,
+    facturacion,
+    media,
+    metricas,
+    onboarding,
+    perfil,
+    pin,
+    plan,
+    premios,
+    ruleta,
+    sucursales,
+)
 from fastapi import APIRouter
-
-from app.api.routers.socio import campanas, comunicados, empleados, facturacion, media, metricas, onboarding, perfil, pin, plan, premios, ruleta, sucursales
 
 socio_router = APIRouter()
 socio_router.include_router(perfil.router, prefix="/perfil", tags=["socio-perfil"])

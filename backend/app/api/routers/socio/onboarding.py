@@ -1,15 +1,22 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import func, select
-from sqlalchemy.orm import Session
-
 from app.core.deps import require_owner
 from app.db.session import get_db
 from app.models import (
-    EstadoPremio, MovimientoPuntos, Pantalla, Premio, RolUsuario,
-    RuletaSegmento, Sucursal, Tenant, TipoMovimiento, Usuario,
+    EstadoPremio,
+    MovimientoPuntos,
+    Pantalla,
+    Premio,
+    RolUsuario,
+    RuletaSegmento,
+    Sucursal,
+    Tenant,
+    TipoMovimiento,
+    Usuario,
 )
 from app.schemas.socio import OnboardingOut, PasoOnboarding
 from app.services.planes import plan_de
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import func, select
+from sqlalchemy.orm import Session
 
 router = APIRouter(dependencies=[Depends(require_owner)])
 

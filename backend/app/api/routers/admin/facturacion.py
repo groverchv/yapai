@@ -1,13 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import func, select
-from sqlalchemy.orm import Session
-
 from app.core.deps import require_superadmin
 from app.db.session import get_db
 from app.models import EstadoFactura, FacturaPlan, Tenant, Usuario
 from app.schemas.admin import FacturaOut, FacturaPagarIn, Pagina
 from app.services.audit import registrar_audit
 from app.services.billing import generar_facturas, pagar_factura, periodo_de
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import func, select
+from sqlalchemy.orm import Session
 
 router = APIRouter(dependencies=[Depends(require_superadmin)])
 

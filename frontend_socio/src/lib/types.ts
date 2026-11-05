@@ -39,6 +39,7 @@ export interface Empleado {
 	id: number;
 	nombre: string;
 	email: string;
+	foto_url?: string | null;
 	estado: 'activo' | 'suspendido';
 	onboarding_pendiente: boolean;
 	sucursales: string[];
@@ -59,6 +60,7 @@ export interface Sucursal {
 	nombre: string;
 	direccion: string | null;
 	encargado_nombre: string | null;
+	imagen_url?: string | null;
 	estado: 'activa' | 'suspendida';
 	pin_set: boolean;
 	pantallas: Pantalla[];
@@ -138,6 +140,12 @@ export interface ResumenSocio {
 	pases_activos: number;
 	transacciones_30d: { fecha: string; total: number }[];
 	top_premios: TopPremioSocio[];
+	previos?: {
+		clientes_nuevos: number;
+		puntos_otorgados: number;
+		puntos_consumidos: number;
+		canjes_exitosos: number;
+	} | null;
 }
 
 // --- Transacciones ---

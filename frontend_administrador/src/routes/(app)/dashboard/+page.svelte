@@ -106,14 +106,14 @@
 			</button>
 		</div>
 	{:else if !data}
-		<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+		<div class="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
 			{#each Array(6) as _}
 				<div class="h-28 animate-pulse rounded-xl border border-slate-200 bg-white p-5 shadow-sm"></div>
 			{/each}
 		</div>
 	{:else}
 		<!-- Cuadrícula simétrica de 6 KPIs clave -->
-		<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+		<div class="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
 			<KpiCard
 				titulo="Socios activos"
 				valor={data.kpis.socios_activos}

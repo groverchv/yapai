@@ -56,7 +56,12 @@ async function request<T>(path: string, init: RequestInit = {}, retry = true): P
 	}
 	if (auth.accessToken) headers.set('Authorization', `Bearer ${auth.accessToken}`);
 
-	const res = await fetch(`${API_BASE}${path}`, { ...init, headers });
+	let res: Response;
+	try {
+		res = await fetch(`${API_BASE}${path}`, { ...init, headers });
+	} catch {
+		throw new ApiError(0, 'Sin conexión con el servidor. Verifica tu red e inténtalo de nuevo.');
+	}
 
 	if (res.status === 401 && retry && (await intentarRefresh())) {
 		return request<T>(path, init, false);
@@ -89,10 +94,23 @@ export const api = {
 	delete: <T>(path: string) => request<T>(path, { method: 'DELETE' })
 };
 
+export async function fetchRed(url: string, init?: RequestInit): Promise<Response> {
+	try {
+		return await fetch(url, init);
+	} catch {
+		throw new ApiError(0, 'Sin conexión con el servidor. Verifica tu red e inténtalo de nuevo.');
+	}
+}
+
 export async function descargarCsv(path: string, filename: string) {
 	const headers = new Headers();
 	if (auth.accessToken) headers.set('Authorization', `Bearer ${auth.accessToken}`);
-	const res = await fetch(`${API_BASE}${path}`, { headers });
+	let res: Response;
+	try {
+		res = await fetch(`${API_BASE}${path}`, { headers });
+	} catch {
+		throw new ApiError(0, 'Sin conexión con el servidor. Verifica tu red e inténtalo de nuevo.');
+	}
 	if (!res.ok) throw new ApiError(res.status, 'Error al exportar');
 	const blob = await res.blob();
 	const url = URL.createObjectURL(blob);

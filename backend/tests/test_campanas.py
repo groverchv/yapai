@@ -28,7 +28,7 @@ def _registrar(cliente_client, **kw):
     """Registro vía kiosco con token demo; kw sobreescribe campos."""
     data = {
         "nombre": f"C {uuid.uuid4().hex[:6]}", "ci": uuid.uuid4().hex[:8],
-        "telefono": f"7{uuid.uuid4().int % 10**7:07d}",
+        "telefono": f"7{uuid.uuid4().int % 10**7:07d}", "acepto_terminos": True,
     }
     data.update(kw)
     return cliente_client.post("/api/v1/kiosco/kiosco-demo-001/registro", json=data)

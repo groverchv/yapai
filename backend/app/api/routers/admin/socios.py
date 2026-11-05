@@ -1,24 +1,42 @@
-from datetime import date, datetime, time, timedelta
-
-from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import func, or_, select
-from sqlalchemy.orm import Session
+from datetime import date, timedelta
 
 from app.core.config import settings
 from app.core.deps import require_superadmin
 from app.core.security import generar_token_plano, sha256_hex, utcnow
 from app.db.session import get_db
 from app.models import (
-    CategoriaNegocio, Cliente, ConfigPin, EsquemaComision, EstadoPremio,
-    EstadoTenant, MovimientoPuntos, PasswordReset, Plan, Premio, RolUsuario,
-    Sucursal, Tenant, Usuario,
+    CategoriaNegocio,
+    Cliente,
+    ConfigPin,
+    EsquemaComision,
+    EstadoPremio,
+    EstadoTenant,
+    MovimientoPuntos,
+    PasswordReset,
+    Plan,
+    Premio,
+    RolUsuario,
+    Sucursal,
+    SujetoTipo,
+    Tenant,
+    Usuario,
 )
 from app.schemas.admin import (
-    ClienteListItem, KpisSocio, OwnerOut, Pagina, SocioCreadoResponse,
-    SocioCreate, SocioDetalle, SocioListItem, SocioPlanUpdate, SocioUpdate,
-    SucursalListItem, UsuarioListItem,
+    ClienteListItem,
+    KpisSocio,
+    OwnerOut,
+    Pagina,
+    SocioCreadoResponse,
+    SocioCreate,
+    SocioDetalle,
+    SocioListItem,
+    SocioPlanUpdate,
+    SocioUpdate,
+    SucursalListItem,
+    UsuarioListItem,
 )
 from app.schemas.auth import MessageResponse
+from app.schemas.socio import FirmaUploadOut
 from app.services.audit import registrar_audit
 from app.services.auth import crear_onboarding_token, revocar_todos_refresh
 from app.services.billing import estado_cuenta
@@ -26,9 +44,10 @@ from app.services.email import email_service
 from app.services.export import csv_response
 from app.services.kpis import calcular_kpis_socio
 from app.services.tenants import reactivar_tenant, suspender_tenant
-from app.schemas.socio import FirmaUploadOut
 from app.services.uploads import firma_disponible, generar_firma
-from app.models import SujetoTipo
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import func, or_, select
+from sqlalchemy.orm import Session
 
 router = APIRouter(dependencies=[Depends(require_superadmin)])
 

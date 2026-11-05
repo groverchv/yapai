@@ -28,6 +28,7 @@
 	let transacciones = $state<Transaccion[]>([]);
 	let sucursales = $state<Sucursal[]>([]);
 	let premios = $state<Premio[]>([]);
+	let inactivos = $state(0);
 
 	// Filtros
 	let desde = $state('');
@@ -81,6 +82,9 @@
 				}),
 				api.get<Perfil>('/socio/perfil').then((res) => {
 					perfil = res;
+				}),
+				api.get<unknown[]>('/socio/campanas/inactivos?dias=30').then((res) => {
+					inactivos = res.length;
 				})
 			]);
 		} finally {
@@ -129,6 +133,46 @@
 	const barraUso = (uso: number, limite: number) =>
 		limite === 0 ? 0 : Math.min(100, Math.round((uso / limite) * 100));
 
+	// Δ% vs período espejo anterior (solo presente cuando hay rango desde/hasta)
+	const pct = (actual: number, prev: number) =>
+		prev === 0 ? null : Math.round(((actual - prev) / prev) * 100);
+
+	let dClientes = $derived(
+		resumen?.previos ? pct(resumen.clientes_nuevos, resumen.previos.clientes_nuevos) : null
+	);
+	let dEmitidos = $derived(
+		resumen?.previos ? pct(resumen.puntos_otorgados, resumen.previos.puntos_otorgados) : null
+	);
+	let dConsumidos = $derived(
+		resumen?.previos ? pct(resumen.puntos_consumidos, resumen.previos.puntos_consumidos) : null
+	);
+	let dCanjes = $derived(
+		resumen?.previos ? pct(resumen.canjes_exitosos, resumen.previos.canjes_exitosos) : null
+	);
+
+	// Alertas accionables del dashboard ("Requiere tu atención")
+	let atencion = $derived.by(() => {
+		const items: { texto: string; accion: string; href: string }[] = [];
+		if (cuenta?.estado === 'pendiente')
+			items.push({ texto: 'Tienes una factura de tu plan pendiente de pago', accion: 'Ver facturación', href: '/facturacion' });
+		if ((resumen?.pases_activos ?? 0) > 0)
+			items.push({
+				texto: `${resumen!.pases_activos} pase(s) esperando canje en caja`,
+				accion: 'Ir a la terminal', href: '/terminal',
+			});
+		for (const p of resumen?.stock_critico ?? [])
+			items.push({
+				texto: `Stock bajo: "${p.nombre}" — quedan ${p.stock}`,
+				accion: 'Revisar premios', href: '/premios',
+			});
+		if (inactivos > 0)
+			items.push({
+				texto: `${inactivos} clientes llevan 30+ días sin volver`,
+				accion: 'Reactivarlos', href: '/campanas',
+			});
+		return items;
+	});
+
 	const coloresTipos: Record<string, { bg: string; text: string; dot: string; icon: string }> = {
 		registro: { bg: 'bg-blue-50 border-blue-200', text: 'text-blue-700', dot: 'bg-blue-500', icon: 'users' },
 		ruleta: { bg: 'bg-amber-50 border-amber-200', text: 'text-amber-700', dot: 'bg-amber-500', icon: 'ruleta' },
@@ -139,6 +183,19 @@
 		anulacion: { bg: 'bg-rose-50 border-rose-200', text: 'text-rose-700', dot: 'bg-rose-500', icon: 'alert-triangle' }
 	};
 </script>
+
+{#snippet delta(d: number | null)}
+	{#if d !== null}
+		<span
+			class="rounded px-1.5 py-0.5 text-[10px] font-bold {d >= 0
+				? 'bg-emerald-100 text-emerald-700'
+				: 'bg-rose-100 text-rose-700'}"
+			title="vs período anterior"
+		>
+			{d >= 0 ? '↑' : '↓'} {Math.abs(d)}%
+		</span>
+	{/if}
+{/snippet}
 
 <div class="space-y-6">
 	<!-- ENCABEZADO PRINCIPAL CON ACCIONES RÁPIDAS -->
@@ -272,7 +329,7 @@
 				></div>
 			</div>
 
-			<div class="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
+			<div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
 				{#each onboarding.pasos as paso, i}
 					<div class="flex items-center gap-2.5 rounded-xl border border-slate-100 p-2.5 transition {paso.hecho ? 'bg-slate-50/70 opacity-75' : 'bg-white hover:border-emerald-200'}">
 						{#if paso.hecho}
@@ -295,6 +352,34 @@
 					</div>
 				{/each}
 			</div>
+		</div>
+	{/if}
+
+	<!-- REQUIERE TU ATENCIÓN: alertas accionables -->
+	{#if atencion.length > 0}
+		<div class="rounded-2xl border border-amber-200 bg-amber-50/70 p-5 shadow-xs">
+			<div class="flex items-center gap-2">
+				<div class="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-100 text-amber-700">
+					<Icon name="alert-triangle" clase="h-4 w-4" />
+				</div>
+				<h3 class="font-bold text-amber-950">Requiere tu atención</h3>
+				<span class="rounded-full bg-amber-200/80 px-2 py-0.5 text-xs font-bold text-amber-900">
+					{atencion.length}
+				</span>
+			</div>
+			<ul class="mt-3 space-y-2">
+				{#each atencion as a}
+					<li>
+						<a
+							href={a.href}
+							class="flex items-center justify-between gap-3 rounded-xl bg-white px-4 py-2.5 text-sm text-slate-700 ring-1 ring-amber-200/60 transition hover:ring-amber-400"
+						>
+							<span>{a.texto}</span>
+							<span class="shrink-0 text-xs font-bold text-amber-700">{a.accion} →</span>
+						</a>
+					</li>
+				{/each}
+			</ul>
 		</div>
 	{/if}
 
@@ -375,7 +460,7 @@
 	{/if}
 
 	<!-- 6 TARJETAS KPI PRINCIPALES -->
-	<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+	<div class="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
 		<!-- Clientes Totales -->
 		<div class="group relative overflow-hidden rounded-2xl border border-slate-200/90 bg-white p-4 shadow-xs transition hover:border-blue-300 hover:shadow-md">
 			<div class="flex items-center justify-between">
@@ -390,6 +475,7 @@
 			<div class="mt-1 flex items-center gap-1 text-xs font-medium text-blue-700">
 				<span class="font-bold">+{resumen?.clientes_nuevos ?? 0}</span>
 				<span class="text-slate-400">en período</span>
+				{@render delta(dClientes)}
 			</div>
 		</div>
 
@@ -404,7 +490,10 @@
 			<p class="mt-2 text-2xl font-black text-indigo-900">
 				{resumen?.puntos_otorgados?.toLocaleString() ?? 0}
 			</p>
-			<p class="mt-1 text-xs text-slate-400">Regalados a clientes</p>
+			<div class="mt-1 flex items-center gap-1 text-xs">
+				<span class="text-slate-400">Regalados a clientes</span>
+				{@render delta(dEmitidos)}
+			</div>
 		</div>
 
 		<!-- Puntos Consumidos -->
@@ -418,7 +507,10 @@
 			<p class="mt-2 text-2xl font-black text-amber-900">
 				{resumen?.puntos_consumidos?.toLocaleString() ?? 0}
 			</p>
-			<p class="mt-1 text-xs text-slate-400">Puntos en premios</p>
+			<div class="mt-1 flex items-center gap-1 text-xs">
+				<span class="text-slate-400">Puntos en premios</span>
+				{@render delta(dConsumidos)}
+			</div>
 		</div>
 
 		<!-- Tasa de Fidelización -->
@@ -446,7 +538,10 @@
 			<p class="mt-2 text-2xl font-black text-sky-900">
 				{resumen?.canjes_exitosos ?? 0}
 			</p>
-			<p class="mt-1 text-xs text-slate-400">Canjes en mostrador</p>
+			<div class="mt-1 flex items-center gap-1 text-xs">
+				<span class="text-slate-400">Canjes en mostrador</span>
+				{@render delta(dCanjes)}
+			</div>
 		</div>
 
 		<!-- Pases Activos en Espera -->
@@ -704,7 +799,7 @@
 				</a>
 			</div>
 
-			<div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+			<div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
 				{#each sucursales as suc}
 					<div class="flex flex-col justify-between rounded-xl border border-slate-200/80 bg-slate-50/50 p-4 transition hover:border-emerald-300 hover:bg-white hover:shadow-sm">
 						<div>
@@ -760,7 +855,7 @@
 				</a>
 			</div>
 
-			<div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+			<div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
 				{#each [
 					['Sucursales habilitadas', plan.uso.sucursales, plan.limites.max_sucursales, 'store'],
 					['Pantallas de Kiosco', plan.uso.pantallas, plan.limites.max_pantallas, 'monitor'],

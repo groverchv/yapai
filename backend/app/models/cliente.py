@@ -1,9 +1,10 @@
 import enum
 from datetime import datetime
-from sqlalchemy import String, DateTime, Enum, ForeignKey, Integer
+
+from app.db.session import Base
+from sqlalchemy import DateTime, Enum, ForeignKey, Index, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import func
-from app.db.session import Base
 
 
 class EstadoCliente(str, enum.Enum):
@@ -14,6 +15,7 @@ class EstadoCliente(str, enum.Enum):
 class Cliente(Base):
     """Cliente final (app móvil). Se registra en el kiosco con CI + teléfono."""
     __tablename__ = "clientes"
+    __table_args__ = (Index("ix_clientes_tenant_registro", "tenant_registro_id"),)
 
     id: Mapped[int] = mapped_column(primary_key=True)
     nombre: Mapped[str] = mapped_column(String(160))

@@ -5,18 +5,31 @@ Crea: superadmin, categorías base, esquema demo y un tenant demo completo
 """
 import unicodedata
 
-from sqlalchemy import select
-
 from app.core.config import settings
-from app.core.security import generar_token_plano, hash_secret
+from app.core.security import hash_secret
 from app.db.base import Base  # noqa: F401  (registra modelos)
 from app.db.session import SessionLocal, engine
 from app.models import (
-    CategoriaNegocio, Cliente, ConfigPin, EmpleadoSucursal, EsquemaComision,
-    EstadoCliente, EstadoPremio, ModoPin, MovimientoPuntos, Pantalla, Plan,
-    Premio, RolUsuario, RuletaSegmento, Sucursal, Tenant, TipoMovimiento,
+    CategoriaNegocio,
+    Cliente,
+    ConfigPin,
+    EmpleadoSucursal,
+    EsquemaComision,
+    EstadoCliente,
+    EstadoPremio,
+    ModoPin,
+    MovimientoPuntos,
+    Pantalla,
+    Plan,
+    Premio,
+    RolUsuario,
+    RuletaSegmento,
+    Sucursal,
+    Tenant,
+    TipoMovimiento,
     Usuario,
 )
+from sqlalchemy import select
 
 PLANES = [
     dict(slug="starter", nombre="Starter", precio_mensual=0, orden=1,

@@ -14,5 +14,8 @@
 	"include": [
 		"src",
 		"vite.config.ts"
+	],
+	"exclude": [
+		"src/service-worker.js"
 	]
 }

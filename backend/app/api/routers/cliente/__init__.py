@@ -1,6 +1,5 @@
-from fastapi import APIRouter
-
 from app.api.routers.cliente import comercios, comunicados, cuenta, pases
+from fastapi import APIRouter
 
 cliente_router = APIRouter()
 cliente_router.include_router(cuenta.router, tags=["cliente"])

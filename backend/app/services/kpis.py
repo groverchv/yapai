@@ -1,10 +1,9 @@
 from datetime import date, datetime, time
 
+from app.models import MovimientoPuntos, Tenant, TipoMovimiento
+from app.schemas.admin import KpisSocio
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
-
-from app.models import EstadoPase, MovimientoPuntos, PaseDigital, Tenant, TipoMovimiento
-from app.schemas.admin import KpisSocio
 
 
 def horas_a_primer_giro(db: Session, tenant: Tenant) -> float | None:

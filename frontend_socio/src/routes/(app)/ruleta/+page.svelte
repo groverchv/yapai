@@ -176,7 +176,7 @@
 			<input id="et" type="text" bind:value={formEtiqueta} required placeholder="Ej: 50 pts"
 				class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />
 		</div>
-		<div class="grid grid-cols-2 gap-3">
+		<div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
 			<div>
 				<label for="pt" class="mb-1 block text-sm font-medium text-slate-700">Puntos que otorga</label>
 				<input id="pt" type="number" bind:value={formPuntos} required min="0"

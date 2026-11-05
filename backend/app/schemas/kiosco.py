@@ -25,6 +25,7 @@ class RegistroKioscoIn(BaseModel):
     ci: str = Field(min_length=3, max_length=50)
     telefono: str = Field(min_length=4, max_length=30)
     codigo_referido: str | None = Field(default=None, max_length=12)
+    acepto_terminos: bool = False
 
 
 class RegistroKioscoOut(BaseModel):

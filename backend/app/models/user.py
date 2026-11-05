@@ -1,9 +1,10 @@
 import enum
 from datetime import datetime
-from sqlalchemy import Boolean, String, DateTime, Enum, ForeignKey
+
+from app.db.session import Base
+from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import func
-from app.db.session import Base
 
 
 class RolUsuario(str, enum.Enum):
@@ -32,6 +33,7 @@ class Usuario(Base):
         default=EstadoUsuario.activo,
     )
     ultimo_login: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    foto_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     # 2FA TOTP: secret queda guardado al hacer setup; habilitado tras verificar un código
     totp_secret: Mapped[str | None] = mapped_column(String(64), nullable=True)
     totp_habilitado: Mapped[bool] = mapped_column(Boolean, default=False)

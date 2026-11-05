@@ -31,3 +31,14 @@
 	--color-emerald-900: #04382f;
 	--color-emerald-950: #022b24;
 }
+
+/* Scrollbars ocultos en toda la app: el contenido sigue siendo deslizable
+   con rueda del mouse, touch o trackpad — sin barras visibles. */
+* {
+	scrollbar-width: none;
+}
+*::-webkit-scrollbar {
+	width: 0;
+	height: 0;
+	display: none;
+}

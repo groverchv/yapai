@@ -1,9 +1,10 @@
 import enum
 from datetime import datetime
-from sqlalchemy import DateTime, Enum, ForeignKey, Numeric, String, UniqueConstraint
+
+from app.db.session import Base
+from sqlalchemy import DateTime, Enum, ForeignKey, Index, Numeric, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import func
-from app.db.session import Base
 
 
 class EstadoFactura(str, enum.Enum):
@@ -19,7 +20,10 @@ class FacturaPlan(Base):
     Snapshot del plan al emitir — cambios posteriores del plan no la alteran.
     """
     __tablename__ = "facturas_plan"
-    __table_args__ = (UniqueConstraint("tenant_id", "periodo", name="uq_factura_tenant_periodo"),)
+    __table_args__ = (
+        UniqueConstraint("tenant_id", "periodo", name="uq_factura_tenant_periodo"),
+        Index("ix_facturas_estado_vence", "estado", "vence_en"),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
     tenant_id: Mapped[int] = mapped_column(ForeignKey("tenants.id"), index=True)

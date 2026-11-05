@@ -2,17 +2,18 @@ import asyncio
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-
 from app.api.routers import api_router
 from app.core.config import settings
 from app.core.headers import SecurityHeadersMiddleware
 from app.core.observability import (
-    ObservabilityMiddleware, init_sentry, metrics_response,
+    ObservabilityMiddleware,
+    init_sentry,
+    metrics_response,
 )
 from app.jobs.expiracion import loop_expiracion
 from app.jobs.facturacion import loop_facturacion
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 init_sentry()
 

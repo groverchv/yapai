@@ -3,20 +3,22 @@
 Muestra los comunicados publicados y vigentes de TODOS los tenants activos —
 el descubrimiento es el valor del marketplace. Orden: más reciente primero.
 """
-from datetime import datetime
-
-from fastapi import APIRouter, Depends, Query
-from sqlalchemy import func, or_, select
-from sqlalchemy.orm import Session
 
 from app.core.deps import get_current_cliente
 from app.core.security import utcnow
 from app.db.session import get_db
 from app.models import (
-    Cliente, Comunicado, EstadoComunicado, EstadoTenant, Tenant,
+    Cliente,
+    Comunicado,
+    EstadoComunicado,
+    EstadoTenant,
+    Tenant,
 )
 from app.schemas.admin import Pagina
 from app.schemas.cliente import ComunicadoClienteOut
+from fastapi import APIRouter, Depends, Query
+from sqlalchemy import func, or_, select
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 

@@ -1,11 +1,12 @@
 import enum
 import uuid
 from datetime import datetime
-from sqlalchemy import String, DateTime, Enum, ForeignKey, Integer, JSON
+
+from app.db.session import Base
+from sqlalchemy import JSON, DateTime, Enum, ForeignKey, Index, Integer, String
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import func
-from app.db.session import Base
 
 _JSONB = JSON().with_variant(postgresql.JSONB, "postgresql")
 
@@ -31,6 +32,10 @@ class EstadoPase(str, enum.Enum):
 class MovimientoPuntos(Base):
     """Ledger append-only de puntos. Nunca se edita ni se borra (regla #1)."""
     __tablename__ = "movimientos_puntos"
+    __table_args__ = (
+        Index("ix_mov_tenant_created", "tenant_id", "created_at"),
+        Index("ix_mov_cliente_created", "cliente_id", "created_at"),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
     cliente_id: Mapped[int] = mapped_column(ForeignKey("clientes.id"), index=True)
@@ -50,6 +55,7 @@ class MovimientoPuntos(Base):
 class PaseDigital(Base):
     """Pase de canje generado por el cliente (QR + PIN corto). Congela puntos."""
     __tablename__ = "pases_digitales"
+    __table_args__ = (Index("ix_pases_estado_expira", "estado", "expira_en"),)
 
     id: Mapped[int] = mapped_column(primary_key=True)
     cliente_id: Mapped[int] = mapped_column(ForeignKey("clientes.id"), index=True)

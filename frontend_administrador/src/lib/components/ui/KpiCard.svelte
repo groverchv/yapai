@@ -25,25 +25,25 @@
 
 {#snippet contenido()}
 	<div class="flex items-start justify-between">
-		<span class="text-xs font-semibold uppercase tracking-wider text-slate-500">{titulo}</span>
+		<span class="text-[10px] font-semibold uppercase tracking-wider text-slate-500 sm:text-xs">{titulo}</span>
 		{#if icono}
-			<div class="flex h-9 w-9 items-center justify-center rounded-lg {config.iconBg}">
-				<Icon name={icono} clase="h-5 w-5" />
+			<div class="flex h-8 w-8 items-center justify-center rounded-lg {config.iconBg} sm:h-9 sm:w-9">
+				<Icon name={icono} clase="h-4 w-4 sm:h-5 sm:w-5" />
 			</div>
 		{/if}
 	</div>
-	<p class="mt-2 text-2xl font-bold {config.text} tracking-tight sm:text-3xl">{valor}</p>
+	<p class="mt-2 text-xl font-bold {config.text} tracking-tight sm:text-3xl">{valor}</p>
 	{#if subtitulo}
-		<p class="mt-1 text-xs text-slate-500 flex items-center gap-1 font-medium">{subtitulo}</p>
+		<p class="mt-1 text-[11px] text-slate-500 flex items-center gap-1 font-medium sm:text-xs">{subtitulo}</p>
 	{/if}
 {/snippet}
 
 {#if href}
-	<a {href} class="group block rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-indigo-300 hover:shadow-md">
+	<a {href} class="group block rounded-xl border border-slate-200 bg-white p-3.5 shadow-sm transition hover:border-indigo-300 hover:shadow-md sm:p-5">
 		{@render contenido()}
 	</a>
 {:else}
-	<div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+	<div class="rounded-xl border border-slate-200 bg-white p-3.5 shadow-sm sm:p-5">
 		{@render contenido()}
 	</div>
 {/if}

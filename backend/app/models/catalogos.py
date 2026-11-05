@@ -1,8 +1,9 @@
 from datetime import datetime
-from sqlalchemy import String, Boolean, DateTime, Numeric
+
+from app.db.session import Base
+from sqlalchemy import Boolean, DateTime, Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import func
-from app.db.session import Base
 
 
 class CategoriaNegocio(Base):

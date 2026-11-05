@@ -1,6 +1,5 @@
-from fastapi import APIRouter
-
 from app.api.routers.admin import catalogos, facturacion, liquidaciones, monitoreo, planes, socios
+from fastapi import APIRouter
 
 admin_router = APIRouter()
 admin_router.include_router(socios.router, prefix="/socios", tags=["admin-socios"])

@@ -32,7 +32,7 @@ def upgrade() -> None:
                   name='estadocomunicado', native_enum=False, length=20), nullable=False),
         sa.Column('publicado_en', sa.DateTime(timezone=True), nullable=True),
         sa.Column('vigencia_hasta', sa.DateTime(timezone=True), nullable=True),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'),
+        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'),
                   nullable=False),
         sa.ForeignKeyConstraint(['premio_id'], ['premios.id']),
         sa.ForeignKeyConstraint(['tenant_id'], ['tenants.id']),

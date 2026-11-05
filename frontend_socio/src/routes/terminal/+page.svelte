@@ -2,7 +2,7 @@
 	import Icon from '#lib/components/ui/Icon.svelte';
 	import { goto } from '$app/navigation';
 	import { onMount, tick } from 'svelte';
-	import { api, API_BASE, ApiError } from '#lib/api/client';
+	import { api, API_BASE, ApiError, fetchRed } from '#lib/api/client';
 	import { auth } from '#lib/stores/auth.svelte';
 	import { toast } from '#lib/stores/toast.svelte';
 	import type { UsuarioMe } from '#lib/types';
@@ -34,6 +34,66 @@
 	let errorCanje = $state('');
 	let inputCodigo = $state<HTMLInputElement | null>(null);
 
+	// --- Escáner QR por cámara (BarcodeDetector nativo, sin dependencias) ---
+	let escaneando = $state(false);
+	let videoEl = $state<HTMLVideoElement | null>(null);
+	let mediaStream: MediaStream | null = null;
+	let scanTimer: ReturnType<typeof setInterval> | null = null;
+	let errorScan = $state('');
+
+	type BarcodeDetectorCtor = new (opts?: { formats?: string[] }) => {
+		detect(src: CanvasImageSource): Promise<{ rawValue: string }[]>;
+	};
+
+	async function iniciarEscaner() {
+		errorScan = '';
+		const Detector = (window as unknown as { BarcodeDetector?: BarcodeDetectorCtor })
+			.BarcodeDetector;
+		if (!Detector) {
+			errorScan = 'Este navegador no soporta lectura de QR. Usa Chrome/Edge o escribe el PIN.';
+			return;
+		}
+		try {
+			mediaStream = await navigator.mediaDevices.getUserMedia({
+				video: { facingMode: 'environment' },
+			});
+		} catch {
+			errorScan = 'No se pudo acceder a la cámara. Revisa los permisos del navegador.';
+			return;
+		}
+		escaneando = true;
+		await tick();
+		if (videoEl) {
+			videoEl.srcObject = mediaStream;
+			await videoEl.play();
+		}
+		const detector = new Detector({ formats: ['qr_code'] });
+		scanTimer = setInterval(async () => {
+			if (!videoEl || videoEl.readyState < 2) return;
+			try {
+				const codes = await detector.detect(videoEl);
+				const valor = codes[0]?.rawValue?.trim();
+				if (valor) {
+					detenerEscaner();
+					codigo = valor;
+					await buscarPase();
+				}
+			} catch {
+				/* frame ilegible, reintentar en el siguiente tick */
+			}
+		}, 350);
+	}
+
+	function detenerEscaner() {
+		if (scanTimer) {
+			clearInterval(scanTimer);
+			scanTimer = null;
+		}
+		mediaStream?.getTracks().forEach((t) => t.stop());
+		mediaStream = null;
+		escaneando = false;
+	}
+
 	// Feed de actividad del turno (canjes + bonuses de esta sesión)
 	let actividad = $state<{ hora: string; texto: string }[]>([]);
 	function registrarActividad(texto: string) {
@@ -61,21 +121,24 @@
 	let cajerosPin = $state<{ id: number; nombre: string }[]>([]);
 	let errorPin = $state('');
 
-	onMount(async () => {
-		if (!auth.autenticado) { goto('/login'); return; }
-		try {
-			const me = await api.get<{ tipo: string; usuario: UsuarioMe }>('/auth/me');
-			if (me.tipo !== 'usuario' || (me.usuario.rol !== 'cajero' && me.usuario.rol !== 'owner')) {
-				throw new Error('sin permisos');
+	onMount(() => {
+		(async () => {
+			if (!auth.autenticado) { goto('/login'); return; }
+			try {
+				const me = await api.get<{ tipo: string; usuario: UsuarioMe }>('/auth/me');
+				if (me.tipo !== 'usuario' || (me.usuario.rol !== 'cajero' && me.usuario.rol !== 'owner')) {
+					throw new Error('sin permisos');
+				}
+				contexto = await api.get<Contexto>('/caja/contexto');
+				sucursalId = contexto.sucursales[0]?.id ?? 0;
+				verificado = true;
+				enfocarCodigo();
+			} catch {
+				auth.limpiar();
+				goto('/login');
 			}
-			contexto = await api.get<Contexto>('/caja/contexto');
-			sucursalId = contexto.sucursales[0]?.id ?? 0;
-			verificado = true;
-			enfocarCodigo();
-		} catch {
-			auth.limpiar();
-			goto('/login');
-		}
+		})();
+		return detenerEscaner;
 	});
 
 	async function buscarPase() {
@@ -100,6 +163,11 @@
 		preview = null;
 		errorCanje = '';
 		enfocarCodigo();
+	}
+
+	function cambiarTab(t: typeof tab) {
+		detenerEscaner();
+		tab = t;
 	}
 
 	function teclaCodigo(e: KeyboardEvent) {
@@ -160,7 +228,7 @@
 	async function cargarCajerosPin() {
 		// Lista pública de cajeros para el modo por_cajero
 		try {
-			const info = await fetch(`${API_BASE}/kiosco/${deviceToken.trim()}/pin-info`)
+			const info = await fetchRed(`${API_BASE}/kiosco/${deviceToken.trim()}/pin-info`)
 				.then((r) => r.json());
 			cajerosPin = info.cajeros ?? [];
 			if (info.modo_pin === 'por_cajero' && cajerosPin.length > 0 && !cajeroIdPin) {
@@ -172,7 +240,7 @@
 	async function habilitarPantalla() {
 		errorPin = '';
 		try {
-			const res = await fetch(`${API_BASE}/caja/pantalla/habilitar`, {
+			const res = await fetchRed(`${API_BASE}/caja/pantalla/habilitar`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
@@ -242,7 +310,7 @@
 				['bonus', 'Bonus por compra', 'gift'],
 				['pantalla', 'Habilitar pantalla', 'lock-open']
 			] as [t, label, ico]}
-				<button onclick={() => (tab = t as typeof tab)}
+				<button onclick={() => cambiarTab(t as typeof tab)}
 					class="flex items-center gap-2 px-4 py-3 text-sm font-medium transition
 						{tab === t ? 'border-b-2 border-emerald-500 text-emerald-400' : 'text-slate-400 hover:text-white'}">
 					<Icon name={ico} clase="h-4 w-4" /> {label}
@@ -250,7 +318,7 @@
 			{/each}
 		</nav>
 
-		<main class="mx-auto max-w-2xl p-6">
+		<main class="mx-auto max-w-2xl p-4 sm:p-6">
 			{#if tab === 'canje'}
 				<div class="space-y-4">
 					<div class="rounded-xl bg-slate-800 p-5">
@@ -266,8 +334,28 @@
 								class="rounded-xl bg-emerald-600 px-6 py-3 font-bold hover:bg-emerald-500 disabled:opacity-50">
 								{buscando ? '…' : 'Buscar'}
 							</button>
+							<button onclick={escaneando ? detenerEscaner : iniciarEscaner}
+								class="flex items-center gap-2 rounded-xl border border-slate-600 px-4 py-3 font-bold text-slate-300 hover:bg-slate-700"
+								title="Leer el QR del pase con la cámara">
+								<Icon name="scan-line" clase="h-5 w-5" />
+								{escaneando ? 'Detener' : 'Escanear'}
+							</button>
 						</div>
 					</div>
+
+					{#if escaneando}
+						<div class="overflow-hidden rounded-xl border border-slate-600 bg-black">
+							<!-- svelte-ignore a11y_media_has_caption -->
+							<video bind:this={videoEl} class="h-64 w-full object-cover" muted playsinline></video>
+							<p class="px-4 py-2 text-center text-xs text-slate-400">
+								Apunta la cámara al QR del pase del cliente
+							</p>
+						</div>
+					{/if}
+
+					{#if errorScan}
+						<p class="rounded-xl bg-amber-900/40 px-4 py-3 text-sm text-amber-300">{errorScan}</p>
+					{/if}
 
 					{#if errorCanje}
 						<p class="rounded-xl bg-red-900/50 px-4 py-3 text-sm text-red-300">{errorCanje}</p>
@@ -344,7 +432,7 @@
 								</div>
 								<button onclick={() => (clienteSel = null)} class="text-sm text-slate-400 hover:text-white">Cambiar</button>
 							</div>
-							<div class="mt-4 grid grid-cols-2 gap-3">
+							<div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
 								<div>
 									<label for="pb" class="mb-1 block text-sm text-slate-400">Puntos (máx {contexto.max_puntos_tx})</label>
 									<input id="pb" type="number" bind:value={puntosBonus} min="1" max={contexto.max_puntos_tx}

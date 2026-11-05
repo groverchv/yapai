@@ -1,41 +1,77 @@
 from datetime import timedelta
 
 import jwt
-from fastapi import APIRouter, Depends, HTTPException, status
-from jwt import PyJWTError
-from sqlalchemy import select
-from sqlalchemy.orm import Session
-
 from app.core.config import settings
 from app.core.deps import Subject, get_current_subject
 from app.core.ratelimit import login_limiter, signup_limiter, totp_limiter
 from app.core.security import (
-    decodificar_token, generar_token_plano, sha256_hex, utcnow, verify_secret, hash_secret,
+    decodificar_token,
+    generar_token_plano,
+    hash_secret,
+    sha256_hex,
+    utcnow,
+    verify_secret,
 )
 from app.db.session import get_db
 from app.models import (
-    CategoriaNegocio, Cliente, ConfigPin, EstadoCliente, EstadoTenant,
-    EstadoUsuario, OnboardingToken, PasswordReset, Plan, RolUsuario,
-    SujetoTipo, Tenant, Usuario,
+    CategoriaNegocio,
+    Cliente,
+    ConfigPin,
+    EstadoCliente,
+    EstadoTenant,
+    EstadoUsuario,
+    OnboardingToken,
+    PasswordReset,
+    Plan,
+    RolUsuario,
+    SujetoTipo,
+    Tenant,
+    Usuario,
 )
 from app.schemas.auth import (
-    ClienteLoginRequest, ClienteRegistroRequest, ClienteMe, ForgotPasswordRequest, LoginRequest,
-    LoginResponse, LogoutRequest, MeResponse, MessageResponse,
-    OnboardingRequest, PlanPublico, RefreshRequest, ResetPasswordRequest,
-    SignupRequest, SignupResponse, TokenPair, TotpCodigoIn, TotpDesactivarIn,
-    TotpLoginIn, TotpSetupOut, UsuarioMe,
+    ClienteLoginRequest,
+    ClienteMe,
+    ClienteRegistroRequest,
+    ForgotPasswordRequest,
+    LoginRequest,
+    LoginResponse,
+    LogoutRequest,
+    MeResponse,
+    MessageResponse,
+    OnboardingRequest,
+    PlanPublico,
+    RefreshRequest,
+    ResetPasswordRequest,
+    SignupRequest,
+    SignupResponse,
+    TokenPair,
+    TotpCodigoIn,
+    TotpDesactivarIn,
+    TotpLoginIn,
+    TotpSetupOut,
+    UsuarioMe,
 )
 from app.services.audit import registrar_audit
 from app.services.auth import emitir_par_tokens, revocar_refresh, revocar_todos_refresh, rotar_refresh
 from app.services.campanas import asegurar_codigo_referido, generar_codigo_referido
-from app.services.totp import (
-    nuevo_secret as totp_nuevo_secret,
-    provisioning_uri as totp_uri,
-    qr_svg as totp_qr_svg,
-    verificar as totp_verificar,
-)
 from app.services.email import email_service
 from app.services.planes import plan_inicial
+from app.services.totp import (
+    nuevo_secret as totp_nuevo_secret,
+)
+from app.services.totp import (
+    provisioning_uri as totp_uri,
+)
+from app.services.totp import (
+    qr_svg as totp_qr_svg,
+)
+from app.services.totp import (
+    verificar as totp_verificar,
+)
+from fastapi import APIRouter, Depends, HTTPException, status
+from jwt import PyJWTError
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 
@@ -85,7 +121,7 @@ def login_2fa(data: TotpLoginIn, db: Session = Depends(get_db)):
     try:
         payload = decodificar_token(data.pre_token)
     except PyJWTError:
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Sesión de verificación expirada — vuelve a iniciar sesión")
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Sesión de verificación expirada — vuelve a iniciar sesión") from None
     if payload.get("type") != "pre_2fa":
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Token inválido")
     usuario = db.get(Usuario, int(payload["sub"].split(":")[1]))

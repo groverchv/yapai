@@ -9,23 +9,39 @@ habilitación venció.
 import random
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import func, select
-from sqlalchemy.orm import Session
-
 from app.db.session import get_db
 from app.models import (
-    Cliente, ConfigPin, EstadoCliente, EstadoPantalla, EstadoSucursal,
-    EstadoTenant, EstadoUsuario, ModoPin, MovimientoPuntos, Pantalla,
-    RolUsuario, RuletaSegmento, Sucursal, Tenant, TipoMovimiento, Usuario,
+    Cliente,
+    ConfigPin,
+    EstadoCliente,
+    EstadoPantalla,
+    EstadoSucursal,
+    EstadoTenant,
+    EstadoUsuario,
+    ModoPin,
+    MovimientoPuntos,
+    Pantalla,
+    RolUsuario,
+    RuletaSegmento,
+    Sucursal,
+    Tenant,
+    TipoMovimiento,
+    Usuario,
 )
 from app.schemas.kiosco import (
-    GirarIn, GirarOut, KioscoConfigOut, RegistroKioscoIn, RegistroKioscoOut,
+    GirarIn,
+    GirarOut,
+    KioscoConfigOut,
+    RegistroKioscoIn,
+    RegistroKioscoOut,
     SegmentoPublico,
 )
 from app.services.campanas import generar_codigo_referido, multiplicador_activo
 from app.services.planes import verificar_limite, verificar_ruleta
 from app.services.puntos import otorgar, registrar_movimiento
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import func, select
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 
@@ -122,6 +138,12 @@ def registro(device_token: str, data: RegistroKioscoIn, db: Session = Depends(ge
             "El teléfono ya está registrado con otra cédula. Acércate a caja.",
         )
 
+    if not data.acepto_terminos:
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST,
+            "Debes aceptar los términos y la política de privacidad para registrarte.",
+        )
+
     verificar_limite(db, tenant, "clientes")
 
     # Referido: código opcional de un cliente existente → bonus al que refirió
@@ -151,6 +173,7 @@ def registro(device_token: str, data: RegistroKioscoIn, db: Session = Depends(ge
         db, cliente_id=cliente.id, puntos=puntos, tipo=TipoMovimiento.registro,
         tenant_id=tenant.id, sucursal_id=sucursal.id,
         detalle={"origen": "kiosco", "pantalla_id": pantalla.id,
+                 "consentido_terminos": True,
                  **({"campana_id": campana.id, "multiplicador": mult} if campana else {})},
     )
 

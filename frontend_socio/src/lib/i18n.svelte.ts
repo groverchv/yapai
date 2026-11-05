@@ -32,6 +32,7 @@ const ES = {
 	'nav.categorias': 'Categorías',
 	'nav.esquemas': 'Esquemas comisión',
 	'nav.planes': 'Planes SaaS',
+	'nav.instalar': 'Instalar app',
 	// Acciones comunes
 	'accion.cerrar_sesion': 'Cerrar sesión',
 	'accion.cerrar': 'Cerrar',
@@ -84,6 +85,7 @@ const EN: Record<Clave, string> = {
 	'nav.categorias': 'Categories',
 	'nav.esquemas': 'Commission schemes',
 	'nav.planes': 'SaaS plans',
+	'nav.instalar': 'Install app',
 	'accion.cerrar_sesion': 'Sign out',
 	'accion.cerrar': 'Close',
 	'accion.guardar': 'Save',

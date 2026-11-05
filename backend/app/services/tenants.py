@@ -1,13 +1,18 @@
-from sqlalchemy import select, update
-from sqlalchemy.orm import Session
-
 from app.core.security import utcnow
 from app.models import (
-    EstadoPantalla, EstadoTenant, EstadoUsuario, Pantalla,
-    Sucursal, SujetoTipo, Tenant, Usuario,
+    EstadoPantalla,
+    EstadoTenant,
+    EstadoUsuario,
+    Pantalla,
+    Sucursal,
+    SujetoTipo,
+    Tenant,
+    Usuario,
 )
 from app.services.audit import registrar_audit
 from app.services.auth import revocar_todos_refresh
+from sqlalchemy import select, update
+from sqlalchemy.orm import Session
 
 
 def suspender_tenant(db: Session, tenant: Tenant, actor_id: int | None) -> None:

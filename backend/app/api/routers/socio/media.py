@@ -1,12 +1,11 @@
 """Router de carga de medios e imágenes para el portal socio (Cloudinary)."""
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
-from sqlalchemy.orm import Session
-
 from app.core.deps import require_owner
 from app.db.session import get_db
 from app.models import Tenant, Usuario
 from app.schemas.socio import MediaUploadOut
 from app.services.media import subir_imagen
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
+from sqlalchemy.orm import Session
 
 router = APIRouter(dependencies=[Depends(require_owner)])
 
@@ -26,7 +25,7 @@ async def upload_media(
         )
 
     folder_map = {
-        "logo": f"yapai/empresas/logos",
+        "logo": "yapai/empresas/logos",
         "premio": f"yapai/premios/{usuario.tenant_id}",
         "general": f"yapai/empresas/{usuario.tenant_id}",
     }
@@ -35,12 +34,12 @@ async def upload_media(
     try:
         url = subir_imagen(file.file, folder=folder)
     except ValueError as e:
-        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, str(e))
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, str(e)) from e
     except Exception as e:
         raise HTTPException(
             status.HTTP_500_INTERNAL_SERVER_ERROR,
             f"Error al subir imagen a Cloudinary: {str(e)}",
-        )
+        ) from e
 
     # Si se sube como logo de empresa, actualizar inmediatamente el tenant
     if tipo == "logo" and usuario.tenant_id:

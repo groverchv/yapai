@@ -1,22 +1,36 @@
 from datetime import date, datetime, time, timedelta
 
-from fastapi import APIRouter, Depends, Query
-from sqlalchemy import func, select
-from sqlalchemy.orm import Session
-
 from app.core.deps import require_owner
 from app.db.session import get_db
 from app.models import (
-    Cliente, EstadoPase, EstadoPremio, MovimientoPuntos, PaseDigital, Premio, RolUsuario,
-    Sucursal, TipoMovimiento, Usuario,
+    Cliente,
+    EstadoPase,
+    EstadoPremio,
+    MovimientoPuntos,
+    PaseDigital,
+    Premio,
+    RolUsuario,
+    Sucursal,
+    TipoMovimiento,
+    Usuario,
 )
 from app.schemas.admin import Pagina, SerieDia, TransaccionOut
-from app.schemas.socio import PremioStockBajo, ResumenSocio, TopPremioSocio
+from app.schemas.socio import (
+    PremioStockBajo,
+    ResumenPrevio,
+    ResumenSocio,
+    TopPremioSocio,
+)
 from app.services.export import csv_response
 from app.services.kpis import calcular_kpis_socio
 from app.services.transacciones import (
-    filtros_transacciones, stmt_transacciones, to_transaccion_out,
+    filtros_transacciones,
+    stmt_transacciones,
+    to_transaccion_out,
 )
+from fastapi import APIRouter, Depends, Query
+from sqlalchemy import func, select
+from sqlalchemy.orm import Session
 
 STOCK_CRITICO = 3
 
@@ -96,6 +110,21 @@ def resumen(desde: date | None = None, hasta: date | None = None,
     if kpis.puntos_emitidos > 0:
         tasa_redencion = round((kpis.puntos_consumidos / kpis.puntos_emitidos) * 100, 1)
 
+    # Período espejo anterior para los Δ% del dashboard (solo con rango explícito)
+    previos = None
+    if desde and hasta:
+        dias = (hasta - desde).days + 1
+        kpis_prev = calcular_kpis_socio(
+            db, usuario.tenant_id,
+            desde - timedelta(days=dias), desde - timedelta(days=1), sucursal_id,
+        )
+        previos = ResumenPrevio(
+            clientes_nuevos=kpis_prev.clientes_nuevos,
+            puntos_otorgados=kpis_prev.puntos_emitidos,
+            puntos_consumidos=kpis_prev.puntos_consumidos,
+            canjes_exitosos=kpis_prev.canjes_exitosos,
+        )
+
     return ResumenSocio(
         clientes_nuevos=kpis.clientes_nuevos,
         puntos_otorgados=kpis.puntos_emitidos,
@@ -109,6 +138,7 @@ def resumen(desde: date | None = None, hasta: date | None = None,
         pases_activos=pases_activos,
         transacciones_30d=serie,
         top_premios=top_premios,
+        previos=previos,
     )
 
 
@@ -117,7 +147,7 @@ def transacciones_local(
     desde: date | None = None, hasta: date | None = None,
     sucursal_id: int | None = None, cajero_id: int | None = None,
     cliente: str | None = None, tipo: TipoMovimiento | None = None,
-    page: int = Query(1, ge=1), size: int = Query(20, ge=1, le=200),
+    page: int = Query(1, ge=1), size: int = Query(10, ge=1, le=200),
     format: str | None = Query(None, pattern="^csv$"),
     usuario: Usuario = Depends(require_owner), db: Session = Depends(get_db),
 ):

@@ -1,9 +1,10 @@
 import enum
 from datetime import datetime
-from sqlalchemy import String, DateTime, Enum, ForeignKey, Boolean
+
+from app.db.session import Base
+from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import func
-from app.db.session import Base
 
 
 class SujetoTipo(str, enum.Enum):

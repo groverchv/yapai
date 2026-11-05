@@ -218,7 +218,7 @@
 					<input id="pa" type="password" bind:value={passActual} required
 						class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />
 				</div>
-				<div class="grid grid-cols-2 gap-3">
+				<div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
 					<div>
 						<label for="pn" class="mb-1 block text-sm font-medium text-slate-700">Nueva contraseña</label>
 						<input id="pn" type="password" bind:value={passNuevo} required minlength="8"
