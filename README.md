@@ -7,7 +7,7 @@ Este repositorio contiene la arquitectura completa de la solución Yapai:
 | **Backend** | [`backend/`](file:///d:/Yapai/backend) | Python 3.13, FastAPI, SQLAlchemy, PostgREST, Docker | API REST, conexión a PostgreSQL y proxy PostgREST |
 | **Frontend Administrador** | [`frontend_administrador/`](file:///d:/Yapai/frontend_administrador) | SvelteKit, TypeScript, Vite | Panel web para administración general |
 | **Frontend Socio** | [`frontend_socio/`](file:///d:/Yapai/frontend_socio) | SvelteKit, TypeScript, Vite | Portal web para socios comerciales |
-| **Móvil Cliente** | [`movil_cliente/`](file:///d:/Yapai/movil_cliente) | Flutter 3.41, Dart 3.11 | Aplicación móvil nativa multiplataforma (Android/iOS) |
+| **Frontend Cliente** | [`frontend_cliente/`](file:///d:/Yapai/frontend_cliente) | SvelteKit, TypeScript, Vite | Web del cliente: billetera de puntos, explorar, pases QR, perfil |
 
 ---
 
@@ -68,13 +68,14 @@ El cajero (`cajero@demo.com` / `Cajero123!`) entra a `/terminal`: canje de pases
 
 ---
 
-## 4. Móvil Cliente (Flutter + Dart)
+## 4. Web Cliente (SvelteKit + Tailwind)
 ```bash
-cd movil_cliente
-flutter pub get
-flutter run                # emulador Android usa 10.0.2.2 automáticamente
-flutter run --dart-define=API_BASE=http://TU_IP:8000/api/v1   # dispositivo físico
+cd frontend_cliente
+npm install
+npm run dev -- --port 5176   # http://localhost:5176
 ```
 Login con el cliente del seed: teléfono `70000001`, CI `12345678` (o registra uno nuevo en el kiosco).
+`PUBLIC_API_BASE` apunta al backend (default `http://localhost:8000/api/v1`); `PUBLIC_DEMO=1` muestra el botón de usuario demo.
 
 **Kiosco (pantalla del local):** abre `http://localhost:5175/kiosco/kiosco-demo-001` — primero habilítala con el PIN de caja (`POST /caja/pantalla/habilitar`, PIN `4521` del seed).
+# yapai
