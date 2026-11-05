@@ -8,7 +8,7 @@
 	import Dialog from '#lib/components/ui/Dialog.svelte';
 	import QrImg from '#lib/components/ui/QrImg.svelte';
 	import Icon from '#lib/components/ui/Icon.svelte';
-	import Spinner from '#lib/components/ui/Spinner.svelte';
+	import Skeleton from '#lib/components/ui/Skeleton.svelte';
 	import { toast } from '#lib/stores/toast.svelte';
 	import { onMount } from 'svelte';
 
@@ -55,7 +55,12 @@
 <AppTopBar titulo="Pase digital" atras="/pases" />
 
 {#if cargando}
-	<div class="flex h-[60dvh] items-center justify-center text-indigo-600"><Spinner clase="h-8 w-8" /></div>
+	<div class="mx-auto flex w-full max-w-lg flex-col items-center px-6 py-8 lg:rounded-2xl lg:bg-white lg:p-10 lg:shadow-sm lg:ring-1 lg:ring-black/5" aria-busy="true">
+		<Skeleton clase="h-5 w-40" />
+		<Skeleton clase="mt-6 h-56 w-56 !rounded-2xl" />
+		<Skeleton clase="mt-6 h-4 w-48" />
+		<Skeleton clase="mt-2 h-3 w-32" />
+	</div>
 {:else if error || !pase}
 	<div class="flex h-[60dvh] flex-col items-center justify-center gap-2">
 		<p class="text-sm text-red-600">{error || 'Pase no encontrado'}</p>
@@ -78,7 +83,7 @@
 			<div class="mt-2 rounded-xl bg-gray-100 px-6 py-2.5">
 				<span class="font-mono text-[32px] font-bold tracking-[6px]">{pase.pin_corto}</span>
 			</div>
-			<p class="mt-4 text-xs text-gray-400">Válido hasta {fecha(pase.expira_en)}</p>
+			<p class="mt-4 text-xs text-gray-500">Válido hasta {fecha(pase.expira_en)}</p>
 			<button onclick={() => (confirmarCancel = true)} disabled={cancelando}
 				class="mt-6 flex items-center gap-2 rounded-xl border border-red-300 px-5 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50 disabled:opacity-60">
 				<Icon name="x-circle" clase="h-4 w-4" />

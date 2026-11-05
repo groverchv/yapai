@@ -161,7 +161,7 @@
 							<Icon name="trending-up" clase="h-4 w-4 text-indigo-600" />
 							Historial de Actividad del Socio
 						</h2>
-						<p class="text-xs text-slate-400 mt-0.5">Operaciones registradas día a día</p>
+						<p class="text-xs text-slate-500 mt-0.5">Operaciones registradas día a día</p>
 					</div>
 					{#if socioSeleccionado?.logo_url}
 						<img src={socioSeleccionado.logo_url} alt="" class="h-8 w-8 rounded-lg object-cover border border-slate-200" />
@@ -169,7 +169,7 @@
 				</div>
 
 				{#if !kpis.serie_diaria || kpis.serie_diaria.length === 0}
-					<p class="py-12 text-center text-xs text-slate-400">Sin datos de actividad para el rango seleccionado.</p>
+					<p class="py-12 text-center text-xs text-slate-500">Sin datos de actividad para el rango seleccionado.</p>
 				{:else}
 					<div class="mt-6 flex h-44 items-end gap-1.5 pt-4">
 						{#each kpis.serie_diaria as d}
@@ -187,13 +187,13 @@
 									class="w-full rounded-t-md transition-all duration-300 bg-indigo-500 group-hover:bg-indigo-600"
 									style="height: {pct}%"
 								></div>
-								<span class="mt-1 text-[9px] text-slate-400 truncate w-full text-center">
+								<span class="mt-1 text-[9px] text-slate-500 truncate w-full text-center">
 									{d.fecha.slice(8)}
 								</span>
 							</div>
 						{/each}
 					</div>
-					<div class="mt-3 flex items-center justify-between border-t border-slate-100 pt-2 text-xs text-slate-400">
+					<div class="mt-3 flex items-center justify-between border-t border-slate-100 pt-2 text-xs text-slate-500">
 						<span>{kpis.serie_diaria[0]?.fecha ?? ''}</span>
 						<span>{kpis.serie_diaria[kpis.serie_diaria.length - 1]?.fecha ?? ''}</span>
 					</div>
@@ -208,7 +208,7 @@
 							<Icon name="target" clase="h-4 w-4 text-emerald-600" />
 							Salud de Fidelización
 						</h2>
-						<p class="text-xs text-slate-400 mt-0.5">Retención y circulación de puntos</p>
+						<p class="text-xs text-slate-500 mt-0.5">Retención y circulación de puntos</p>
 					</div>
 
 					<div class="mt-4 space-y-4">
@@ -220,7 +220,7 @@
 							<div class="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-slate-100">
 								<div class="h-full rounded-full bg-emerald-500" style="width: {tasaConversion}%"></div>
 							</div>
-							<p class="mt-1 text-[11px] text-slate-400">Puntos canjeados en relación con puntos emitidos.</p>
+							<p class="mt-1 text-[11px] text-slate-500">Puntos canjeados en relación con puntos emitidos.</p>
 						</div>
 
 						<div class="rounded-lg bg-slate-50 p-3 space-y-2 text-xs">
@@ -253,6 +253,6 @@
 			</div>
 		</div>
 	{:else}
-		<p class="text-slate-400">Selecciona un socio para ver sus métricas.</p>
+		<p class="text-slate-500">Selecciona un socio para ver sus métricas.</p>
 	{/if}
 </div>

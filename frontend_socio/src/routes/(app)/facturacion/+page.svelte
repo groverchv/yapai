@@ -78,7 +78,7 @@
 					<Badge texto={f.estado} variante={variante(f.estado)} />
 				{:else if key === 'pago'}
 					{#if f.pagada_en}
-						{f.metodo ?? '—'} <span class="block text-xs text-slate-400">{formatFecha(f.pagada_en)}</span>
+						{f.metodo ?? '—'} <span class="block text-xs text-slate-500">{formatFecha(f.pagada_en)}</span>
 					{:else}—{/if}
 				{:else}{f[key as keyof FacturaSocio]}{/if}
 			{/snippet}

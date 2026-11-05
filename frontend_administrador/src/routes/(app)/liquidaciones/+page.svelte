@@ -101,7 +101,7 @@
 			{:else if key === 'estado'}
 				<Badge texto={l.estado} variante={l.estado === 'pagada' ? 'ok' : 'warn'} />
 			{:else if key === 'aprobada_por'}
-				{l.aprobada_por ?? '—'}{#if l.pagada_en} <span class="block text-xs text-slate-400">{formatFecha(l.pagada_en)}</span>{/if}
+				{l.aprobada_por ?? '—'}{#if l.pagada_en} <span class="block text-xs text-slate-500">{formatFecha(l.pagada_en)}</span>{/if}
 			{:else}{l[key as keyof LiquidacionOut]}{/if}
 		{/snippet}
 		{#snippet acciones(fila)}

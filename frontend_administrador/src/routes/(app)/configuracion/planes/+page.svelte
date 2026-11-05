@@ -94,7 +94,7 @@
 	<DataTable {columnas} filas={items as unknown as Record<string, unknown>[]} {cargando}>
 		{#snippet celda({ key, fila })}
 			{@const p = fila as unknown as PlanOut}
-			{#if key === 'nombre'}<span class="font-medium">{p.nombre}</span> <span class="text-xs text-slate-400">({p.slug})</span>
+			{#if key === 'nombre'}<span class="font-medium">{p.nombre}</span> <span class="text-xs text-slate-500">({p.slug})</span>
 			{:else if key === 'precio_mensual'}{p.precio_mensual === 0 ? 'Gratis' : formatDinero(p.precio_mensual, p.moneda) + '/mes'}
 			{:else if key.startsWith('max_')}{lim(p[key as keyof PlanOut] as number)}
 			{:else if key === 'ruleta_habilitada'}<Badge texto={p.ruleta_habilitada ? 'sí' : 'no'} variante={p.ruleta_habilitada ? 'ok' : 'neutral'} />

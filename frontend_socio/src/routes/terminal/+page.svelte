@@ -289,7 +289,7 @@
 			</div>
 			<div class="flex items-center gap-4">
 				<div>
-					<label for="suc" class="mr-2 text-xs text-slate-400">Sucursal</label>
+					<label for="suc" class="mr-2 text-xs text-slate-500">Sucursal</label>
 					<select id="suc" bind:value={sucursalId}
 						class="rounded-lg border border-slate-600 bg-slate-800 px-3 py-1.5 text-sm">
 						{#each contexto.sucursales as s}
@@ -297,7 +297,7 @@
 						{/each}
 					</select>
 				</div>
-				<span class="text-sm text-slate-400">{contexto.cajero_nombre}</span>
+				<span class="text-sm text-slate-500">{contexto.cajero_nombre}</span>
 				<button onclick={logout} class="flex items-center gap-1.5 rounded-lg border border-slate-600 px-3 py-1.5 text-sm hover:bg-slate-800">
 					<Icon name="log-out" clase="h-4 w-4" />Salir
 				</button>
@@ -312,7 +312,7 @@
 			] as [t, label, ico]}
 				<button onclick={() => cambiarTab(t as typeof tab)}
 					class="flex items-center gap-2 px-4 py-3 text-sm font-medium transition
-						{tab === t ? 'border-b-2 border-emerald-500 text-emerald-400' : 'text-slate-400 hover:text-white'}">
+						{tab === t ? 'border-b-2 border-emerald-500 text-emerald-400' : 'text-slate-500 hover:text-white'}">
 					<Icon name={ico} clase="h-4 w-4" /> {label}
 				</button>
 			{/each}
@@ -322,7 +322,7 @@
 			{#if tab === 'canje'}
 				<div class="space-y-4">
 					<div class="rounded-xl bg-slate-800 p-5">
-						<label for="cod" class="mb-2 block text-sm text-slate-400">
+						<label for="cod" class="mb-2 block text-sm text-slate-500">
 							Escanea el QR o escribe el PIN del pase
 							<span class="float-right text-xs">⏎ buscar/entregar · Esc cancelar</span>
 						</label>
@@ -347,7 +347,7 @@
 						<div class="overflow-hidden rounded-xl border border-slate-600 bg-black">
 							<!-- svelte-ignore a11y_media_has_caption -->
 							<video bind:this={videoEl} class="h-64 w-full object-cover" muted playsinline></video>
-							<p class="px-4 py-2 text-center text-xs text-slate-400">
+							<p class="px-4 py-2 text-center text-xs text-slate-500">
 								Apunta la cámara al QR del pase del cliente
 							</p>
 						</div>
@@ -365,12 +365,12 @@
 						<div class="rounded-xl border-2 {preview.estado === 'activo' ? 'border-emerald-500' : 'border-slate-600'} bg-slate-800 p-6">
 							<div class="flex items-start justify-between gap-4">
 								<div>
-									<p class="text-xs uppercase tracking-wide text-slate-400">Cliente</p>
+									<p class="text-xs uppercase tracking-wide text-slate-500">Cliente</p>
 									<p class="text-2xl font-bold">{preview.cliente_nombre}</p>
-									<p class="text-sm text-slate-400">CI {preview.cliente_ci}</p>
+									<p class="text-sm text-slate-500">CI {preview.cliente_ci}</p>
 								</div>
 								<div class="text-right">
-									<p class="text-xs uppercase tracking-wide text-slate-400">Premio</p>
+									<p class="text-xs uppercase tracking-wide text-slate-500">Premio</p>
 									<p class="text-2xl font-bold text-emerald-400">{preview.premio_nombre}</p>
 									<p class="mt-1 text-3xl font-bold">{preview.puntos} pts</p>
 								</div>
@@ -382,7 +382,7 @@
 									{canjeando ? 'Procesando…' : 'ENTREGAR PREMIO'}
 								</button>
 								<button onclick={limpiarCanje}
-									class="mt-2 w-full rounded-xl border border-slate-600 py-2 text-sm text-slate-400 hover:text-white">
+									class="mt-2 w-full rounded-xl border border-slate-600 py-2 text-sm text-slate-500 hover:text-white">
 									Cancelar [Esc]
 								</button>
 							{:else}
@@ -397,13 +397,13 @@
 			{:else if tab === 'bonus'}
 				<div class="space-y-4">
 					<div class="flex items-center justify-between rounded-xl bg-slate-800 px-5 py-3 text-sm">
-						<span class="text-slate-400">Bonus usado hoy:</span>
+						<span class="text-slate-500">Bonus usado hoy:</span>
 						<span class="font-bold">{contexto.bonus_hoy} / {contexto.max_puntos_dia_cajero} pts</span>
 					</div>
 
 					{#if !clienteSel}
 						<div class="rounded-xl bg-slate-800 p-5">
-							<label for="bq" class="mb-2 block text-sm text-slate-400">
+							<label for="bq" class="mb-2 block text-sm text-slate-500">
 								Buscar cliente por CI o teléfono
 							</label>
 							<div class="flex gap-2">
@@ -428,18 +428,18 @@
 							<div class="flex items-center justify-between">
 								<div>
 									<p class="text-xl font-bold">{clienteSel.nombre}</p>
-									<p class="text-sm text-slate-400">CI {clienteSel.ci} · saldo {clienteSel.saldo_puntos} pts</p>
+									<p class="text-sm text-slate-500">CI {clienteSel.ci} · saldo {clienteSel.saldo_puntos} pts</p>
 								</div>
-								<button onclick={() => (clienteSel = null)} class="text-sm text-slate-400 hover:text-white">Cambiar</button>
+								<button onclick={() => (clienteSel = null)} class="text-sm text-slate-500 hover:text-white">Cambiar</button>
 							</div>
 							<div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
 								<div>
-									<label for="pb" class="mb-1 block text-sm text-slate-400">Puntos (máx {contexto.max_puntos_tx})</label>
+									<label for="pb" class="mb-1 block text-sm text-slate-500">Puntos (máx {contexto.max_puntos_tx})</label>
 									<input id="pb" type="number" bind:value={puntosBonus} min="1" max={contexto.max_puntos_tx}
 										class="w-full rounded-xl border border-slate-600 bg-slate-900 px-4 py-3 focus:border-emerald-500 focus:outline-none" />
 								</div>
 								<div>
-									<label for="mb" class="mb-1 block text-sm text-slate-400">Motivo (ticket/compra)</label>
+									<label for="mb" class="mb-1 block text-sm text-slate-500">Motivo (ticket/compra)</label>
 									<input id="mb" type="text" bind:value={motivo} placeholder="Ticket #123"
 										class="w-full rounded-xl border border-slate-600 bg-slate-900 px-4 py-3 focus:border-emerald-500 focus:outline-none" />
 								</div>
@@ -458,18 +458,18 @@
 
 			{:else}
 				<div class="space-y-4 rounded-xl bg-slate-800 p-5">
-					<p class="text-sm text-slate-400">
+					<p class="text-sm text-slate-500">
 						Habilita una pantalla física del local con el PIN de caja para que muestre la ruleta.
 					</p>
 					<div>
-						<label for="dt" class="mb-1 block text-sm text-slate-400">Token del dispositivo</label>
+						<label for="dt" class="mb-1 block text-sm text-slate-500">Token del dispositivo</label>
 						<input id="dt" type="text" bind:value={deviceToken} placeholder="kiosco-…"
 							onblur={cargarCajerosPin}
 							class="w-full rounded-xl border border-slate-600 bg-slate-900 px-4 py-3 font-mono focus:border-emerald-500 focus:outline-none" />
 					</div>
 					{#if cajerosPin.length > 0}
 						<div>
-							<label for="cj" class="mb-1 block text-sm text-slate-400">¿Quién habilita?</label>
+							<label for="cj" class="mb-1 block text-sm text-slate-500">¿Quién habilita?</label>
 							<select id="cj" bind:value={cajeroIdPin}
 								class="w-full rounded-xl border border-slate-600 bg-slate-900 px-4 py-3">
 								{#each cajerosPin as c}
@@ -479,7 +479,7 @@
 						</div>
 					{/if}
 					<div>
-						<label for="pp" class="mb-1 block text-sm text-slate-400">PIN de caja (4 dígitos)</label>
+						<label for="pp" class="mb-1 block text-sm text-slate-500">PIN de caja (4 dígitos)</label>
 						<input id="pp" type="password" bind:value={pinPantalla} maxlength="4" inputmode="numeric"
 							class="w-full rounded-xl border border-slate-600 bg-slate-900 px-4 py-3 text-center text-2xl tracking-[0.5em] focus:border-emerald-500 focus:outline-none" />
 					</div>
@@ -511,7 +511,7 @@
 		</main>
 	</div>
 {:else}
-	<div class="flex h-screen items-center justify-center bg-slate-900 text-slate-400">
+	<div class="flex h-screen items-center justify-center bg-slate-900 text-slate-500">
 		Verificando sesión…
 	</div>
 {/if}

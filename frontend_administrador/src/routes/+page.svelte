@@ -8,4 +8,4 @@
 	});
 </script>
 
-<div class="flex h-screen items-center justify-center text-slate-400">Redirigiendo…</div>
+<div class="flex h-screen items-center justify-center text-slate-500">Redirigiendo…</div>

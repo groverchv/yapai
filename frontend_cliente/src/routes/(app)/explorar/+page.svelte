@@ -4,7 +4,7 @@
 	import type { Categoria, Comercio } from '#lib/types';
 	import ComercioCard from '#lib/components/ComercioCard.svelte';
 	import Icon from '#lib/components/ui/Icon.svelte';
-	import Spinner from '#lib/components/ui/Spinner.svelte';
+	import Skeleton from '#lib/components/ui/Skeleton.svelte';
 	import PullRefresh from '#lib/components/ui/PullRefresh.svelte';
 	import { onMount } from 'svelte';
 
@@ -86,7 +86,15 @@
 		</div>
 
 		{#if cargando}
-			<div class="flex justify-center py-12 text-indigo-600"><Spinner clase="h-8 w-8" /></div>
+			<div class="grid grid-cols-[repeat(auto-fill,minmax(130px,1fr))] gap-2.5 lg:grid-cols-5 xl:grid-cols-6" aria-busy="true">
+				{#each { length: 6 } as _}
+					<div class="rounded-xl bg-white p-3 shadow-sm ring-1 ring-black/5">
+						<Skeleton clase="mx-auto h-16 w-16 !rounded-full" />
+						<Skeleton clase="mx-auto mt-2.5 h-3.5 w-3/4" />
+						<Skeleton clase="mx-auto mt-1.5 h-2.5 w-1/2" />
+					</div>
+				{/each}
+			</div>
 		{:else if error}
 			<div class="flex flex-col items-center gap-2 py-12">
 				<p class="text-sm text-red-600">{error}</p>

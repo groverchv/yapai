@@ -12,8 +12,10 @@ from datetime import datetime, timedelta, timezone
 from app.db.session import get_db
 from app.models import (
     Cliente,
+    Comunicado,
     ConfigPin,
     EstadoCliente,
+    EstadoComunicado,
     EstadoPantalla,
     EstadoSucursal,
     EstadoTenant,
@@ -32,6 +34,7 @@ from app.schemas.kiosco import (
     GirarIn,
     GirarOut,
     KioscoConfigOut,
+    OfertaKiosco,
     RegistroKioscoIn,
     RegistroKioscoOut,
     SegmentoPublico,
@@ -111,6 +114,14 @@ def config(device_token: str, db: Session = Depends(get_db)):
             RuletaSegmento.tenant_id == tenant.id, RuletaSegmento.activo == True  # noqa: E712
         ).order_by(RuletaSegmento.id)
     ).all()
+    ahora = datetime.now(timezone.utc)
+    ofertas = db.scalars(
+        select(Comunicado).where(
+            Comunicado.tenant_id == tenant.id,
+            Comunicado.estado == EstadoComunicado.publicado,
+            (Comunicado.vigencia_hasta.is_(None)) | (Comunicado.vigencia_hasta > ahora),
+        ).order_by(Comunicado.publicado_en.desc()).limit(6)
+    ).all()
     return KioscoConfigOut(
         comercio=tenant.nombre_comercial, logo_url=tenant.logo_url,
         sucursal=sucursal.nombre, pantalla=pantalla.nombre,
@@ -118,6 +129,8 @@ def config(device_token: str, db: Session = Depends(get_db)):
         puntos_registro=tenant.puntos_registro,
         segmentos=[SegmentoPublico(etiqueta=s.etiqueta, puntos=s.puntos,
                                  peso=s.peso, color=s.color) for s in segmentos],
+        ofertas=[OfertaKiosco(titulo=c.titulo, descripcion=c.descripcion,
+                              imagen_url=c.imagen_url) for c in ofertas],
     )
 
 

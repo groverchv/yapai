@@ -5,9 +5,11 @@
 	import { API_BASE, fetchRed } from '#lib/api/client';
 
 	interface Segmento { etiqueta: string; puntos: number; peso: number; color: string | null }
+	interface Oferta { titulo: string; descripcion: string | null; imagen_url: string }
 	interface Config {
 		comercio: string; logo_url: string | null; sucursal: string; pantalla: string;
 		habilitada_hasta: string; puntos_registro: number; segmentos: Segmento[];
+		ofertas: Oferta[];
 	}
 	interface Resultado { etiqueta: string; puntos: number; color: string | null; saldo: number; indice: number }
 
@@ -176,23 +178,42 @@
 		cargar(); // revalida que siga habilitada
 	}
 
-	// --- Modo atracción: tras 45s sin tocar, overlay invitando a jugar ---
+	// --- Modo atracción: tras 45s sin tocar, slideshow de ofertas + invitación ---
 	const IDLE_SEG = 45;
+	const SLIDE_SEG = 6;
 	let idle = $state(false);
 	let idleTimer: ReturnType<typeof setTimeout>;
+	let slideIdx = $state(0);
+	let slideTimer: ReturnType<typeof setInterval>;
+
+	// Con ofertas: slideshow. Sin ofertas: mensajes genéricos rotando.
+	const slide = $derived.by(() => {
+		const ofs = config?.ofertas ?? [];
+		if (ofs.length > 0) return { tipo: 'oferta' as const, oferta: ofs[slideIdx % ofs.length] };
+		const mensajes = [
+			{ titulo: '¡Toca la pantalla!', desc: 'Regístrate y gira la ruleta para ganar puntos' },
+			{ titulo: `Gana ${config?.puntos_registro ?? 0} pts`, desc: 'Solo por registrarte hoy' },
+		];
+		return { tipo: 'mensaje' as const, msg: mensajes[slideIdx % mensajes.length] };
+	});
 
 	function reiniciarIdle() {
 		idle = false;
+		slideIdx = 0;
 		clearTimeout(idleTimer);
+		clearInterval(slideTimer);
 		idleTimer = setTimeout(() => {
-			if (paso === 'identificacion' || paso === 'ruleta' || paso === 'resultado') idle = true;
+			if (paso === 'identificacion' || paso === 'ruleta' || paso === 'resultado') {
+				idle = true;
+				slideTimer = setInterval(() => { slideIdx += 1; }, SLIDE_SEG * 1000);
+			}
 		}, IDLE_SEG * 1000);
 	}
 
 	onMount(() => {
 		reiniciarIdle();
 		cargar();
-		return () => clearTimeout(idleTimer);
+		return () => { clearTimeout(idleTimer); clearInterval(slideTimer); };
 	});
 </script>
 
@@ -212,10 +233,28 @@
 
 	{#if idle}
 		<button onclick={reiniciarIdle} aria-label="Tocar para comenzar"
-			class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-slate-950/85 backdrop-blur-sm">
-			<span class="animate-pulse text-center text-4xl font-bold text-emerald-400">¡Toca la pantalla!</span>
-			<span class="mt-3 text-xl text-slate-300">Regístrate y gira la ruleta para ganar puntos</span>
-			<Icon name="tap" clase="mt-8 h-16 w-16 animate-bounce text-emerald-400" />
+			class="absolute inset-0 z-50 flex flex-col items-center justify-center overflow-hidden bg-slate-950">
+			{#if slide.tipo === 'oferta' && slide.oferta}
+				<!-- Slideshow: oferta a pantalla completa -->
+				<img src={slide.oferta.imagen_url} alt="" class="absolute inset-0 h-full w-full object-cover opacity-60" />
+				<div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent"></div>
+				<div class="relative z-10 flex flex-col items-center px-8 text-center">
+					<span class="rounded-full bg-emerald-500 px-4 py-1 text-sm font-bold uppercase tracking-wide text-slate-950">Oferta</span>
+					<span class="mt-4 max-w-2xl text-4xl font-bold drop-shadow-lg lg:text-5xl">{slide.oferta.titulo}</span>
+					{#if slide.oferta.descripcion}
+						<span class="mt-3 max-w-xl text-xl text-slate-300">{slide.oferta.descripcion}</span>
+					{/if}
+				</div>
+			{:else if slide.tipo === 'mensaje' && slide.msg}
+				<span class="animate-pulse text-center text-4xl font-bold text-emerald-400 lg:text-5xl">{slide.msg.titulo}</span>
+				<span class="mt-3 text-xl text-slate-300">{slide.msg.desc}</span>
+			{/if}
+			<!-- CTA fijo abajo: siempre visible -->
+			<div class="absolute bottom-10 flex flex-col items-center">
+				<Icon name="tap" clase="h-14 w-14 animate-bounce text-emerald-400" />
+				<span class="mt-2 text-2xl font-bold text-emerald-400">¡Toca para participar!</span>
+				<span class="mt-1 text-sm text-slate-400">Gana {config?.puntos_registro ?? 0} pts al registrarte</span>
+			</div>
 		</button>
 	{/if}
 

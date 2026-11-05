@@ -25,6 +25,6 @@
 	<img {src} alt="Código QR" width={size} height={size} class="block" />
 {:else}
 	<div class="flex items-center justify-center bg-gray-100" style:width="{size}px" style:height="{size}px">
-		<span class="text-xs text-gray-400">QR</span>
+		<span class="text-xs text-gray-500">QR</span>
 	</div>
 {/if}

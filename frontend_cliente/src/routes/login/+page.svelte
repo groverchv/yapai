@@ -148,7 +148,7 @@
 				</button>
 			{/if}
 
-			<p class="mt-4 text-center text-xs text-gray-400">
+			<p class="mt-4 text-center text-xs text-gray-500">
 				{esRegistro
 					? 'Tus datos se guardarán en la base de datos para acumular y canjear puntos.'
 					: 'Usa el teléfono y la CI con los que te registraste en el local o en la app.'}

@@ -4,7 +4,7 @@
 	<div class="mx-auto max-w-2xl rounded-2xl bg-white p-8 shadow-sm">
 		<img src="/logo.png" alt="YAPAI" class="h-8" />
 		<h1 class="mt-6 text-2xl font-bold text-slate-900">Política de privacidad</h1>
-		<p class="mt-1 text-sm text-slate-400">Última actualización: noviembre 2026</p>
+		<p class="mt-1 text-sm text-slate-500">Última actualización: noviembre 2026</p>
 
 		<div class="prose prose-slate mt-6 max-w-none space-y-4 text-sm leading-relaxed text-slate-600">
 			<h2 class="text-base font-bold text-slate-800">1. Datos que recopilamos</h2>

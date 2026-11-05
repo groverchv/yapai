@@ -119,7 +119,7 @@
 					<div class="flex flex-col items-center sm:items-start text-center sm:text-left">
 						<span class="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-500">Logo Oficial</span>
 						<ImageUploader bind:value={logo} carpeta="logo" aspecto="square" />
-						<p class="mt-2 text-[11px] leading-relaxed text-slate-400">
+						<p class="mt-2 text-[11px] leading-relaxed text-slate-500">
 							Se muestra en la <strong class="text-slate-600">App Móvil de Clientes</strong>, en el <strong class="text-slate-600">Kiosco de Registro</strong> y en la terminal de caja.
 						</p>
 					</div>
@@ -131,7 +131,7 @@
 							<input id="tnom" type="text" bind:value={tenantNombre} required minlength="2"
 								placeholder="Ej: Pizzería Don Yapai"
 								class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-800 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition" />
-							<p class="mt-1 text-xs text-slate-400">Nombre visible para tus clientes y en reportes oficiales.</p>
+							<p class="mt-1 text-xs text-slate-500">Nombre visible para tus clientes y en reportes oficiales.</p>
 						</div>
 
 						<div class="rounded-xl border border-dashed border-emerald-200 bg-emerald-50/40 p-3.5">
@@ -169,8 +169,8 @@
 					<div>
 						<label for="cor" class="mb-1 block text-sm font-medium text-slate-700">Correo electrónico</label>
 						<input id="cor" type="email" value={perfil.email} disabled
-							class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-400 cursor-not-allowed" />
-						<p class="mt-1 text-xs text-slate-400">Identificador único de acceso (no modificable).</p>
+							class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-500 cursor-not-allowed" />
+						<p class="mt-1 text-xs text-slate-500">Identificador único de acceso (no modificable).</p>
 					</div>
 				</div>
 
@@ -211,7 +211,7 @@
 
 		<div class="rounded-xl border border-slate-200 bg-white p-6">
 			<h3 class="font-semibold text-slate-800">Cambiar contraseña</h3>
-			<p class="mt-1 text-xs text-slate-400">Al cambiarla se cerrarán todas tus sesiones activas.</p>
+			<p class="mt-1 text-xs text-slate-500">Al cambiarla se cerrarán todas tus sesiones activas.</p>
 			<form onsubmit={cambiarPassword} class="mt-4 space-y-4">
 				<div>
 					<label for="pa" class="mb-1 block text-sm font-medium text-slate-700">Contraseña actual</label>
@@ -242,6 +242,6 @@
 
 		<Seguridad2fa />
 	{:else}
-		<p class="text-slate-400">Cargando perfil…</p>
+		<p class="text-slate-500">Cargando perfil…</p>
 	{/if}
 </div>

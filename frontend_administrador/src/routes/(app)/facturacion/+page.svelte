@@ -117,7 +117,7 @@
 				<Badge texto={f.estado} variante={variante(f.estado)} />
 			{:else if key === 'metodo'}
 				{#if f.metodo}
-					{f.metodo}{#if f.referencia} <span class="block text-xs text-slate-400">{f.referencia}</span>{/if}
+					{f.metodo}{#if f.referencia} <span class="block text-xs text-slate-500">{f.referencia}</span>{/if}
 				{:else}—{/if}
 			{:else}{f[key as keyof FacturaOut]}{/if}
 		{/snippet}

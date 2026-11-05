@@ -137,8 +137,8 @@
 						{#if f.logo_url}
 							<img src={f.logo_url} alt="Logo" class="h-16 w-16 rounded-lg object-cover border border-slate-200 shadow-xs" />
 						{:else}
-							<div class="flex h-16 w-16 items-center justify-center rounded-lg bg-slate-200 text-slate-400">
-								<Icon name="camera" clase="h-8 w-8 text-slate-400" />
+							<div class="flex h-16 w-16 items-center justify-center rounded-lg bg-slate-200 text-slate-500">
+								<Icon name="camera" clase="h-8 w-8 text-slate-500" />
 							</div>
 						{/if}
 						<div class="flex-1">
@@ -147,7 +147,7 @@
 								<span>{subiendoLogo ? 'Subiendo a Cloudinary…' : f.logo_url ? 'Cambiar logotipo' : 'Seleccionar archivo'}</span>
 								<input type="file" accept="image/*" onchange={manejarSeleccionArchivo} disabled={subiendoLogo} class="hidden" />
 							</label>
-							<p class="mt-1 text-xs text-slate-400">PNG, JPG o WEBP recomendados (cuadrado, min 200x200px).</p>
+							<p class="mt-1 text-xs text-slate-500">PNG, JPG o WEBP recomendados (cuadrado, min 200x200px).</p>
 							{#if f.logo_url}
 								<button type="button" onclick={() => (f.logo_url = '')} class="mt-1 text-xs text-red-600 hover:underline">
 									Eliminar logo

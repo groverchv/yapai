@@ -62,7 +62,7 @@
 					<label for="p1" class="mb-1 block text-sm font-medium text-slate-700">Nueva contraseña</label>
 					<input id="p1" type="password" bind:value={password} required minlength="8"
 						class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500" />
-					<p class="mt-1 text-xs text-slate-400">Mínimo 8 caracteres</p>
+					<p class="mt-1 text-xs text-slate-500">Mínimo 8 caracteres</p>
 				</div>
 				<div>
 					<label for="p2" class="mb-1 block text-sm font-medium text-slate-700">Confirmar contraseña</label>

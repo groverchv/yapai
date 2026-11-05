@@ -12,7 +12,7 @@
 	import BottomSheet from '#lib/components/ui/BottomSheet.svelte';
 	import QrImg from '#lib/components/ui/QrImg.svelte';
 	import Icon from '#lib/components/ui/Icon.svelte';
-	import Spinner from '#lib/components/ui/Spinner.svelte';
+	import Skeleton from '#lib/components/ui/Skeleton.svelte';
 	import PullRefresh from '#lib/components/ui/PullRefresh.svelte';
 	import { onMount } from 'svelte';
 
@@ -103,7 +103,11 @@
 			<section>
 				<h2 class="mb-2 text-base font-semibold">Ofertas</h2>
 				{#if cargando}
-					<div class="flex justify-center py-8 text-indigo-600"><Spinner clase="h-7 w-7" /></div>
+					<div class="grid grid-cols-[repeat(auto-fill,minmax(100px,1fr))] gap-2 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7" aria-busy="true">
+						{#each { length: 6 } as _}
+							<Skeleton clase="aspect-square w-full !rounded-xl" />
+						{/each}
+					</div>
 				{:else if comunicados.length === 0}
 					<div class="flex flex-col items-center rounded-xl bg-white p-6 shadow-sm ring-1 ring-black/5">
 						<Icon name="tag" clase="h-10 w-10 text-gray-300" />

@@ -86,7 +86,7 @@
 			{:else if key === 'costo_canje'}{formatDinero(e.costo_canje, e.moneda)}
 			{:else if key === 'activo'}<Badge texto={e.activo ? 'activo' : 'inactivo'} variante={e.activo ? 'ok' : 'neutral'} />
 			{:else if key === 'has_usage'}
-				{#if e.has_usage}<Badge texto="en uso" variante="info" />{:else}<span class="text-slate-400">—</span>{/if}
+				{#if e.has_usage}<Badge texto="en uso" variante="info" />{:else}<span class="text-slate-500">—</span>{/if}
 			{:else}{e[key as keyof EsquemaOut]}{/if}
 		{/snippet}
 		{#snippet acciones(fila)}

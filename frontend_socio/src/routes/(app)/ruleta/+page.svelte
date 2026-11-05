@@ -119,7 +119,7 @@
 	{/if}
 
 	{#if cargando}
-		<p class="text-slate-400">Cargando…</p>
+		<p class="text-slate-500">Cargando…</p>
 	{:else}
 		<div class="overflow-hidden rounded-xl border border-slate-200 bg-white">
 			<table class="w-full text-left text-sm">
@@ -160,7 +160,7 @@
 							</td>
 						</tr>
 					{:else}
-						<tr><td colspan="6" class="px-4 py-10 text-center text-slate-400">Sin segmentos</td></tr>
+						<tr><td colspan="6" class="px-4 py-10 text-center text-slate-500">Sin segmentos</td></tr>
 					{/each}
 				</tbody>
 			</table>

@@ -10,6 +10,12 @@ class SegmentoPublico(BaseModel):
     color: str | None
 
 
+class OfertaKiosco(BaseModel):
+    titulo: str
+    descripcion: str | None
+    imagen_url: str
+
+
 class KioscoConfigOut(BaseModel):
     comercio: str
     logo_url: str | None
@@ -18,6 +24,8 @@ class KioscoConfigOut(BaseModel):
     habilitada_hasta: datetime
     puntos_registro: int
     segmentos: list[SegmentoPublico]
+    # Ofertas publicadas del tenant para el slideshow en modo atracción
+    ofertas: list[OfertaKiosco] = []
 
 
 class RegistroKioscoIn(BaseModel):

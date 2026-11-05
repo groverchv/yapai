@@ -7,8 +7,9 @@
 	import PremioCard from '#lib/components/PremioCard.svelte';
 	import Dialog from '#lib/components/ui/Dialog.svelte';
 	import Icon from '#lib/components/ui/Icon.svelte';
-	import Spinner from '#lib/components/ui/Spinner.svelte';
+	import Skeleton from '#lib/components/ui/Skeleton.svelte';
 	import PullRefresh from '#lib/components/ui/PullRefresh.svelte';
+	import Celebracion from '#lib/components/ui/Celebracion.svelte';
 	import { toast } from '#lib/stores/toast.svelte';
 	import { cloudinaryThumb } from '#lib/utils/format';
 	import { onMount } from 'svelte';
@@ -23,6 +24,7 @@
 	let confirmar = $state<Premio | null>(null);
 	let canjeando = $state(false);
 	let logoFallo = $state(false);
+	let celebracion = $state<{ pase: Pase; premio: Premio } | null>(null);
 
 	const sucursales = $derived<SucursalInfo[]>(detalle?.sucursales ?? []);
 
@@ -58,8 +60,8 @@
 		canjeando = true;
 		try {
 			const pase = await api.post<Pase>('/cliente/pases', { premio_id: p.id });
-			toast.exito('Pase generado');
-			goto(`/pases/${pase.id}`);
+			confirmar = null;
+			celebracion = { pase, premio: p };
 		} catch (e) {
 			toast.error(mensajeError(e));
 		} finally {
@@ -73,7 +75,21 @@
 <AppTopBar titulo={detalle?.nombre_comercial ?? 'Comercio'} atras="/explorar" />
 
 {#if cargando}
-	<div class="flex h-[60dvh] items-center justify-center text-indigo-600"><Spinner clase="h-8 w-8" /></div>
+	<div class="space-y-4 p-4 lg:p-8" aria-busy="true">
+		<Skeleton clase="h-20 w-full !rounded-xl" />
+		<Skeleton clase="h-4 w-32" />
+		<div class="grid grid-cols-[repeat(auto-fill,minmax(130px,1fr))] gap-2.5 lg:grid-cols-4 xl:grid-cols-5">
+			{#each { length: 4 } as _}
+				<div class="rounded-xl bg-white shadow-sm ring-1 ring-black/5">
+					<Skeleton clase="h-32 w-full rounded-none !rounded-t-xl sm:h-36" />
+					<div class="space-y-2 p-3">
+						<Skeleton clase="h-3.5 w-3/4" />
+						<Skeleton clase="h-3 w-1/2" />
+					</div>
+				</div>
+			{/each}
+		</div>
+	</div>
 {:else if error}
 	<div class="flex h-[60dvh] flex-col items-center justify-center gap-2">
 		<p class="text-sm text-red-600">{error}</p>
@@ -157,3 +173,10 @@
 		Los puntos quedarán congelados hasta que el cajero valide la entrega o canceles el pase.
 	{/if}
 </Dialog>
+
+{#if celebracion}
+	<Celebracion puntos={celebracion.premio.costo_puntos}
+		titulo="¡Pase generado!"
+		subtitulo={celebracion.premio.nombre}
+		onfin={() => { const pid = celebracion!.pase.id; celebracion = null; goto(`/pases/${pid}`); }} />
+{/if}

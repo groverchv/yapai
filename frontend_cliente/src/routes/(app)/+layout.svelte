@@ -9,8 +9,21 @@
 
 	let { children } = $props();
 
+	// Banner offline: el contenido ya cargado sigue visible; solo avisamos.
+	let sinConexion = $state(false);
+	function revisarRed() {
+		sinConexion = !navigator.onLine;
+	}
+
 	onMount(() => {
 		if (!auth.autenticado) goto('/login', { replaceState: true });
+		revisarRed();
+		window.addEventListener('online', revisarRed);
+		window.addEventListener('offline', revisarRed);
+		return () => {
+			window.removeEventListener('online', revisarRed);
+			window.removeEventListener('offline', revisarRed);
+		};
 	});
 
 	const tabs = [
@@ -25,6 +38,12 @@
 
 {#if auth.autenticado}
 	<div class="flex min-h-dvh flex-col bg-gray-100">
+		{#if sinConexion}
+			<div class="flex items-center justify-center gap-2 bg-amber-500 px-4 py-2 text-center text-[13px] font-semibold text-white" role="alert">
+				<Icon name="alert-triangle" clase="h-4 w-4 shrink-0" />
+				Sin conexión — tus datos cargados siguen visibles
+			</div>
+		{/if}
 		<!-- Nav superior (desktop): ocupa todo el ancho como una web real -->
 		<header class="sticky top-0 z-40 hidden h-14 shrink-0 bg-navy text-white shadow-md lg:block">
 			<div class="mx-auto flex h-full w-full items-center gap-6 px-6">

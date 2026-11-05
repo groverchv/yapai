@@ -234,7 +234,7 @@
 			<label for="ee" class="mb-1 block text-sm font-medium text-slate-700">Correo</label>
 			<input id="ee" type="email" bind:value={formEmail} required
 				class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />
-			<p class="mt-1 text-xs text-slate-400">Recibirá un correo para activar su cuenta.</p>
+			<p class="mt-1 text-xs text-slate-500">Recibirá un correo para activar su cuenta.</p>
 		</div>
 		<fieldset>
 			<legend class="mb-1 text-sm font-medium text-slate-700">Sucursales asignadas</legend>
@@ -246,7 +246,7 @@
 						{s.nombre}
 					</label>
 				{:else}
-					<p class="text-sm text-slate-400">No hay sucursales activas.</p>
+					<p class="text-sm text-slate-500">No hay sucursales activas.</p>
 				{/each}
 			</div>
 		</fieldset>

@@ -19,6 +19,6 @@
 	<p class="text-xs font-medium text-slate-500 sm:text-sm">{titulo}</p>
 	<p class="mt-1.5 text-xl font-bold {colores[color].split(' ')[1]} sm:mt-2 sm:text-3xl">{valor}</p>
 	{#if subtitulo}
-		<p class="mt-1 text-[11px] text-slate-400 sm:text-xs">{subtitulo}</p>
+		<p class="mt-1 text-[11px] text-slate-500 sm:text-xs">{subtitulo}</p>
 	{/if}
 </div>

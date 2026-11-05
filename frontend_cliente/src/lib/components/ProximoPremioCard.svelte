@@ -34,7 +34,7 @@
 			<div class="h-full rounded transition-all {proximo.alcanzable ? 'bg-green-500' : 'bg-navy'}"
 				style:width="{progreso * 100}%"></div>
 		</div>
-		<p class="mt-1 text-[11px] text-gray-400">{proximo.saldo} / {proximo.costo_puntos} pts</p>
+		<p class="mt-1 text-[11px] text-gray-500">{proximo.saldo} / {proximo.costo_puntos} pts</p>
 	</div>
 	<Icon name="chevron-right" clase="h-5 w-5 shrink-0 text-gray-400" />
 </button>

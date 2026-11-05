@@ -111,7 +111,7 @@
 							</button>
 						</div>
 					{:else}
-						<p class="text-sm text-slate-400">No tienes sucursales registradas.</p>
+						<p class="text-sm text-slate-500">No tienes sucursales registradas.</p>
 					{/each}
 				</div>
 			</div>
@@ -132,7 +132,7 @@
 							</button>
 						</div>
 					{:else}
-						<p class="text-sm text-slate-400">No tienes cajeros registrados.</p>
+						<p class="text-sm text-slate-500">No tienes cajeros registrados.</p>
 					{/each}
 				</div>
 			</div>

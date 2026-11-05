@@ -3,6 +3,7 @@
 	import { onMount } from 'svelte';
 	import { api } from '#lib/api/client';
 	import Badge from '#lib/components/ui/Badge.svelte';
+	import EmptyState from '#lib/components/ui/EmptyState.svelte';
 	import ImageUploader from '#lib/components/ui/ImageUploader.svelte';
 	import Modal from '#lib/components/ui/Modal.svelte';
 	import { toast } from '#lib/stores/toast.svelte';
@@ -136,15 +137,9 @@
 			{/each}
 		</div>
 	{:else if comunicados.length === 0}
-		<div class="rounded-xl border border-dashed border-slate-300 bg-white p-12 text-center">
-			<Icon name="image-plus" clase="mx-auto h-10 w-10 text-slate-300" />
-			<p class="mt-3 font-medium text-slate-600">Aún no tienes ofertas</p>
-			<p class="mt-1 text-sm text-slate-400">Publica promociones con imagen y tus clientes las verán en la app.</p>
-			<button onclick={abrirNuevo}
-				class="mt-4 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">
-				Crear mi primera oferta
-			</button>
-		</div>
+		<EmptyState icono="image-plus" titulo="Aún no tienes ofertas"
+			descripcion="Publica promociones con imagen y tus clientes las verán en el feed de la app."
+			cta="Crear mi primera oferta" oncta={abrirNuevo} />
 	{:else}
 		<div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
 			{#each comunicados as c (c.id)}
@@ -160,7 +155,7 @@
 						{#if c.descripcion}
 							<p class="mt-1 line-clamp-2 text-sm text-slate-500">{c.descripcion}</p>
 						{/if}
-						<p class="mt-2 text-xs text-slate-400">
+						<p class="mt-2 text-xs text-slate-500">
 							{#if c.premio_nombre}Premio: {c.premio_nombre} · {/if}
 							{#if c.vigencia_hasta}Hasta {formatFecha(c.vigencia_hasta)}{:else}Sin vencimiento{/if}
 						</p>

@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { api } from '#lib/api/client';
 	import Badge from '#lib/components/ui/Badge.svelte';
+	import EmptyState from '#lib/components/ui/EmptyState.svelte';
 	import ImageUploader from '#lib/components/ui/ImageUploader.svelte';
 	import Modal from '#lib/components/ui/Modal.svelte';
 	import { formatFecha } from '#lib/utils/format';
@@ -164,7 +165,15 @@
 	{/if}
 
 	{#if cargando}
-		<p class="text-slate-400">Cargando…</p>
+		<div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+			{#each Array(2) as _}
+				<div class="h-64 animate-pulse rounded-xl bg-slate-100"></div>
+			{/each}
+		</div>
+	{:else if sucursales.length === 0}
+		<EmptyState icono="store" titulo="Aún no tienes sucursales"
+			descripcion="Registra tu local con dirección y coordenadas GPS — tus clientes verán cómo llegar desde la app."
+			cta="Agregar mi primera sucursal" oncta={abrirCrear} />
 	{:else}
 		<div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
 			{#each sucursales as s}
@@ -187,7 +196,7 @@
 								<div>
 									<h3 class="text-base font-semibold text-slate-800">{s.nombre}</h3>
 									<p class="text-sm text-slate-500">{s.direccion ?? 'Sin dirección'}</p>
-									<p class="mt-0.5 text-xs text-slate-400">Encargado: {s.encargado_nombre ?? '—'}</p>
+									<p class="mt-0.5 text-xs text-slate-500">Encargado: {s.encargado_nombre ?? '—'}</p>
 								</div>
 								{#if !s.imagen_url}
 									<div class="flex gap-1">
@@ -201,7 +210,7 @@
 							</div>
 
 							<div class="mt-4 space-y-2">
-								<p class="text-xs font-semibold uppercase tracking-wide text-slate-400">
+								<p class="text-xs font-semibold uppercase tracking-wide text-slate-500">
 									Pantallas / Kioscos ({s.pantallas.length})
 								</p>
 								{#each s.pantallas as p}
@@ -209,7 +218,7 @@
 										<div>
 											<span class="font-medium text-slate-700">{p.nombre}</span>
 											<Badge texto={p.estado} variante={p.estado === 'activa' ? 'ok' : 'bad'} />
-											<p class="font-mono text-xs text-slate-400">
+											<p class="font-mono text-xs text-slate-500">
 												{kioscoUrl(p.device_token)}
 											</p>
 											{#if p.habilitada_hasta}
@@ -226,7 +235,7 @@
 										</div>
 									</div>
 								{:else}
-									<p class="text-sm text-slate-400">Sin pantallas registradas.</p>
+									<p class="text-sm text-slate-500">Sin pantallas registradas.</p>
 								{/each}
 							</div>
 						</div>
@@ -242,8 +251,6 @@
 						{/if}
 					</div>
 				</div>
-			{:else}
-				<p class="text-slate-400">No tienes sucursales registradas.</p>
 			{/each}
 		</div>
 	{/if}

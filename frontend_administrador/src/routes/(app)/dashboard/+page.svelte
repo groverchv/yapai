@@ -173,7 +173,7 @@
 							<Icon name="trending-up" clase="h-4 w-4 text-indigo-600" />
 							Volumen Transaccional
 						</h2>
-						<p class="text-xs text-slate-400 mt-0.5">
+						<p class="text-xs text-slate-500 mt-0.5">
 							{totalPeriodo} transacciones en el periodo • Promedio diario: {promedioPeriodo}
 						</p>
 					</div>
@@ -221,7 +221,7 @@
 							
 							<!-- Etiqueta de día si hay espacio -->
 							{#if rangoDias <= 14}
-								<span class="mt-1 text-[9px] text-slate-400 group-hover:text-slate-700 truncate w-full text-center">
+								<span class="mt-1 text-[9px] text-slate-500 group-hover:text-slate-700 truncate w-full text-center">
 									{d.fecha.slice(8)}
 								</span>
 							{/if}
@@ -229,7 +229,7 @@
 					{/each}
 				</div>
 
-				<div class="mt-3 flex items-center justify-between border-t border-slate-100 pt-3 text-xs text-slate-400">
+				<div class="mt-3 flex items-center justify-between border-t border-slate-100 pt-3 text-xs text-slate-500">
 					<span>{serieFiltrada[0]?.fecha ?? ''}</span>
 					<span class="flex items-center gap-1.5">
 						<span class="h-2 w-2 rounded-full bg-indigo-500"></span>
@@ -246,12 +246,12 @@
 						<Icon name="chart-pie" clase="h-4 w-4 text-emerald-600" />
 						Distribución de Actividad
 					</h2>
-					<p class="text-xs text-slate-400 mt-0.5">Operaciones registradas en los últimos 30 días</p>
+					<p class="text-xs text-slate-500 mt-0.5">Operaciones registradas en los últimos 30 días</p>
 				</div>
 
 				<div class="mt-4 space-y-3.5">
 					{#if data.distribucion_tipos.length === 0}
-						<p class="py-8 text-center text-xs text-slate-400">Sin movimientos registrados recientemente</p>
+						<p class="py-8 text-center text-xs text-slate-500">Sin movimientos registrados recientemente</p>
 					{:else}
 						{#each data.distribucion_tipos as item}
 							{@const conf = coloresTipos[item.tipo] ?? { bg: 'bg-slate-50', text: 'text-slate-700', dot: 'bg-slate-400' }}
@@ -285,14 +285,14 @@
 							<Icon name="trophy" clase="h-4 w-4 text-amber-500" />
 							Socios Más Activos
 						</h2>
-						<p class="text-xs text-slate-400 mt-0.5">Comercios líderes por volumen de transacciones</p>
+						<p class="text-xs text-slate-500 mt-0.5">Comercios líderes por volumen de transacciones</p>
 					</div>
 					<a href="/socios" class="text-xs font-medium text-indigo-600 hover:text-indigo-800">Ver todos →</a>
 				</div>
 
 				<div class="divide-y divide-slate-100 p-3 flex-1">
 					{#if data.top_socios.length === 0}
-						<p class="py-8 text-center text-xs text-slate-400">No hay socios con actividad aún</p>
+						<p class="py-8 text-center text-xs text-slate-500">No hay socios con actividad aún</p>
 					{:else}
 						{#each data.top_socios as s, idx}
 							<div class="flex items-center justify-between p-2.5 rounded-lg hover:bg-slate-50 transition">
@@ -304,7 +304,7 @@
 										<a href="/socios/{s.id}" class="text-sm font-semibold text-slate-800 hover:text-indigo-600">
 											{s.nombre}
 										</a>
-										<p class="text-[11px] text-slate-400">
+										<p class="text-[11px] text-slate-500">
 											{s.clientes} clientes registrados
 										</p>
 									</div>
@@ -328,7 +328,7 @@
 							<Icon name="trending-up" clase="h-4 w-4 text-indigo-600" />
 							Últimas Transacciones en Vivo
 						</h2>
-						<p class="text-xs text-slate-400 mt-0.5">Movimientos registrados en comercios afiliados</p>
+						<p class="text-xs text-slate-500 mt-0.5">Movimientos registrados en comercios afiliados</p>
 					</div>
 					<a href="/monitoreo/transacciones" class="text-xs font-medium text-indigo-600 hover:text-indigo-800">
 						Ver monitor completo →

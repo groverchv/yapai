@@ -67,7 +67,7 @@
 				Ver planes
 			</a>
 		</div>
-		<p class="mt-4 text-xs text-slate-400">14 días de prueba · Sin tarjeta</p>
+		<p class="mt-4 text-xs text-slate-500">14 días de prueba · Sin tarjeta</p>
 	</section>
 
 	<!-- Cómo funciona -->
@@ -114,9 +114,9 @@
 		<p class="mt-2 text-center text-slate-500">Empieza gratis, crece cuando lo necesites.</p>
 
 		{#if errorPlanes}
-			<p class="mt-8 text-center text-sm text-slate-400">{errorPlanes}</p>
+			<p class="mt-8 text-center text-sm text-slate-500">{errorPlanes}</p>
 		{:else if planes.length === 0}
-			<p class="mt-8 text-center text-sm text-slate-400">Cargando planes…</p>
+			<p class="mt-8 text-center text-sm text-slate-500">Cargando planes…</p>
 		{:else}
 			<div class="mt-10 grid gap-6 sm:grid-cols-3">
 				{#each planes as plan, i}
@@ -128,14 +128,14 @@
 						<p class="mt-1 min-h-10 text-sm text-slate-500">{plan.descripcion ?? ''}</p>
 						<p class="mt-4">
 							<span class="text-3xl font-extrabold text-indigo-950">{plan.precio_mensual === 0 ? 'Gratis' : `${plan.moneda} ${plan.precio_mensual}`}</span>
-							{#if plan.precio_mensual > 0}<span class="text-sm text-slate-400">/mes</span>{/if}
+							{#if plan.precio_mensual > 0}<span class="text-sm text-slate-500">/mes</span>{/if}
 						</p>
 						<ul class="mt-5 space-y-2 text-sm text-slate-600">
 							<li class="flex items-center gap-2"><Icon name="check" clase="h-4 w-4 text-emerald-600" />{fmtLimite(plan.max_sucursales, 'sucursal', 'sucursales')}</li>
 							<li class="flex items-center gap-2"><Icon name="check" clase="h-4 w-4 text-emerald-600" />{fmtLimite(plan.max_pantallas, 'pantalla', 'pantallas')} de kiosco</li>
 							<li class="flex items-center gap-2"><Icon name="check" clase="h-4 w-4 text-emerald-600" />{fmtLimite(plan.max_clientes, 'cliente', 'clientes')}</li>
 							<li class="flex items-center gap-2"><Icon name="check" clase="h-4 w-4 text-emerald-600" />{fmtLimite(plan.max_empleados, 'empleado', 'empleados')}</li>
-							<li class="flex items-center gap-2 {plan.ruleta_habilitada ? '' : 'text-slate-400'}">
+							<li class="flex items-center gap-2 {plan.ruleta_habilitada ? '' : 'text-slate-500'}">
 								<Icon name={plan.ruleta_habilitada ? 'check' : 'x'} clase="h-4 w-4 {plan.ruleta_habilitada ? 'text-emerald-600' : 'text-slate-300'}" />
 								Ruleta del kiosco
 							</li>
@@ -149,7 +149,7 @@
 		{/if}
 	</section>
 
-	<footer class="border-t border-slate-200 py-8 text-center text-sm text-slate-400">
+	<footer class="border-t border-slate-200 py-8 text-center text-sm text-slate-500">
 		<img src="/logo.png" alt="YAPAI" class="mx-auto h-7 opacity-70" />
 		<p class="mt-3">© 2026 YAPAI — Fidelización para comercios</p>
 	</footer>

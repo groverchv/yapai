@@ -187,7 +187,7 @@
 				class="flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-medium text-red-600 hover:bg-red-50">
 				<Icon name="trash-2" clase="h-4 w-4" /> Eliminar mi cuenta
 			</button>
-			<p class="mt-1 text-center text-[11px] text-gray-400">Al eliminar la cuenta pierdes tus puntos acumulados.</p>
+			<p class="mt-1 text-center text-[11px] text-gray-500">Al eliminar la cuenta pierdes tus puntos acumulados.</p>
 		</div>
 	</div>
 </div>

@@ -138,7 +138,7 @@
 					<Icon name="image-plus" clase="h-5 w-5 text-emerald-600" />
 				</div>
 				<span class="text-xs font-medium">Subir imagen</span>
-				<span class="text-[10px] text-slate-400">o arrastra aquí</span>
+				<span class="text-[10px] text-slate-500">o arrastra aquí</span>
 			{/if}
 		</button>
 	{/if}

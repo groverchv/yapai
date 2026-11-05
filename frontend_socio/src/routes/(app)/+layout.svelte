@@ -84,7 +84,7 @@
 		</div>
 	</div>
 {:else}
-	<div class="flex h-screen items-center justify-center bg-slate-100 text-slate-400">
+	<div class="flex h-screen items-center justify-center bg-slate-100 text-slate-500">
 		Verificando sesión…
 	</div>
 {/if}

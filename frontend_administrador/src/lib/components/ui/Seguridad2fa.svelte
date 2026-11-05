@@ -72,7 +72,7 @@
 				<Icon name="shield" clase="h-4 w-4 text-indigo-600" />
 				Verificación en dos pasos (2FA)
 			</h3>
-			<p class="mt-1 text-xs text-slate-400">
+			<p class="mt-1 text-xs text-slate-500">
 				Protege tu cuenta pidiendo un código de tu app de autenticación al entrar.
 			</p>
 		</div>

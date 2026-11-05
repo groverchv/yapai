@@ -338,7 +338,7 @@
 							</span>
 							<span class="text-xs font-medium text-slate-500 line-through truncate">{paso.etiqueta}</span>
 						{:else}
-							<span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-slate-300 text-xs font-bold text-slate-400">
+							<span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-slate-300 text-xs font-bold text-slate-500">
 								{i + 1}
 							</span>
 							{#if paso.href}
@@ -387,7 +387,7 @@
 	<div class="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-xs sm:flex-row sm:items-center sm:justify-between">
 		<!-- Filtros rápidos por botones -->
 		<div class="flex items-center gap-1.5">
-			<span class="text-xs font-medium text-slate-400 mr-1">Rango:</span>
+			<span class="text-xs font-medium text-slate-500 mr-1">Rango:</span>
 			<button
 				onclick={() => { rangoDias = 7; establecerRangoPredefinido(7); }}
 				class="rounded-lg px-2.5 py-1 text-xs font-semibold transition {rangoDias === 7 ? 'bg-emerald-600 text-white shadow-2xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}"
@@ -441,7 +441,7 @@
 					class="rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs text-slate-700 shadow-2xs focus:border-emerald-500 focus:outline-none"
 					title="Fecha inicial"
 				/>
-				<span class="text-xs text-slate-400">a</span>
+				<span class="text-xs text-slate-500">a</span>
 				<input
 					type="date"
 					bind:value={hasta}
@@ -474,7 +474,7 @@
 			</p>
 			<div class="mt-1 flex items-center gap-1 text-xs font-medium text-blue-700">
 				<span class="font-bold">+{resumen?.clientes_nuevos ?? 0}</span>
-				<span class="text-slate-400">en período</span>
+				<span class="text-slate-500">en período</span>
 				{@render delta(dClientes)}
 			</div>
 		</div>
@@ -491,7 +491,7 @@
 				{resumen?.puntos_otorgados?.toLocaleString() ?? 0}
 			</p>
 			<div class="mt-1 flex items-center gap-1 text-xs">
-				<span class="text-slate-400">Regalados a clientes</span>
+				<span class="text-slate-500">Regalados a clientes</span>
 				{@render delta(dEmitidos)}
 			</div>
 		</div>
@@ -508,7 +508,7 @@
 				{resumen?.puntos_consumidos?.toLocaleString() ?? 0}
 			</p>
 			<div class="mt-1 flex items-center gap-1 text-xs">
-				<span class="text-slate-400">Puntos en premios</span>
+				<span class="text-slate-500">Puntos en premios</span>
 				{@render delta(dConsumidos)}
 			</div>
 		</div>
@@ -524,7 +524,7 @@
 			<p class="mt-2 text-2xl font-black text-emerald-900">
 				{resumen?.tasa_redencion ?? 0}%
 			</p>
-			<p class="mt-1 text-xs text-slate-400">Retención de clientes</p>
+			<p class="mt-1 text-xs text-slate-500">Retención de clientes</p>
 		</div>
 
 		<!-- Canjes Exitosos -->
@@ -539,7 +539,7 @@
 				{resumen?.canjes_exitosos ?? 0}
 			</p>
 			<div class="mt-1 flex items-center gap-1 text-xs">
-				<span class="text-slate-400">Canjes en mostrador</span>
+				<span class="text-slate-500">Canjes en mostrador</span>
 				{@render delta(dCanjes)}
 			</div>
 		</div>
@@ -603,7 +603,7 @@
 							style="height: {altura}%"
 						></div>
 
-						<span class="mt-2 text-[10px] font-medium text-slate-400 group-hover:text-slate-800">
+						<span class="mt-2 text-[10px] font-medium text-slate-500 group-hover:text-slate-800">
 							{d.fecha.split('-')[2]}
 						</span>
 					</div>
@@ -645,7 +645,7 @@
 						<div class="py-10 text-center">
 							<Icon name="inbox" clase="mx-auto h-8 w-8 text-slate-300" />
 							<p class="mt-2 text-xs text-slate-500">Aún no hay transacciones en este comercio.</p>
-							<p class="text-[11px] text-slate-400">Registra clientes en el kiosco o canjea puntos en la terminal de caja.</p>
+							<p class="text-[11px] text-slate-500">Registra clientes en el kiosco o canjea puntos en la terminal de caja.</p>
 						</div>
 					{:else}
 						{#each transacciones as tx}
@@ -659,7 +659,7 @@
 										<p class="text-xs font-bold text-slate-800 truncate">
 											{tx.cliente_nombre}
 										</p>
-										<p class="text-[11px] text-slate-400 flex items-center gap-1.5">
+										<p class="text-[11px] text-slate-500 flex items-center gap-1.5">
 											<span>CI: {tx.cliente_ci}</span>
 											<span>·</span>
 											<span>{formatFecha(tx.created_at)}</span>
@@ -671,7 +671,7 @@
 									<span class="text-xs font-extrabold {tx.puntos >= 0 ? 'text-emerald-600' : 'text-amber-600'}">
 										{tx.puntos >= 0 ? `+${tx.puntos}` : tx.puntos} pts
 									</span>
-									<span class="block text-[10px] uppercase font-semibold text-slate-400">
+									<span class="block text-[10px] uppercase font-semibold text-slate-500">
 										{TIPOS_MOVIMIENTO[tx.tipo] ?? tx.tipo}
 									</span>
 								</div>
@@ -811,7 +811,7 @@
 							</div>
 							<p class="mt-1 text-xs text-slate-500">{suc.direccion ?? 'Sin dirección especificada'}</p>
 							{#if suc.encargado_nombre}
-								<p class="mt-0.5 text-[11px] text-slate-400">Encargado: {suc.encargado_nombre}</p>
+								<p class="mt-0.5 text-[11px] text-slate-500">Encargado: {suc.encargado_nombre}</p>
 							{/if}
 						</div>
 
@@ -833,7 +833,7 @@
 									</a>
 								</div>
 							{:else}
-								<p class="text-xs text-slate-400 italic">Sin pantalla registrada</p>
+								<p class="text-xs text-slate-500 italic">Sin pantalla registrada</p>
 							{/if}
 						</div>
 					</div>
@@ -866,10 +866,10 @@
 					<div class="rounded-xl border border-slate-100 bg-slate-50/50 p-3.5">
 						<div class="flex items-center justify-between">
 							<span class="text-xs font-semibold text-slate-600">{label}</span>
-							<Icon name={iconName as string} clase="h-3.5 w-3.5 text-slate-400" />
+							<Icon name={iconName as string} clase="h-3.5 w-3.5 text-slate-500" />
 						</div>
 						<p class="mt-2 text-lg font-black text-slate-800">
-							{uso} <span class="text-xs font-normal text-slate-400">/ {limite === 0 ? 'Ilimitado' : limite}</span>
+							{uso} <span class="text-xs font-normal text-slate-500">/ {limite === 0 ? 'Ilimitado' : limite}</span>
 						</p>
 
 						{#if (limite as number) > 0}

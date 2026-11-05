@@ -13,11 +13,11 @@
 	<div class="rounded-xl border border-slate-200 bg-white p-6">
 		<h3 class="font-semibold text-slate-800">Mi cuenta</h3>
 		<div class="mt-4 space-y-2 text-sm">
-			<p><span class="text-slate-400">Nombre:</span> <strong class="text-slate-700">{auth.usuario?.nombre}</strong></p>
-			<p><span class="text-slate-400">Correo:</span> <strong class="text-slate-700">{auth.usuario?.email}</strong></p>
-			<p><span class="text-slate-400">Rol:</span> <strong class="text-slate-700">Administrador de plataforma</strong></p>
+			<p><span class="text-slate-500">Nombre:</span> <strong class="text-slate-700">{auth.usuario?.nombre}</strong></p>
+			<p><span class="text-slate-500">Correo:</span> <strong class="text-slate-700">{auth.usuario?.email}</strong></p>
+			<p><span class="text-slate-500">Rol:</span> <strong class="text-slate-700">Administrador de plataforma</strong></p>
 			<p>
-				<span class="text-slate-400">Idioma:</span>
+				<span class="text-slate-500">Idioma:</span>
 				{#each idiomas as idioma}
 					<button onclick={() => i18n.set(idioma.code)}
 						class="ml-2 rounded-full px-3 py-0.5 text-xs font-semibold transition

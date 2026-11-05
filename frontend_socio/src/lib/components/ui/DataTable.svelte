@@ -33,7 +33,7 @@
 					</tr>
 				{/each}
 			{:else if filas.length === 0}
-				<tr><td colspan={colspan} class="px-4 py-10 text-center text-slate-400">Sin resultados</td></tr>
+				<tr><td colspan={colspan} class="px-4 py-10 text-center text-slate-500">Sin resultados</td></tr>
 			{:else}
 				{#each filas as fila}
 					<tr class="border-b border-slate-100 hover:bg-slate-50">

@@ -83,7 +83,7 @@
 			{@const t = fila as unknown as TransaccionOut}
 			{#if key === 'created_at'}{formatFecha(t.created_at)}
 			{:else if key === 'tipo'}{TIPOS_MOVIMIENTO[t.tipo] ?? t.tipo}
-			{:else if key === 'cliente_nombre'}{t.cliente_nombre} <span class="text-xs text-slate-400">({t.cliente_ci})</span>
+			{:else if key === 'cliente_nombre'}{t.cliente_nombre} <span class="text-xs text-slate-500">({t.cliente_ci})</span>
 			{:else if key === 'puntos'}
 				<span class="font-medium {t.puntos >= 0 ? 'text-green-600' : 'text-red-600'}">
 					{t.puntos >= 0 ? '+' : ''}{t.puntos}

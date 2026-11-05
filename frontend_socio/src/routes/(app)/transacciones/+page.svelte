@@ -135,7 +135,7 @@
 						{t.puntos > 0 ? `+${t.puntos}` : t.puntos}
 					</span>
 				{:else if key === 'cliente_nombre'}
-					{t.cliente_nombre} <span class="text-xs text-slate-400">({t.cliente_ci})</span>
+					{t.cliente_nombre} <span class="text-xs text-slate-500">({t.cliente_ci})</span>
 				{:else}
 					{t[key as keyof Transaccion] ?? '—'}
 				{/if}

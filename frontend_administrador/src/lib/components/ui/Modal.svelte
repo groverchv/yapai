@@ -18,7 +18,7 @@
 			<div class="flex shrink-0 items-center justify-between border-b border-slate-200 px-6 py-4">
 				<h3 class="text-lg font-semibold text-slate-800">{titulo}</h3>
 				<button onclick={() => onclose?.()}
-					class="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600" aria-label="Cerrar">
+					class="rounded-lg p-1 text-slate-500 hover:bg-slate-100 hover:text-slate-600" aria-label="Cerrar">
 					<Icon name="x" clase="h-5 w-5" />
 				</button>
 			</div>

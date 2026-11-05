@@ -3,6 +3,7 @@
 	import { onMount } from 'svelte';
 	import { api } from '#lib/api/client';
 	import Badge from '#lib/components/ui/Badge.svelte';
+	import EmptyState from '#lib/components/ui/EmptyState.svelte';
 	import ImageUploader from '#lib/components/ui/ImageUploader.svelte';
 	import Modal from '#lib/components/ui/Modal.svelte';
 	import type { Premio } from '#lib/types';
@@ -121,7 +122,15 @@
 	{/if}
 
 	{#if cargando}
-		<p class="text-slate-400">Cargando…</p>
+		<div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+			{#each Array(3) as _}
+				<div class="h-44 animate-pulse rounded-xl bg-slate-100"></div>
+			{/each}
+		</div>
+	{:else if premios.length === 0}
+		<EmptyState icono="gift" titulo="Aún no tienes premios"
+			descripcion="Los premios son lo que tus clientes canjean con sus puntos. Crea el primero y aparecerá en la app."
+			cta="Crear mi primer premio" oncta={abrirCrear} />
 	{:else}
 		<div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
 			{#each premios as p}
@@ -131,7 +140,7 @@
 							{#if p.imagen_url}
 								<img src={p.imagen_url} alt={p.nombre} class="h-12 w-12 rounded-lg object-cover" />
 							{:else}
-								<div class="flex h-12 w-12 items-center justify-center rounded-lg bg-slate-100 text-slate-400"><Icon name="gift" clase="h-6 w-6" /></div>
+								<div class="flex h-12 w-12 items-center justify-center rounded-lg bg-slate-100 text-slate-500"><Icon name="gift" clase="h-6 w-6" /></div>
 							{/if}
 							<div>
 								<h3 class="font-semibold text-slate-800">{p.nombre}</h3>
@@ -171,8 +180,6 @@
 						{/if}
 					</div>
 				</div>
-			{:else}
-				<p class="text-slate-400">No tienes premios registrados.</p>
 			{/each}
 		</div>
 	{/if}
@@ -215,14 +222,14 @@
 				<label for="ps" class="mb-1 block text-sm font-medium text-slate-700">Stock disponible</label>
 				<input id="ps" type="number" bind:value={formStock} required min="0"
 					class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />
-				<p class="mt-1 text-xs text-slate-400">Al llegar a 0 el premio se marca "Agotado" y se oculta en la app.</p>
+				<p class="mt-1 text-xs text-slate-500">Al llegar a 0 el premio se marca "Agotado" y se oculta en la app.</p>
 			</div>
 		{/if}
 		<div>
 			<label for="pv" class="mb-1 block text-sm font-medium text-slate-700">Vigencia (opcional)</label>
 			<input id="pv" type="date" bind:value={formVigencia}
 				class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />
-			<p class="mt-1 text-xs text-slate-400">Promoción temporal: tras esa fecha el premio deja de ser canjeable y se oculta en la app.</p>
+			<p class="mt-1 text-xs text-slate-500">Promoción temporal: tras esa fecha el premio deja de ser canjeable y se oculta en la app.</p>
 		</div>
 		{#if errorModal}
 			<p class="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{errorModal}</p>

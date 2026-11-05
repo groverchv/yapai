@@ -156,7 +156,7 @@
 </script>
 
 {#if !socio}
-	<p class="text-slate-400">Cargando…</p>
+	<p class="text-slate-500">Cargando…</p>
 {:else}
 	<div class="mb-5 flex flex-wrap items-center gap-4">
 		{#if socio.logo_url}
@@ -255,8 +255,8 @@
 							{#if f.logo_url}
 								<img src={f.logo_url} alt="Logo" class="h-16 w-16 rounded-lg object-cover border border-slate-200 shadow-xs" />
 							{:else}
-								<div class="flex h-16 w-16 items-center justify-center rounded-lg bg-slate-200 text-slate-400">
-									<Icon name="camera" clase="h-8 w-8 text-slate-400" />
+								<div class="flex h-16 w-16 items-center justify-center rounded-lg bg-slate-200 text-slate-500">
+									<Icon name="camera" clase="h-8 w-8 text-slate-500" />
 								</div>
 							{/if}
 							<div class="flex-1">
@@ -266,7 +266,7 @@
 										<span>{subiendoLogo ? 'Subiendo a Cloudinary…' : f.logo_url ? 'Cambiar logotipo' : 'Subir imagen'}</span>
 										<input type="file" accept="image/*" onchange={manejarSeleccionLogo} disabled={subiendoLogo} class="hidden" />
 									</label>
-									<p class="mt-1 text-xs text-slate-400">Formato cuadrado PNG, JPG o WEBP.</p>
+									<p class="mt-1 text-xs text-slate-500">Formato cuadrado PNG, JPG o WEBP.</p>
 									{#if f.logo_url}
 										<button type="button" onclick={() => (f.logo_url = '')} class="mt-1 text-xs text-rose-600 hover:underline">
 											Remover logo
@@ -301,7 +301,7 @@
 							{/if}
 						</div>
 					{:else}
-						<p class="text-sm text-slate-400">Sin owner asignado</p>
+						<p class="text-sm text-slate-500">Sin owner asignado</p>
 					{/if}
 				</div>
 
