@@ -1,9 +1,8 @@
 """Invariantes del modelo SaaS: signup, trial y límites de plan."""
 import uuid
 
-from sqlalchemy import select
-
 from app.models import Plan, Tenant, Usuario
+from sqlalchemy import select
 from tests.conftest import login
 
 

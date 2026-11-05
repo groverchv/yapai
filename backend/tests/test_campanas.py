@@ -2,10 +2,9 @@
 import uuid
 from datetime import timedelta
 
-from sqlalchemy import select
-
 from app.core.security import utcnow
 from app.models import Campana, Cliente, MovimientoPuntos, Pantalla, Premio, TipoMovimiento
+from sqlalchemy import select
 
 
 def _limpiar_campanas(db):

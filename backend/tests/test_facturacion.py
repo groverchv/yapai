@@ -2,12 +2,11 @@
 import uuid
 from datetime import timedelta
 
-from sqlalchemy import select
-
 from app.core.security import utcnow
 from app.jobs.facturacion import ejecutar_una_vez
 from app.models import EstadoFactura, EstadoTenant, FacturaPlan, Plan, Tenant, Usuario
 from app.services.billing import estado_cuenta
+from sqlalchemy import select
 
 
 def _tenant_facturable(client, db) -> Tenant:

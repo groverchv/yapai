@@ -8,13 +8,18 @@ prueba se crean por test para aislamiento (el seed solo trae uno).
 from datetime import datetime, timedelta, timezone
 
 import pytest
-from sqlalchemy import select, text
-
-from app.models import (
-    EstadoPase, PaseDigital, Pantalla, PinSucursal, Premio, Sucursal,
-)
 from app.core.security import hash_secret
+from app.models import (
+    EstadoPase,
+    Pantalla,
+    PaseDigital,
+    PinSucursal,
+    Premio,
+    Sucursal,
+)
 from app.services.puntos import expirar_pases_vencidos
+from sqlalchemy import select, text
+from sqlalchemy.exc import IntegrityError
 
 API = "/api/v1"
 _counter = {"n": 0}
@@ -53,13 +58,13 @@ def _sucursal_cajero(client, cajero_headers):
 # ---------- Regla #1: ledger append-only (trigger DB) ----------
 
 def test_ledger_no_permite_update(db_seeded, db):
-    with pytest.raises(Exception):
+    with pytest.raises(IntegrityError):
         db.execute(text("UPDATE movimientos_puntos SET puntos=999 WHERE id=1"))
         db.commit()
 
 
 def test_ledger_no_permite_delete(db_seeded, db):
-    with pytest.raises(Exception):
+    with pytest.raises(IntegrityError):
         db.execute(text("DELETE FROM movimientos_puntos WHERE id=1"))
         db.commit()
 
@@ -68,7 +73,7 @@ def test_audit_log_append_only(db_seeded, db):
     db.execute(text(
         "INSERT INTO audit_log (accion, entidad, entidad_id) VALUES ('test', 'x', 1)"))
     db.commit()
-    with pytest.raises(Exception):
+    with pytest.raises(IntegrityError):
         db.execute(text("DELETE FROM audit_log WHERE entidad='x'"))
         db.commit()
 

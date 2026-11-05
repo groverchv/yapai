@@ -7,13 +7,17 @@ depender del saldo del cliente demo que otros tests pueden tocar.
 import uuid
 from datetime import timedelta
 
-from sqlalchemy import select, text
-
 from app.core.security import utcnow
 from app.models import (
-    Cliente, EstadoPremio, MovimientoPuntos, Pantalla, Premio, Tenant,
+    Cliente,
+    EstadoPremio,
+    MovimientoPuntos,
+    Pantalla,
+    Premio,
+    Tenant,
     TipoMovimiento,
 )
+from sqlalchemy import select, text
 
 API = "/api/v1"
 _counter = {"n": 0}

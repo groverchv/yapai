@@ -2,10 +2,9 @@
 import uuid
 from datetime import timedelta
 
-from sqlalchemy import select
-
 from app.core.security import utcnow
-from app.models import Comunicado, EstadoComunicado, Tenant, Usuario
+from app.models import Tenant, Usuario
+from sqlalchemy import select
 
 _IMG = "https://res.cloudinary.com/x/image/upload/v1/oferta.png"
 
@@ -117,7 +116,7 @@ def test_aislamiento_tenant(client, db, owner_headers):
 
 def test_premio_de_otro_tenant_rechazado(client, db, owner_headers):
     """premio_id ajeno → 400, no vincula promos de la competencia."""
-    otro = _otro_owner(client)
+    _otro_owner(client)
     otro_tenant = db.scalar(
         select(Tenant).join(Usuario, Usuario.tenant_id == Tenant.id)
         .where(Usuario.email.like("otro-%@test.com"))

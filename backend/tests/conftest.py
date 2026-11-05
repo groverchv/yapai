@@ -12,14 +12,13 @@ os.environ["DATABASE_URL"] = f"sqlite:///{_tmpdir}/test.db"
 os.environ["JOBS_ENABLED"] = "false"  # los jobs corren en threads; determinismo en tests
 
 import pytest  # noqa: E402
-from fastapi.testclient import TestClient  # noqa: E402
-from sqlalchemy import text  # noqa: E402
-
+from app.core import ratelimit  # noqa: E402
 from app.db.base import Base  # noqa: E402
 from app.db.session import SessionLocal, engine  # noqa: E402
 from app.main import app  # noqa: E402
 from app.seed import run as seed_run  # noqa: E402
-from app.core import ratelimit  # noqa: E402
+from fastapi.testclient import TestClient  # noqa: E402
+from sqlalchemy import text  # noqa: E402
 
 _TRIGGER_SQLITE = """
 CREATE TRIGGER IF NOT EXISTS trg_{tabla}_inmutable_{op}
