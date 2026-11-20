@@ -319,25 +319,27 @@
 		<main class="mx-auto max-w-2xl p-4 sm:p-6">
 			{#if tab === 'canje'}
 				<div class="space-y-4">
-					<div class="rounded-xl bg-slate-800 p-5">
-						<label for="cod" class="mb-2 block text-sm text-slate-500">
-							Escanea el QR o escribe el PIN del pase
-							<span class="float-right text-xs">⏎ buscar/entregar · Esc cancelar</span>
+					<div class="rounded-xl bg-slate-800 p-4 sm:p-5">
+						<label for="cod" class="mb-2 flex flex-wrap items-center justify-between gap-1 text-sm text-slate-400">
+							<span>Escanea el QR o escribe el PIN del pase</span>
+							<span class="hidden text-xs text-slate-500 sm:inline">⏎ buscar/entregar · Esc cancelar</span>
 						</label>
-						<div class="flex gap-2">
+						<div class="flex flex-col gap-2 sm:flex-row">
 							<input id="cod" type="text" bind:value={codigo} bind:this={inputCodigo} placeholder="QR o PIN (ej. JK6G5Q)"
 								onkeydown={teclaCodigo} autocomplete="off"
-								class="flex-1 rounded-xl border border-slate-600 bg-slate-900 px-4 py-3 font-mono text-lg uppercase tracking-widest focus:border-emerald-500 focus:outline-none" />
-							<button onclick={buscarPase} disabled={buscando}
-								class="rounded-xl bg-emerald-600 px-6 py-3 font-bold hover:bg-emerald-500 disabled:opacity-50">
-								{buscando ? '…' : 'Buscar'}
-							</button>
-							<button onclick={escaneando ? detenerEscaner : iniciarEscaner}
-								class="flex items-center gap-2 rounded-xl border border-slate-600 px-4 py-3 font-bold text-slate-300 hover:bg-slate-700"
-								title="Leer el QR del pase con la cámara">
-								<Icon name="scan-line" clase="h-5 w-5" />
-								{escaneando ? 'Detener' : 'Escanear'}
-							</button>
+								class="w-full min-w-0 rounded-xl border border-slate-600 bg-slate-900 px-4 py-3 font-mono text-base uppercase tracking-widest focus:border-emerald-500 focus:outline-none sm:flex-1 sm:text-lg" />
+							<div class="flex gap-2">
+								<button onclick={buscarPase} disabled={buscando}
+									class="flex-1 rounded-xl bg-emerald-600 px-5 py-3 font-bold hover:bg-emerald-500 disabled:opacity-50 sm:flex-none sm:px-6">
+									{buscando ? '…' : 'Buscar'}
+								</button>
+								<button onclick={escaneando ? detenerEscaner : iniciarEscaner}
+									class="flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-600 px-4 py-3 font-bold text-slate-300 hover:bg-slate-700 sm:flex-none"
+									title="Leer el QR del pase con la cámara">
+									<Icon name="scan-line" clase="h-5 w-5" />
+									{escaneando ? 'Detener' : 'Escanear'}
+								</button>
+							</div>
 						</div>
 					</div>
 
