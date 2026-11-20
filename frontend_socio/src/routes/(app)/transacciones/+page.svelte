@@ -23,6 +23,7 @@
 		{ key: 'created_at', label: 'Fecha' },
 		{ key: 'sucursal', label: 'Sucursal' },
 		{ key: 'cliente_nombre', label: 'Cliente' },
+		{ key: 'cliente_telefono', label: 'Teléfono' },
 		{ key: 'tipo', label: 'Acción' },
 		{ key: 'puntos', label: 'Puntos' },
 		{ key: 'ejecutado_por', label: 'Cajero' },

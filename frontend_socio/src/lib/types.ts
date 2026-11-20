@@ -160,6 +160,7 @@ export interface Transaccion {
 	cliente_id: number;
 	cliente_nombre: string;
 	cliente_ci: string;
+	cliente_telefono?: string | null;
 	tipo: string;
 	puntos: number;
 	ejecutado_por: string | null;

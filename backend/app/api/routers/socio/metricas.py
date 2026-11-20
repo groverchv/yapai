@@ -160,9 +160,9 @@ def transacciones_local(
         rows = db.execute(stmt).all()
         return csv_response(
             "transacciones_local.csv",
-            ["id", "fecha", "sucursal", "cliente", "ci", "tipo", "puntos", "cajero", "premio"],
+            ["id", "fecha", "sucursal", "cliente", "ci", "telefono", "tipo", "puntos", "cajero", "premio"],
             [(r.id, r.created_at, r.sucursal or "", r.cliente_nombre, r.cliente_ci,
-              r.tipo.value, r.puntos, r.ejecutado_por or "", r.premio or "") for r in rows],
+              r.cliente_telefono or "", r.tipo.value, r.puntos, r.ejecutado_por or "", r.premio or "") for r in rows],
         )
     total = db.scalar(
         select(func.count(MovimientoPuntos.id))

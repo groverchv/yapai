@@ -212,6 +212,7 @@ class TransaccionOut(BaseModel):
     cliente_id: int
     cliente_nombre: str
     cliente_ci: str
+    cliente_telefono: str | None = None
     tipo: str
     puntos: int
     ejecutado_por: str | None

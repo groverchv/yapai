@@ -21,6 +21,7 @@ def stmt_transacciones(filtros: list):
             Sucursal.nombre.label("sucursal"),
             Cliente.id.label("cliente_id"), Cliente.nombre.label("cliente_nombre"),
             Cliente.ci.label("cliente_ci"),
+            Cliente.telefono.label("cliente_telefono"),
             MovimientoPuntos.tipo, MovimientoPuntos.puntos,
             Usuario.nombre.label("ejecutado_por"),
             Premio.nombre.label("premio"),
@@ -68,6 +69,7 @@ def to_transaccion_out(r) -> TransaccionOut:
         id=r.id, created_at=r.created_at, tenant_id=r.tenant_id,
         socio=r.socio, sucursal=r.sucursal, cliente_id=r.cliente_id,
         cliente_nombre=r.cliente_nombre, cliente_ci=r.cliente_ci,
+        cliente_telefono=r.cliente_telefono,
         tipo=r.tipo.value, puntos=r.puntos, ejecutado_por=r.ejecutado_por,
         premio=r.premio, detalle=r.detalle,
     )
