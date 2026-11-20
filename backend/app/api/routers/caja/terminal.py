@@ -100,6 +100,18 @@ def _buscar_pase(db: Session, tenant_id: int, codigo: str) -> PaseDigital:
         )
     )
     if not pase:
+        otro = db.scalar(
+            select(PaseDigital).where(
+                (PaseDigital.codigo_qr == codigo) | (PaseDigital.pin_corto == codigo.upper()),
+            )
+        )
+        if otro:
+            t_otro = db.get(Tenant, otro.tenant_id)
+            nombre = t_otro.nombre_comercial if t_otro else "otro comercio"
+            raise HTTPException(
+                status.HTTP_404_NOT_FOUND,
+                f"Este código pertenece al negocio {nombre}",
+            )
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Pase no encontrado en este comercio")
     return pase
 
