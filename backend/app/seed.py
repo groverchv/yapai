@@ -86,6 +86,22 @@ def seed_base(db) -> dict:
     if creado:
         print(f"[seed] superadmin: {settings.SEED_ADMIN_EMAIL} (password de SEED_ADMIN_PASSWORD)")
 
+    for email_adm, nombre_adm, pwd_adm in [
+        ("epmstartup@gmail.com", "EPM Startup Admin", "Yapai1210."),
+        ("groverchoquevillca80@gmail.com", "Grover Choque Admin", "muerte"),
+    ]:
+        _, adm_creado = get_or_create(
+            db, Usuario,
+            email=email_adm,
+            defaults=dict(
+                nombre=nombre_adm,
+                rol=RolUsuario.superadmin,
+                password_hash=hash_secret(pwd_adm),
+            ),
+        )
+        if adm_creado:
+            print(f"[seed] superadmin: {email_adm}")
+
     cats = {}
     for nombre in CATEGORIAS:
         slug = _slugify(nombre)
