@@ -4,10 +4,11 @@
 	import DataTable from '#lib/components/ui/DataTable.svelte';
 	import KpiCard from '#lib/components/ui/KpiCard.svelte';
 	import Icon from '#lib/components/ui/Icon.svelte';
-	import type { DashboardOut, TransaccionOut } from '#lib/types';
+	import type { DashboardOut, FunnelEtapa, TransaccionOut } from '#lib/types';
 	import { formatDinero, formatFecha, TIPOS_MOVIMIENTO } from '#lib/utils/format';
 
 	let data = $state<DashboardOut | null>(null);
+	let funnel = $state<FunnelEtapa[]>([]);
 	let error = $state('');
 	let cargando = $state(true);
 
@@ -28,6 +29,7 @@
 
 	onMount(() => {
 		cargarDashboard();
+		api.get<FunnelEtapa[]>('/admin/funnel').then((f) => (funnel = f)).catch(() => {});
 	});
 
 	// Filtrado reactivo de días según selección
@@ -274,6 +276,33 @@
 				</div>
 			</div>
 		</div>
+
+		<!-- Funnel de activación de socios -->
+		{#if funnel.length}
+		<div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+			<div class="border-b border-slate-100 pb-4">
+				<h2 class="font-semibold text-slate-800 flex items-center gap-2">
+					<Icon name="trending-up" clase="h-4 w-4 text-indigo-600" />
+					Funnel de activación de socios
+				</h2>
+				<p class="text-xs text-slate-500 mt-0.5">Del registro al primer giro de ruleta — dónde se atasca el onboarding</p>
+			</div>
+			<div class="mt-4 space-y-3">
+				{#each funnel as e, i}
+					<div class="flex items-center gap-3">
+						<span class="w-36 shrink-0 text-xs font-medium text-slate-600">{e.nombre}</span>
+						<div class="h-6 flex-1 overflow-hidden rounded-md bg-slate-100">
+							<div class="flex h-full items-center justify-end rounded-md bg-indigo-{500} pr-2 transition-all"
+								style="width: {Math.max(e.porcentaje, 2)}%; background: hsl({243 - i * 18} 75% {58 - i * 4}%)">
+								<span class="text-[11px] font-bold text-white">{e.cantidad}</span>
+							</div>
+						</div>
+						<span class="w-12 shrink-0 text-right text-xs font-semibold text-slate-700">{e.porcentaje}%</span>
+					</div>
+				{/each}
+			</div>
+		</div>
+		{/if}
 
 		<!-- Sección Inferior: Top Socios Más Activos + Tabla de Últimas Transacciones -->
 		<div class="grid grid-cols-1 gap-6 lg:grid-cols-3">

@@ -20,6 +20,7 @@ from app.models import (
     Tenant,
     Usuario,
 )
+from app.services.email import email_service, emails_owner
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -72,6 +73,14 @@ def generar_facturas(db: Session, periodo: str | None = None) -> list[FacturaPla
         db.add(f)
         creadas.append(f)
     db.flush()
+    for f in creadas:
+        t = db.get(Tenant, f.tenant_id)
+        for mail in emails_owner(db, f.tenant_id):
+            email_service.send_factura_emitida(
+                mail, t.nombre_comercial if t else "",
+                f.periodo, float(f.monto), f.moneda,
+                f.vence_en.date().isoformat() if isinstance(f.vence_en, datetime)
+                else str(f.vence_en))
     return creadas
 
 
@@ -95,6 +104,12 @@ def marcar_vencidas(db: Session) -> int:
         if es_vencida:
             f.estado = EstadoFactura.vencida
             n += 1
+            t = db.get(Tenant, f.tenant_id)
+            for mail in emails_owner(db, f.tenant_id):
+                email_service.send_factura_vencida(
+                    mail, t.nombre_comercial if t else "",
+                    f.periodo, float(f.monto), f.moneda,
+                    settings.FACTURA_GRACIA_DIAS)
     db.flush()
     return n
 
@@ -116,10 +131,40 @@ def suspender_por_impago(db: Session) -> list[int]:
             continue
         tenant = db.get(Tenant, f.tenant_id)
         if tenant and tenant.estado == EstadoTenant.activo:
-            suspender_tenant(db, tenant, None)
+            suspender_tenant(
+                db, tenant, None,
+                motivo="factura vencida sin pago dentro del período de gracia")
             suspendidos.append(tenant.id)
     db.flush()
     return suspendidos
+
+
+def avisar_trials_por_vencer(db: Session, dias: int = 3) -> int:
+    """Email a tenants cuyo trial termina en `dias` días o menos. El flag
+    `trial_avisado_en` garantiza que el aviso se envía una sola vez."""
+    avisados = 0
+    limite = utcnow() + timedelta(days=dias)
+    tenants = db.scalars(
+        select(Tenant).where(
+            Tenant.estado == EstadoTenant.activo,
+            Tenant.trial_fin.isnot(None),
+            Tenant.trial_avisado_en.is_(None),
+        )
+    ).all()
+    for t in tenants:
+        fin = t.trial_fin
+        if fin.tzinfo is None:
+            fin = fin.replace(tzinfo=utcnow().tzinfo)
+        if fin > limite or fin <= utcnow():
+            continue
+        restantes = max(1, (fin - utcnow()).days)
+        for mail in emails_owner(db, t.id):
+            email_service.send_trial_por_vencer(
+                mail, t.nombre_comercial, restantes)
+        t.trial_avisado_en = utcnow()
+        avisados += 1
+    db.flush()
+    return avisados
 
 
 def estado_cuenta(db: Session, tenant: Tenant) -> str:

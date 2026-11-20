@@ -119,6 +119,10 @@
 				{#if f.metodo}
 					{f.metodo}{#if f.referencia} <span class="block text-xs text-slate-500">{f.referencia}</span>{/if}
 				{:else}—{/if}
+				{#if f.comprobante_url}
+					<a href={f.comprobante_url} target="_blank" rel="noopener noreferrer"
+						class="block text-xs font-medium text-indigo-600 hover:underline">Ver comprobante</a>
+				{/if}
 			{:else}{f[key as keyof FacturaOut]}{/if}
 		{/snippet}
 		{#snippet acciones(fila)}

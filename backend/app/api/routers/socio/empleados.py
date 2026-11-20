@@ -22,7 +22,7 @@ from app.services.auth import crear_onboarding_token, revocar_todos_refresh
 from app.services.email import email_service
 from app.services.planes import verificar_limite
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
 router = APIRouter(dependencies=[Depends(require_owner)])
@@ -118,7 +118,7 @@ def editar_empleado(empleado_id: int, data: EmpleadoUpdate,
         sids = cambios.pop("sucursal_ids")
         if sids is not None:
             _validar_sucursales(db, usuario.tenant_id, sids)
-            db.query(EmpleadoSucursal).where(EmpleadoSucursal.usuario_id == emp.id).delete()
+            db.execute(delete(EmpleadoSucursal).where(EmpleadoSucursal.usuario_id == emp.id))
             for sid in set(sids):
                 db.add(EmpleadoSucursal(usuario_id=emp.id, sucursal_id=sid))
     for campo, valor in cambios.items():

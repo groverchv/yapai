@@ -1,18 +1,19 @@
-import type { Cliente, FirmaUpload, LoginClienteResponse, TokenPair } from '../types';
+import type { Cliente, FirmaUpload, LoginClienteResponse } from '../types';
 import { api, API_BASE, fetchRed } from '../api/client';
 
 const KEY = 'yapai_cliente_sesion';
 
+// Solo se persiste el perfil (dato de UI, no sensible). La sesión vive en
+// cookies HttpOnly: nada que robar por XSS y el backend las rota en /refresh.
 interface Sesion {
-	access: string;
-	refresh: string;
 	cliente: Cliente;
 }
 
 class AuthStore {
 	cliente = $state<Cliente | null>(null);
-	accessToken = $state<string | null>(null);
-	refreshToken = $state<string | null>(null);
+	// Cuando el login pide OTP, el siguiente paso es verificarOtp()
+	otpPendiente = $state(false);
+	otpTtlMinutos = $state<number | null>(null);
 
 	constructor() {
 		try {
@@ -20,8 +21,6 @@ class AuthStore {
 			if (raw) {
 				const s: Sesion = JSON.parse(raw);
 				this.cliente = s.cliente;
-				this.accessToken = s.access;
-				this.refreshToken = s.refresh;
 				// Refresca datos del cliente en segundo plano (igual que la app móvil)
 				this.refrescarCliente().catch(() => {});
 			}
@@ -31,27 +30,25 @@ class AuthStore {
 	}
 
 	get autenticado() {
-		return !!this.accessToken && !!this.cliente;
+		return !!this.cliente;
 	}
 
 	private persistir() {
-		if (this.cliente && this.accessToken && this.refreshToken) {
+		if (this.cliente) {
 			localStorage.setItem(KEY, JSON.stringify({
-				access: this.accessToken,
-				refresh: this.refreshToken,
 				cliente: this.cliente
 			} satisfies Sesion));
 		}
 	}
 
-	private establecerSesion(tokens: TokenPair, cliente: Cliente) {
+	private establecerSesion(cliente: Cliente) {
 		this.cliente = cliente;
-		this.accessToken = tokens.access_token;
-		this.refreshToken = tokens.refresh_token;
+		this.otpPendiente = false;
 		this.persistir();
 	}
 
-	async login(telefono: string, ci: string) {
+	/** Devuelve 'otp' si se requiere el código, 'ok' si la sesión ya quedó. */
+	async login(telefono: string, ci: string): Promise<'otp' | 'ok'> {
 		const res = await fetchRed(`${API_BASE}/auth/cliente/login`, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
@@ -60,48 +57,60 @@ class AuthStore {
 		const data = await res.json().catch(() => null);
 		if (!res.ok) throw new Error(detalle(data) ?? 'Credenciales inválidas');
 		const d: LoginClienteResponse = data;
-		this.establecerSesion(d.tokens, d.cliente);
+		if (d.otp_requerido) {
+			this.otpPendiente = true;
+			this.otpTtlMinutos = d.otp_ttl_minutos ?? null;
+			return 'otp';
+		}
+		this.establecerSesion(d.cliente);
+		return 'ok';
 	}
 
-	async registro(nombre: string, telefono: string, ci: string, codigoReferido?: string) {
+	async verificarOtp(telefono: string, ci: string, codigo: string) {
+		const res = await fetchRed(`${API_BASE}/auth/cliente/otp/verificar`, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ telefono, ci, codigo })
+		});
+		const data = await res.json().catch(() => null);
+		if (!res.ok) throw new Error(detalle(data) ?? 'Código incorrecto o expirado');
+		const d: LoginClienteResponse = data;
+		this.establecerSesion(d.cliente);
+	}
+
+	/** Devuelve 'otp' si falta verificar el teléfono, 'ok' si la sesión quedó. */
+	async registro(nombre: string, telefono: string, ci: string,
+		codigoReferido?: string, codigo?: string): Promise<'otp' | 'ok'> {
 		const payload: Record<string, string> = { nombre, telefono, ci };
 		if (codigoReferido?.trim()) payload.codigo_referido = codigoReferido.trim().toUpperCase();
+		if (codigo?.trim()) payload.codigo = codigo.trim();
 		const res = await fetchRed(`${API_BASE}/auth/cliente/registro`, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify(payload)
 		});
 		const data = await res.json().catch(() => null);
-		if (res.status !== 201) throw new Error(detalle(data) ?? 'Error al registrar cliente');
+		if (!res.ok) throw new Error(detalle(data) ?? 'Error al registrar cliente');
 		const d: LoginClienteResponse = data;
-		this.establecerSesion(d.tokens, d.cliente);
+		if (d.otp_requerido) {
+			this.otpPendiente = true;
+			this.otpTtlMinutos = d.otp_ttl_minutos ?? null;
+			return 'otp';
+		}
+		this.establecerSesion(d.cliente);
+		return 'ok';
 	}
 
 	async cerrarSesion() {
-		const refresh = this.refreshToken;
 		this.limpiar();
-		if (refresh) {
-			try {
-				await fetchRed(`${API_BASE}/auth/logout`, {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ refresh_token: refresh })
-				});
-			} catch { /* sesión local ya cerrada */ }
-		}
+		try {
+			await fetchRed(`${API_BASE}/auth/logout`, { method: 'POST' });
+		} catch { /* sesión local ya cerrada */ }
 	}
 
 	async eliminarCuenta() {
 		await api.delete('/cliente/me');
 		this.limpiar();
-	}
-
-	actualizarTokens(tokens: TokenPair) {
-		if (this.cliente) {
-			this.accessToken = tokens.access_token;
-			this.refreshToken = tokens.refresh_token;
-			this.persistir();
-		}
 	}
 
 	actualizarCliente(cliente: Cliente) {
@@ -110,7 +119,7 @@ class AuthStore {
 	}
 
 	async refrescarCliente() {
-		if (!this.accessToken) return;
+		if (!this.cliente) return;
 		const data = await api.get<Cliente>('/cliente/me');
 		this.actualizarCliente(data);
 	}
@@ -138,8 +147,8 @@ class AuthStore {
 
 	limpiar() {
 		this.cliente = null;
-		this.accessToken = null;
-		this.refreshToken = null;
+		this.otpPendiente = false;
+		this.otpTtlMinutos = null;
 		localStorage.removeItem(KEY);
 	}
 }

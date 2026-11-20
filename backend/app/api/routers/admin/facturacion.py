@@ -1,14 +1,15 @@
-from app.core.deps import require_superadmin
+from app.core.deps import require_superadmin_2fa
 from app.db.session import get_db
 from app.models import EstadoFactura, FacturaPlan, Tenant, Usuario
 from app.schemas.admin import FacturaOut, FacturaPagarIn, Pagina
 from app.services.audit import registrar_audit
 from app.services.billing import generar_facturas, pagar_factura, periodo_de
+from app.services.email import email_service, emails_owner
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-router = APIRouter(dependencies=[Depends(require_superadmin)])
+router = APIRouter(dependencies=[Depends(require_superadmin_2fa)])
 
 
 def _out(db: Session, f: FacturaPlan) -> FacturaOut:
@@ -20,6 +21,7 @@ def _out(db: Session, f: FacturaPlan) -> FacturaOut:
         monto=float(f.monto), moneda=f.moneda, estado=f.estado.value,
         emitida_en=f.emitida_en, vence_en=f.vence_en, pagada_en=f.pagada_en,
         metodo=f.metodo, referencia=f.referencia,
+        comprobante_url=f.comprobante_url,
     )
 
 
@@ -56,7 +58,7 @@ def listar_facturas(
 def generar_periodo(
     periodo: str | None = Query(None, pattern=r"^\d{4}-\d{2}$"),
     db: Session = Depends(get_db),
-    admin: Usuario = Depends(require_superadmin),
+    admin: Usuario = Depends(require_superadmin_2fa),
 ):
     """Emite facturas del período (default el actual) para todos los tenants que
     corresponde. Idempotente: no duplica las ya emitidas."""
@@ -72,7 +74,7 @@ def generar_periodo(
 @router.post("/{factura_id}/pagar", response_model=FacturaOut)
 def marcar_pagada(factura_id: int, data: FacturaPagarIn,
                   db: Session = Depends(get_db),
-                  admin: Usuario = Depends(require_superadmin)):
+                  admin: Usuario = Depends(require_superadmin_2fa)):
     f = db.get(FacturaPlan, factura_id)
     if not f:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Factura no encontrada")
@@ -84,13 +86,19 @@ def marcar_pagada(factura_id: int, data: FacturaPagarIn,
     registrar_audit(db, admin.id, "factura_pagada",
                     "factura_plan", f.id, {"metodo": data.metodo,
                                            "referencia": data.referencia})
+    tenant = db.get(Tenant, f.tenant_id)
+    if tenant:
+        for mail in emails_owner(db, tenant.id):
+            email_service.send_pago_recibido(
+                mail, tenant.nombre_comercial, f.periodo,
+                float(f.monto), f.moneda)
     db.commit()
     return _out(db, f)
 
 
 @router.post("/{factura_id}/anular", response_model=FacturaOut)
 def anular_factura(factura_id: int, db: Session = Depends(get_db),
-                   admin: Usuario = Depends(require_superadmin)):
+                   admin: Usuario = Depends(require_superadmin_2fa)):
     f = db.get(FacturaPlan, factura_id)
     if not f:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Factura no encontrada")

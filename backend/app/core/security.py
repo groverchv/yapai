@@ -10,6 +10,14 @@ from pwdlib.hashers.argon2 import Argon2Hasher
 
 _password_hash = PasswordHash((Argon2Hasher(),))
 
+# Hash argon2 precalculado de un valor sin sentido. Se verifica contra él cuando
+# el usuario/email no existe para igualar el tiempo de respuesta del login
+# (anti-enumeración por timing).
+_DUMMY_HASH = "$argon2id$v=19$m=65536,t=3,p=4$K8KLkvnR6prhJdoaY+isjA$2zYye1kmag2t5oeIvJLH2YPlUczZNGV/3P2+zGsiDX4"
+
+# RNG criptográfico para sorteos/ruleta (nunca `random` para premios)
+secure_random = secrets.SystemRandom()
+
 
 def utcnow() -> datetime:
     return datetime.now(timezone.utc)
@@ -26,6 +34,12 @@ def verify_secret(plain: str, hashed: str) -> bool:
         return _password_hash.verify(plain, hashed)
     except Exception:
         return False
+
+
+def verify_secret_timing_safe(plain: str, hashed: str | None) -> bool:
+    """Verifica siempre contra un hash (real o dummy) para no revelar
+    si la cuenta existe por el tiempo de respuesta."""
+    return verify_secret(plain, hashed if hashed else _DUMMY_HASH)
 
 
 # --- Tokens de un solo uso (onboarding / reset). En DB se guarda sha256. ---

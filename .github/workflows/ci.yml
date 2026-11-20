@@ -4,6 +4,13 @@ on:
   push:
     branches: [main]
   pull_request:
+  schedule:
+    # Auditoría semanal de dependencias aunque no haya pushes
+    - cron: "0 6 * * 1"
+
+permissions:
+  contents: read
+  security-events: write
 
 jobs:
   backend:
@@ -12,7 +19,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.13"
       - name: Install deps
         run: pip install -r requirements-dev.txt
         working-directory: backend
@@ -24,9 +31,59 @@ jobs:
         # tipo now() que no existen en SQLite antes de llegar a producción.
         run: DATABASE_URL="sqlite:///ci_migrations.db" python -m alembic upgrade head
         working-directory: backend
-      - name: Invariant tests
-        run: python -m pytest tests/ -q
+      - name: Tests con cobertura
+        # Piso 75% (medido ~82% en 2026-11). Subir gradualmente hacia 85%.
+        run: python -m pytest tests/ -q --cov=app --cov-report=term-missing --cov-fail-under=75
         working-directory: backend
+
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Secret scanning (gitleaks)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITLEAKS_ENABLE_SUMMARY: "true"
+
+      - name: pip-audit (vulns conocidas en deps Python)
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install pip-audit && pip-audit -r requirements.txt
+        working-directory: backend
+
+      - name: npm audit ×3 frontends (prod deps)
+        run: |
+          for f in frontend_cliente frontend_socio frontend_administrador; do
+            echo "=== $f ==="
+            (cd $f && npm audit --omit=dev --audit-level=high)
+          done
+
+      - name: Ruff reglas de seguridad (S)
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install ruff==0.17.3 && ruff check --select S backend/app
+
+      - name: Trivy — escaneo de filesystem y secrets
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: "fs"
+          scan-ref: "."
+          severity: "CRITICAL,HIGH"
+          ignore-unfixed: true
+
+      - name: Trivy — imágenes Docker
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: "image"
+          image-ref: "yapai-api:ci"
+          severity: "CRITICAL,HIGH"
+          ignore-unfixed: true
+        # Las imágenes se construyen en el job `docker`; aquí escaneamos la FS.
+        # Para escanear imágenes, correr este paso con needs: docker (abajo).
+        if: false
 
   frontend-admin:
     runs-on: ubuntu-latest
@@ -85,3 +142,10 @@ jobs:
       - run: docker build -t yapai-socio:ci frontend_socio
       - run: docker build -t yapai-admin:ci frontend_administrador
       - run: docker build -t yapai-cliente:ci frontend_cliente
+      # Verifica que ninguna imagen corre como root
+      - run: |
+          for img in yapai-api:ci yapai-socio:ci yapai-admin:ci yapai-cliente:ci; do
+            u=$(docker run --rm --entrypoint whoami $img 2>/dev/null || docker inspect -f '{{.Config.User}}' $img)
+            echo "$img → usuario: ${u:-root}"
+            [ "$u" != "root" ] && [ -n "$u" ]
+          done

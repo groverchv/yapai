@@ -8,7 +8,12 @@ import asyncio
 import logging
 
 from app.db.session import SessionLocal
-from app.services.billing import generar_facturas, marcar_vencidas, suspender_por_impago
+from app.services.billing import (
+    avisar_trials_por_vencer,
+    generar_facturas,
+    marcar_vencidas,
+    suspender_por_impago,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -21,13 +26,15 @@ def ejecutar_una_vez() -> dict:
         creadas = generar_facturas(db)
         vencidas = marcar_vencidas(db)
         suspendidos = suspender_por_impago(db)
+        avisados = avisar_trials_por_vencer(db)
         db.commit()
-        if creadas or vencidas or suspendidos:
+        if creadas or vencidas or suspendidos or avisados:
             logger.info(
-                "Facturación: %d emitidas, %d vencidas, tenants suspendidos: %s",
-                len(creadas), vencidas, suspendidos or "ninguno",
+                "Facturación: %d emitidas, %d vencidas, suspendidos: %s, trials avisados: %d",
+                len(creadas), vencidas, suspendidos or "ninguno", avisados,
             )
-        return {"emitidas": len(creadas), "vencidas": vencidas, "suspendidos": suspendidos}
+        return {"emitidas": len(creadas), "vencidas": vencidas,
+                "suspendidos": suspendidos, "trials_avisados": avisados}
     finally:
         db.close()
 

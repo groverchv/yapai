@@ -32,12 +32,12 @@ def _otro_owner(client):
     suf = uuid.uuid4().hex[:8]
     r = client.post("/api/v1/auth/signup", json={
         "negocio_nombre": f"Otro {suf}", "owner_nombre": "Otro Dueño",
-        "email": f"otro-{suf}@test.com", "password": "TestPass123",
+        "email": f"otro-{suf}@test.com", "password": "TestPass12345",
     })
     assert r.status_code == 201, r.text
     email = f"otro-{suf}@test.com"
     lr = client.post("/api/v1/auth/login",
-                     json={"email": email, "password": "TestPass123"})
+                     json={"email": email, "password": "TestPass12345"})
     return {"Authorization": f"Bearer {lr.json()['tokens']['access_token']}"}
 
 
@@ -132,6 +132,7 @@ def test_premio_de_otro_tenant_rechazado(client, db, owner_headers):
 
 def test_firma_upload_requiere_owner(client, owner_headers):
     """Sin auth → 401/403; con owner → 200 (Cloudinary configurado) o 503."""
+    client.cookies.clear()  # el login de owner_headers dejó la cookie de sesión
     r = client.post("/api/v1/socio/comunicados/uploads/firma")
     assert r.status_code in (401, 403)
     r2 = client.post("/api/v1/socio/comunicados/uploads/firma?carpeta=premios",

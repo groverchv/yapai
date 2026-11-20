@@ -12,6 +12,7 @@
 	let perfil = $state<Perfil | null>(null);
 	let nombre = $state('');
 	let tenantNombre = $state('');
+	let nit = $state('');
 	let logo = $state<string | null>(null);
 	let error = $state('');
 	let mensaje = $state('');
@@ -33,6 +34,7 @@
 			perfil = await api.get<Perfil>('/socio/perfil');
 			nombre = perfil.nombre;
 			tenantNombre = perfil.tenant_nombre;
+			nit = perfil.nit_rut ?? '';
 			logo = perfil.logo_url;
 		} catch (e) {
 			error = e instanceof Error ? e.message : 'Error al cargar';
@@ -48,6 +50,7 @@
 			perfil = await api.patch<Perfil>('/socio/perfil', {
 				nombre,
 				tenant_nombre: tenantNombre,
+				nit_rut: nit || null,
 				logo_url: logo
 			});
 			if (auth.usuario) {
@@ -132,6 +135,14 @@
 								placeholder="Ej: Pizzería Don Yapai"
 								class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-800 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition" />
 							<p class="mt-1 text-xs text-slate-500">Nombre visible para tus clientes y en reportes oficiales.</p>
+						</div>
+
+						<div>
+							<label for="tnit" class="mb-1 block text-sm font-semibold text-slate-700">NIT / RUT / RFC</label>
+							<input id="tnit" type="text" bind:value={nit} minlength="3" maxlength="50"
+								placeholder="Ej: 123456789-7"
+								class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-800 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition" />
+							<p class="mt-1 text-xs text-slate-500">Identificación fiscal de tu empresa (facturas y reportes).</p>
 						</div>
 
 						<div class="rounded-xl border border-dashed border-emerald-200 bg-emerald-50/40 p-3.5">

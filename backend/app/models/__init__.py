@@ -2,7 +2,7 @@ from app.models.campana import Campana
 from app.models.catalogos import CategoriaNegocio, EsquemaComision
 from app.models.cliente import Cliente, EstadoCliente
 from app.models.comunicado import Comunicado, EstadoComunicado
-from app.models.factura import EstadoFactura, FacturaPlan
+from app.models.factura import EstadoFactura, EventoStripe, FacturaPlan
 from app.models.liquidacion import AuditLog, EstadoLiquidacion, Liquidacion
 from app.models.plan import Plan
 from app.models.premio import EstadoPremio, Premio, RuletaSegmento
@@ -21,7 +21,7 @@ from app.models.tenant import (
     Sucursal,
     Tenant,
 )
-from app.models.tokens import OnboardingToken, PasswordReset, RefreshToken, SujetoTipo
+from app.models.tokens import OnboardingToken, OtpCode, PasswordReset, RefreshToken, SujetoTipo
 from app.models.user import EstadoUsuario, RolUsuario, Usuario
 
 __all__ = [
@@ -34,7 +34,7 @@ __all__ = [
     "Premio", "RuletaSegmento", "EstadoPremio",
     "MovimientoPuntos", "PaseDigital", "TipoMovimiento", "EstadoPase",
     "Liquidacion", "AuditLog", "EstadoLiquidacion",
-    "FacturaPlan", "EstadoFactura", "Campana", "Comunicado", "EstadoComunicado",
-    "OnboardingToken", "PasswordReset", "RefreshToken", "SujetoTipo",
+    "FacturaPlan", "EventoStripe", "EstadoFactura", "Campana", "Comunicado", "EstadoComunicado",
+    "OnboardingToken", "OtpCode", "PasswordReset", "RefreshToken", "SujetoTipo",
     "PushSuscripcion",
 ]

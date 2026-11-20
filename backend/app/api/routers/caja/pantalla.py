@@ -49,10 +49,6 @@ class HabilitarOut(BaseModel):
     habilitada_por: str | None
 
 
-def _aware(dt: datetime) -> datetime:
-    return dt if dt.tzinfo is not None else dt.replace(tzinfo=timezone.utc)
-
-
 @router.post("/pantalla/habilitar", response_model=HabilitarOut,
              dependencies=[Depends(pin_limiter)])
 def habilitar(data: HabilitarIn, db: Session = Depends(get_db)):

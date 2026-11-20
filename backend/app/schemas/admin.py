@@ -41,6 +41,7 @@ class SocioUpdate(BaseModel):
     logo_url: str | None = None
     categoria_id: int | None = None
     esquema_comision_id: int | None = None
+    puntos_ttl_meses: int | None = Field(default=None, ge=0, le=600)
 
 
 class SocioListItem(BaseModel):
@@ -86,6 +87,7 @@ class SocioDetalle(BaseModel):
     plan: str | None
     trial_fin: datetime | None
     facturacion_estado: str = "al_dia"
+    puntos_ttl_meses: int = 0
 
 
 class SocioCreadoResponse(BaseModel):
@@ -182,6 +184,24 @@ class EsquemaOut(BaseModel):
 
 
 # --- Transacciones ---
+
+class AuditItem(BaseModel):
+    id: int
+    actor_id: int | None
+    actor_email: str | None
+    accion: str
+    entidad: str
+    entidad_id: int | None
+    detalle: dict | None
+    registro_hash: str | None
+    created_at: datetime
+
+
+class FunnelEtapa(BaseModel):
+    nombre: str
+    cantidad: int
+    porcentaje: float
+
 
 class TransaccionOut(BaseModel):
     id: int
@@ -338,6 +358,7 @@ class FacturaOut(BaseModel):
     pagada_en: datetime | None
     metodo: str | None
     referencia: str | None
+    comprobante_url: str | None = None
 
 
 class FacturaPagarIn(BaseModel):

@@ -12,6 +12,16 @@
 	let { children }: LayoutProps = $props();
 	let verificado = $state(false);
 	let menuAbierto = $state(false);
+	let reenviando = $state(false);
+
+	async function reenviarVerificacion() {
+		reenviando = true;
+		try {
+			await api.post('/auth/reenviar-verificacion', {});
+		} finally {
+			reenviando = false;
+		}
+	}
 
 	const titulos: [RegExp, string][] = [
 		[/^\/dashboard/, 'Dashboard'],
@@ -78,6 +88,14 @@
 
 		<div class="flex min-w-0 flex-1 flex-col overflow-hidden">
 			<Topbar {titulo} onmenu={() => (menuAbierto = true)} />
+			{#if auth.usuario?.email_verificado === false}
+				<div class="flex items-center justify-center gap-3 border-b border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-800">
+					<span>Tu correo <strong>{auth.usuario.email}</strong> aún no está verificado.</span>
+					<button onclick={reenviarVerificacion} class="font-semibold underline underline-offset-2 hover:text-amber-900 disabled:opacity-50" disabled={reenviando}>
+						{reenviando ? 'Enviando…' : 'Reenviar enlace'}
+					</button>
+				</div>
+			{/if}
 			<main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
 				{@render children()}
 			</main>

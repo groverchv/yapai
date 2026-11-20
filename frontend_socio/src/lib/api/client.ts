@@ -1,9 +1,13 @@
 import { env } from '$env/dynamic/public';
 import { auth } from '../stores/auth.svelte';
-import type { TokenPair } from '../types';
 
 // PUBLIC_API_BASE en runtime (adapter-node); default: backend local en dev
 export const API_BASE = env.PUBLIC_API_BASE ?? 'http://localhost:8000/api/v1';
+
+// Sesión por cookies HttpOnly (sin tokens en localStorage ⇒ XSS no las roba).
+// X-Requested-With: requerido por el guard CSRF del backend en mutaciones.
+const CREDENTIALS: RequestCredentials = 'include';
+const CSRF_HEADER = 'X-Requested-With';
 
 export class ApiError extends Error {
 	constructor(
@@ -28,18 +32,14 @@ function detalleDe(body: { detail?: unknown } | null, fallback: string): ApiErro
 let refreshPromise: Promise<boolean> | null = null;
 
 async function intentarRefresh(): Promise<boolean> {
-	if (!auth.refreshToken) return false;
 	refreshPromise ??= (async () => {
 		try {
 			const res = await fetch(`${API_BASE}/auth/refresh`, {
 				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ refresh_token: auth.refreshToken })
+				credentials: CREDENTIALS,
+				headers: { [CSRF_HEADER]: 'XMLHttpRequest' }
 			});
-			if (!res.ok) return false;
-			const tokens: TokenPair = await res.json();
-			auth.actualizarTokens(tokens);
-			return true;
+			return res.ok; // las cookies nuevas las emite el backend
 		} catch {
 			return false;
 		} finally {
@@ -54,11 +54,11 @@ async function request<T>(path: string, init: RequestInit = {}, retry = true): P
 	if (!headers.has('Content-Type') && init.body && !(init.body instanceof FormData)) {
 		headers.set('Content-Type', 'application/json');
 	}
-	if (auth.accessToken) headers.set('Authorization', `Bearer ${auth.accessToken}`);
+	headers.set(CSRF_HEADER, 'XMLHttpRequest');
 
 	let res: Response;
 	try {
-		res = await fetch(`${API_BASE}${path}`, { ...init, headers });
+		res = await fetch(`${API_BASE}${path}`, { ...init, headers, credentials: CREDENTIALS });
 	} catch {
 		throw new ApiError(0, 'Sin conexión con el servidor. Verifica tu red e inténtalo de nuevo.');
 	}
@@ -96,18 +96,19 @@ export const api = {
 
 export async function fetchRed(url: string, init?: RequestInit): Promise<Response> {
 	try {
-		return await fetch(url, init);
+		// credentials solo hacia la API propia (Cloudinary etc. fallaría con
+		// su Access-Control-Allow-Origin: *)
+		const credentials = url.startsWith(API_BASE) ? CREDENTIALS : 'omit';
+		return await fetch(url, { ...init, credentials });
 	} catch {
 		throw new ApiError(0, 'Sin conexión con el servidor. Verifica tu red e inténtalo de nuevo.');
 	}
 }
 
 export async function descargarCsv(path: string, filename: string) {
-	const headers = new Headers();
-	if (auth.accessToken) headers.set('Authorization', `Bearer ${auth.accessToken}`);
 	let res: Response;
 	try {
-		res = await fetch(`${API_BASE}${path}`, { headers });
+		res = await fetch(`${API_BASE}${path}`, { credentials: CREDENTIALS });
 	} catch {
 		throw new ApiError(0, 'Sin conexión con el servidor. Verifica tu red e inténtalo de nuevo.');
 	}

@@ -11,6 +11,7 @@ Internet ──TLS──> Caddy (443)
                     └── www.yapai.com      → redirect apex
 api ──> db (postgres:16, volumen pgdata)
 api ──> redis (rate limiting distribuido, volumen redisdata)
+jobs ──> db (mismo postgres; runner de jobs periódicos, única instancia)
 ```
 
 `/metrics` queda bloqueado en el proxy (solo accesible dentro de la red Docker
@@ -26,7 +27,13 @@ para Prometheus/Grafana futuro).
    ```bash
    docker compose -f deploy/docker-compose.prod.yml --env-file deploy/.env.production up -d --build
    ```
-   El contenedor `api` corre `alembic upgrade head` + seed idempotente antes de servir.
+   El contenedor `api` corre `alembic upgrade head` antes de servir. El seed es
+   manual e intencional (nunca automático en producción):
+   ```bash
+   docker compose -f deploy/docker-compose.prod.yml exec api python -m app.seed --no-demo
+   ```
+   `ENV=production` valida la configuración al arrancar: con defaults inseguros
+   el contenedor **no levanta** (revisar logs).
 4. **Verificación**:
    ```bash
    curl https://api.yapai.com/health

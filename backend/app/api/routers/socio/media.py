@@ -3,7 +3,7 @@ from app.core.deps import require_owner
 from app.db.session import get_db
 from app.models import Tenant, Usuario
 from app.schemas.socio import MediaUploadOut
-from app.services.media import subir_imagen
+from app.services.media import TAMANO_MAX_BYTES, leer_imagen_validada, subir_imagen
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
 
@@ -18,11 +18,13 @@ async def upload_media(
     db: Session = Depends(get_db),
 ):
     """Sube una imagen a Cloudinary en carpetas organizadas por socio y propósito."""
-    if not file.content_type or not file.content_type.startswith("image/"):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="El archivo debe ser una imagen válida (JPG, PNG, WebP, SVG)",
-        )
+    # Lee hasta máx+1 para acotar memoria; valida magic bytes (no el Content-Type
+    # declarado). SVG queda rechazado: es XML scriptable (XSS almacenado).
+    data = await file.read(TAMANO_MAX_BYTES + 1)
+    try:
+        stream = leer_imagen_validada(data)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)) from e
 
     folder_map = {
         "logo": "yapai/empresas/logos",
@@ -32,7 +34,7 @@ async def upload_media(
     folder = folder_map.get(tipo, f"yapai/general/{usuario.tenant_id}")
 
     try:
-        url = subir_imagen(file.file, folder=folder)
+        url = subir_imagen(stream, folder=folder)
     except ValueError as e:
         raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, str(e)) from e
     except Exception as e:

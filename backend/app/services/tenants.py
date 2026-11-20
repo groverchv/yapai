@@ -11,11 +11,13 @@ from app.models import (
 )
 from app.services.audit import registrar_audit
 from app.services.auth import revocar_todos_refresh
+from app.services.email import email_service, emails_owner
 from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
 
-def suspender_tenant(db: Session, tenant: Tenant, actor_id: int | None) -> None:
+def suspender_tenant(db: Session, tenant: Tenant, actor_id: int | None,
+                     motivo: str = "suspensión administrativa") -> None:
     """Baja lógica: bloquea acceso al portal Y a las pantallas físicas (regla #2)."""
     ahora = utcnow()
     tenant.estado = EstadoTenant.suspendido
@@ -35,7 +37,9 @@ def suspender_tenant(db: Session, tenant: Tenant, actor_id: int | None) -> None:
         .values(estado=EstadoPantalla.bloqueada, habilitada_hasta=None)
     )
     registrar_audit(db, actor_id, "suspender_socio", "tenant", tenant.id,
-                    {"usuarios_afectados": len(usuarios)})
+                    {"usuarios_afectados": len(usuarios), "motivo": motivo})
+    for mail in emails_owner(db, tenant.id):
+        email_service.send_tenant_suspendido(mail, tenant.nombre_comercial, motivo)
 
 
 def reactivar_tenant(db: Session, tenant: Tenant, actor_id: int) -> None:
@@ -57,3 +61,5 @@ def reactivar_tenant(db: Session, tenant: Tenant, actor_id: int) -> None:
         .values(estado=EstadoPantalla.activa, habilitada_hasta=None)
     )
     registrar_audit(db, actor_id, "reactivar_socio", "tenant", tenant.id)
+    for mail in emails_owner(db, tenant.id):
+        email_service.send_tenant_reactivado(mail, tenant.nombre_comercial)

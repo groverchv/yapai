@@ -37,7 +37,7 @@
 			}
 			const r: SignupResponse = data;
 			if (r.aprobado && r.tokens && r.usuario) {
-				auth.guardar(r.tokens, r.usuario);
+				auth.guardar(r.usuario);
 				goto('/dashboard');
 			} else {
 				pendiente = true;
@@ -118,6 +118,10 @@
 
 				<p class="text-center text-sm text-slate-500">
 					¿Ya tienes cuenta? <a href="/login" class="font-medium text-emerald-600 hover:underline">Ingresa</a>
+				</p>
+				<p class="text-center text-xs text-slate-400">
+					Al registrarte aceptas los <a href="/legal/terminos" class="hover:underline">Términos de Servicio</a>
+					y la <a href="/legal/privacidad" class="hover:underline">Política de Privacidad</a>.
 				</p>
 			</form>
 		{/if}

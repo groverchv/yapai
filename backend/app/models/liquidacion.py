@@ -39,7 +39,12 @@ class Liquidacion(Base):
 
 
 class AuditLog(Base):
-    """Auditoría de acciones sensibles (regla #13)."""
+    """Auditoría de acciones sensibles (regla #13).
+
+    `registro_hash` encadena cada registro con el anterior (`prev_hash`):
+    si alguien edita o borra una fila directo en la DB, la cadena se rompe y
+    `scripts/verify_audit_chain.py` lo detecta. Registros anteriores a la
+    migración tienen ambos campos en NULL y quedan fuera de la cadena."""
     __tablename__ = "audit_log"
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -48,4 +53,6 @@ class AuditLog(Base):
     entidad: Mapped[str] = mapped_column(String(80))
     entidad_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
     detalle: Mapped[dict | None] = mapped_column(_JSONB, nullable=True)
+    prev_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    registro_hash: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), index=True)

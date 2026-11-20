@@ -10,6 +10,8 @@
 	const DEMO = env.PUBLIC_DEMO === '1';
 
 	let esRegistro = $state(page.url.searchParams.get('registro') === '1');
+	let pasoOtp = $state(false);
+	let codigoOtp = $state('');
 	let nombre = $state('');
 	let telefono = $state('');
 	let ci = $state('');
@@ -25,15 +27,33 @@
 		try {
 			const tel = telefono.trim().replace(/[\s-]/g, '');
 			const ciLimpio = ci.trim().replace(/[\s-]/g, '');
-			if (esRegistro) {
+			if (pasoOtp) {
+				if (codigoOtp.trim().length !== 6) throw new Error('Ingresa el código de 6 dígitos');
+				if (esRegistro) {
+					// Registro: el OTP va dentro del propio registro (verifica el teléfono)
+					await auth.registro(nombre.trim(), tel, ciLimpio,
+						codigoReferido || undefined, codigoOtp.trim());
+					sessionStorage.removeItem('yapai_ref');
+				} else {
+					await auth.verificarOtp(tel, ciLimpio, codigoOtp.trim());
+				}
+			} else if (esRegistro) {
 				const nom = nombre.trim();
 				if (nom.length < 2) throw new Error('Ingresa tu nombre completo');
 				if (tel.length < 4) throw new Error('Ingresa un teléfono válido');
 				if (ciLimpio.length < 3) throw new Error('Ingresa una cédula válida');
-				await auth.registro(nom, tel, ciLimpio, codigoReferido || undefined);
+				const r = await auth.registro(nom, tel, ciLimpio, codigoReferido || undefined);
+				if (r === 'otp') {
+					pasoOtp = true;
+					return;
+				}
 				sessionStorage.removeItem('yapai_ref');
 			} else {
-				await auth.login(tel, ciLimpio);
+				const r = await auth.login(tel, ciLimpio);
+				if (r === 'otp') {
+					pasoOtp = true;
+					return;
+				}
 			}
 			goto('/billetera');
 		} catch (e) {
@@ -41,6 +61,12 @@
 		} finally {
 			cargando = false;
 		}
+	}
+
+	function reenviarOtp() {
+		pasoOtp = false;
+		codigoOtp = '';
+		enviar();
 	}
 
 	function cargarDemo() {
@@ -92,6 +118,7 @@
 				{esRegistro ? 'Regístrate y empieza a acumular puntos' : 'Ingresa con tu teléfono y CI'}
 			</p>
 
+			{#if !pasoOtp}
 			<div class="mt-8 grid grid-cols-2 rounded-full border border-gray-300 p-1 lg:mt-6">
 				<button onclick={() => { esRegistro = false; error = ''; }}
 					class="flex items-center justify-center gap-2 rounded-full py-2 text-sm font-medium transition-colors
@@ -104,8 +131,33 @@
 					<Icon name="user-plus" clase="h-4 w-4" /> Registrarme
 				</button>
 			</div>
+			{/if}
 
 			<form class="mt-6 space-y-4" onsubmit={(e) => { e.preventDefault(); enviar(); }}>
+				{#if pasoOtp}
+					<div class="rounded-lg bg-indigo-50 p-3 text-sm text-indigo-800">
+						Te enviamos un código de 6 dígitos
+						{#if auth.otpTtlMinutos}(válido {auth.otpTtlMinutos} min){/if}.
+						Ingrésalo para continuar.
+					</div>
+					<label class="relative block">
+						<Icon name="shield-check" clase="pointer-events-none absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+						<input bind:value={codigoOtp} type="text" inputmode="numeric" maxlength="6"
+							placeholder="Código de verificación" autocomplete="one-time-code"
+							class="w-full rounded-xl border border-gray-300 bg-white py-3 pl-10 pr-4 text-center text-lg tracking-[0.5em] outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100" />
+					</label>
+					{#if error}
+						<div class="rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</div>
+					{/if}
+					<button type="submit" disabled={cargando}
+						class="flex h-12 w-full items-center justify-center rounded-xl bg-indigo-600 text-base font-semibold text-white transition-colors hover:bg-indigo-700 disabled:opacity-60">
+						{#if cargando}<Spinner clase="h-5 w-5" />{:else}Verificar e ingresar{/if}
+					</button>
+					<button type="button" onclick={reenviarOtp} disabled={cargando}
+						class="mx-auto block text-sm text-indigo-600 hover:underline">
+						Reenviar código
+					</button>
+				{:else}
 				{#if esRegistro}
 					<label class="relative block">
 						<Icon name="user-round" clase="pointer-events-none absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
@@ -139,9 +191,10 @@
 					class="flex h-12 w-full items-center justify-center rounded-xl bg-indigo-600 text-base font-semibold text-white transition-colors hover:bg-indigo-700 disabled:opacity-60">
 					{#if cargando}<Spinner clase="h-5 w-5" />{:else}{esRegistro ? 'Crear cuenta' : 'Ingresar'}{/if}
 				</button>
+				{/if}
 			</form>
 
-			{#if !esRegistro && DEMO}
+			{#if !esRegistro && !pasoOtp && DEMO}
 				<button onclick={cargarDemo} disabled={cargando}
 					class="mx-auto mt-4 flex items-center gap-1.5 text-sm text-indigo-600 hover:underline">
 					<Icon name="play" clase="h-4 w-4" /> Cargar usuario demo (70000001 / 12345678)
@@ -152,6 +205,10 @@
 				{esRegistro
 					? 'Tus datos se guardarán en la base de datos para acumular y canjear puntos.'
 					: 'Usa el teléfono y la CI con los que te registraste en el local o en la app.'}
+			</p>
+			<p class="mt-2 text-center text-xs text-gray-400">
+				<a href="/terminos" class="hover:underline">Términos de Servicio</a>
+				· <a href="/privacidad" class="hover:underline">Privacidad</a>
 			</p>
 		</div>
 	</div>

@@ -1,4 +1,4 @@
-from app.core.deps import require_superadmin
+from app.core.deps import require_superadmin_2fa
 from app.db.session import get_db
 from app.models import Plan, Tenant, Usuario
 from app.schemas.admin import PlanIn, PlanOut, PlanUpdate
@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-router = APIRouter(dependencies=[Depends(require_superadmin)])
+router = APIRouter(dependencies=[Depends(require_superadmin_2fa)])
 
 
 def _out(db: Session, p: Plan) -> PlanOut:
@@ -32,7 +32,7 @@ def listar_planes(db: Session = Depends(get_db)):
 
 @router.post("", response_model=PlanOut, status_code=status.HTTP_201_CREATED)
 def crear_plan(data: PlanIn, db: Session = Depends(get_db),
-               admin: Usuario = Depends(require_superadmin)):
+               admin: Usuario = Depends(require_superadmin_2fa)):
     if db.scalar(select(Plan).where(Plan.slug == data.slug)):
         raise HTTPException(status.HTTP_409_CONFLICT, "Ya existe un plan con ese slug")
     p = Plan(**data.model_dump())
@@ -45,7 +45,7 @@ def crear_plan(data: PlanIn, db: Session = Depends(get_db),
 
 @router.patch("/{plan_id}", response_model=PlanOut)
 def editar_plan(plan_id: int, data: PlanUpdate, db: Session = Depends(get_db),
-                admin: Usuario = Depends(require_superadmin)):
+                admin: Usuario = Depends(require_superadmin_2fa)):
     p = db.get(Plan, plan_id)
     if not p:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Plan no encontrado")

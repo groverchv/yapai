@@ -10,6 +10,10 @@ import tempfile
 _tmpdir = tempfile.mkdtemp(prefix="yapai_test_")
 os.environ["DATABASE_URL"] = f"sqlite:///{_tmpdir}/test.db"
 os.environ["JOBS_ENABLED"] = "false"  # los jobs corren en threads; determinismo en tests
+# OTP de cliente desactivado en la suite (login directo tel+ci);
+# los tests de OTP lo reactivan con monkeypatch.
+os.environ["CLIENTE_OTP_ENABLED"] = "false"
+os.environ["OTP_RESEND_COOLDOWN_SEG"] = "0"  # tests consecutivos reenvían en <1s
 
 import pytest  # noqa: E402
 from app.core import ratelimit  # noqa: E402
@@ -51,7 +55,9 @@ def limpiar_rate_limits():
 
 @pytest.fixture()
 def client():
-    with TestClient(app) as c:
+    # X-Requested-With: lo que enviarán los frontends en cada mutación
+    # (guard CSRF para auth por cookie)
+    with TestClient(app, headers={"X-Requested-With": "XMLHttpRequest"}) as c:
         yield c
 
 

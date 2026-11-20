@@ -3,7 +3,7 @@ line-length = 120
 src = ["app"]
 
 [tool.ruff.lint]
-select = ["E4", "E7", "E9", "F", "I", "B"]
+select = ["E4", "E7", "E9", "F", "I", "B", "S"]
 
 # FastAPI usa Depends()/Query()/Field() como defaults de parámetro a propósito —
 # sin esto B008 marca ~200 falsos positivos en los routers.
@@ -22,3 +22,11 @@ extend-immutable-calls = [
 # env.py de Alembic: config + sys.path antes de los imports de la app (patrón oficial).
 [tool.ruff.lint.per-file-ignores]
 "alembic/env.py" = ["E402"]
+# Defaults de desarrollo y credenciales demo: existen a propósito (el validador
+# de producción en config.py exige reemplazarlos en ENV=production).
+"app/core/config.py" = ["S105"]
+"app/main.py" = ["S105"]
+"app/seed.py" = ["S105", "S106"]
+"app/schemas/auth.py" = ["S105"]  # token_type="bearer" es literal de protocolo, no un secreto
+"run.py" = ["S104"]               # 0.0.0.0 intencional (el contenedor es la frontera)
+"tests/**" = ["S101", "S105", "S106", "S608"]

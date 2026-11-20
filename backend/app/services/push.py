@@ -79,3 +79,39 @@ def push_async(cliente_id: int, titulo: str, cuerpo: str, url: str = "/") -> Non
             logger.exception("push_async falló para cliente %s", cliente_id)
 
     threading.Thread(target=_run, daemon=True).start()
+
+
+def push_broadcast_tenant(tenant_id: int, titulo: str, cuerpo: str,
+                          url: str = "/") -> None:
+    """Notifica a TODOS los clientes del tenant (comunicados publicados).
+
+    Mismo patrón fire-and-forget que push_async: un hilo con sesión propia,
+    consultando las suscripciones via join con clientes del tenant.
+    """
+    if not push_disponible():
+        return
+
+    def _run() -> None:
+        try:
+            from app.models.cliente import Cliente  # import local: evita ciclo
+            from app.models.puntos import MovimientoPuntos
+            # Audiencia = clientes que interactuaron con el tenant (son globales).
+            ids = select(MovimientoPuntos.cliente_id).where(
+                MovimientoPuntos.tenant_id == tenant_id).distinct()
+            with SessionLocal() as db:
+                subs = db.scalars(
+                    select(PushSuscripcion)
+                    .join(Cliente, PushSuscripcion.cliente_id == Cliente.id)
+                    .where(Cliente.id.in_(ids))
+                ).all()
+                payload = {"titulo": titulo, "cuerpo": cuerpo, "url": url}
+                for sub in subs:
+                    status = _webpush(sub, payload)
+                    if status in (404, 410):
+                        db.delete(sub)
+                if subs:
+                    db.commit()
+        except Exception:
+            logger.exception("push_broadcast_tenant falló para tenant %s", tenant_id)
+
+    threading.Thread(target=_run, daemon=True).start()

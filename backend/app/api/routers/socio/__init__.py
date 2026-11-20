@@ -1,6 +1,7 @@
 from app.api.routers.socio import (
     campanas,
     comunicados,
+    cuenta,
     empleados,
     facturacion,
     media,
@@ -29,3 +30,4 @@ socio_router.include_router(premios.router, prefix="/premios", tags=["socio-prem
 socio_router.include_router(ruleta.router, prefix="/ruleta", tags=["socio-ruleta"])
 socio_router.include_router(comunicados.router, prefix="/comunicados", tags=["socio-comunicados"])
 socio_router.include_router(metricas.router, tags=["socio-metricas"])
+socio_router.include_router(cuenta.router, prefix="/cuenta", tags=["socio-cuenta"])

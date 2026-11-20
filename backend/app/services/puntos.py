@@ -13,6 +13,7 @@ import string
 from datetime import timedelta
 
 from app.core.security import utcnow
+from app.core.utils import aware_utc
 from app.models import (
     Cliente,
     EstadoPase,
@@ -25,7 +26,7 @@ from app.models import (
     TipoMovimiento,
 )
 from fastapi import HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
 PASE_TTL_HOURS = 24
@@ -64,7 +65,12 @@ def registrar_movimiento(
 def otorgar(db: Session, cliente: Cliente, puntos: int, tipo: TipoMovimiento, **kw) -> MovimientoPuntos:
     """Suma puntos al saldo y registra el movimiento."""
     cliente.saldo_puntos += puntos
-    return registrar_movimiento(db, cliente_id=cliente.id, puntos=puntos, tipo=tipo, **kw)
+    mov = registrar_movimiento(db, cliente_id=cliente.id, puntos=puntos, tipo=tipo, **kw)
+    if tipo in TIPOS_GANANCIA:
+        from app.services.fraude import verificar_emision
+        verificar_emision(db, cliente_id=cliente.id, puntos=puntos,
+                          ejecutado_por=kw.get("ejecutado_por"), tenant_id=kw.get("tenant_id"))
+    return mov
 
 
 def _generar_pin_corto(db: Session) -> str:
@@ -86,7 +92,7 @@ def generar_pase(db: Session, cliente: Cliente, premio: Premio) -> PaseDigital:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Este premio no está disponible")
     if premio.stock_limitado and (premio.stock or 0) <= 0:
         raise HTTPException(status.HTTP_409_CONFLICT, "Este premio está agotado")
-    if premio.vigencia_hasta and _aware(premio.vigencia_hasta) <= utcnow():
+    if premio.vigencia_hasta and aware_utc(premio.vigencia_hasta) <= utcnow():
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Esta promoción ya venció")
     if saldo_disponible(cliente) < premio.costo_puntos:
         raise HTTPException(status.HTTP_409_CONFLICT, "Puntos insuficientes")
@@ -108,12 +114,8 @@ def generar_pase(db: Session, cliente: Cliente, premio: Premio) -> PaseDigital:
     return pase
 
 
-def _aware(dt):
-    return dt if dt is None or dt.tzinfo is not None else dt.replace(tzinfo=utcnow().tzinfo)
-
-
 def expirar_si_corresponde(pase: PaseDigital) -> bool:
-    return pase.estado == EstadoPase.activo and pase.expira_en is not None and _aware(pase.expira_en) <= utcnow()
+    return pase.estado == EstadoPase.activo and pase.expira_en is not None and aware_utc(pase.expira_en) <= utcnow()
 
 
 def _liberar(db: Session, cliente: Cliente, pase: PaseDigital, estado_final: EstadoPase) -> None:
@@ -170,9 +172,20 @@ def canjear_pase(db: Session, pase: PaseDigital, cajero_id: int, sucursal_id: in
     cliente.saldo_puntos = max(0, cliente.saldo_puntos - pase.puntos)
 
     if premio.stock_limitado:
-        premio.stock = (premio.stock or 0) - 1
-        if premio.stock <= 0:
-            premio.stock = 0
+        # Decremento ATÓMICO (UPDATE ... WHERE stock > 0): dos canjes
+        # concurrentes no pueden llevar el stock a negativo — el segundo
+        # encuentra rowcount=0 y aborta con 409.
+        n = db.execute(
+            update(Premio)
+            .where(Premio.id == premio.id, Premio.stock > 0)
+            .values(stock=Premio.stock - 1)
+        ).rowcount
+        if n == 0:
+            raise HTTPException(
+                status.HTTP_409_CONFLICT, "Premio agotado — no queda stock")
+        db.flush()
+        db.refresh(premio)
+        if (premio.stock or 0) <= 0:
             premio.estado = EstadoPremio.agotado
 
     pase.estado = EstadoPase.canjeado
@@ -185,3 +198,51 @@ def canjear_pase(db: Session, pase: PaseDigital, cajero_id: int, sucursal_id: in
         tenant_id=pase.tenant_id, sucursal_id=sucursal_id, pase_id=pase.id,
         premio_id=pase.premio_id, ejecutado_por=cajero_id,
     )
+
+
+def expirar_puntos_viejos(db: Session, tenant: Tenant) -> int:
+    """Expira puntos ganados hace más de `tenant.puntos_ttl_meses` meses.
+
+    Aproximación FIFO conservadora y segura: a_expirar = min(saldo,
+    ganado_viejo - expirado_previo). Nunca deja el saldo negativo ni expira
+    dos veces lo mismo. Devuelve puntos expirados en total (0 si nada).
+    """
+    if tenant.puntos_ttl_meses <= 0:
+        return 0
+    from sqlalchemy import func  # import local: uso puntual del job
+
+    cutoff = utcnow() - timedelta(days=30 * tenant.puntos_ttl_meses)
+    # Clientes del tenant = quienes tienen movimientos en él (los clientes son
+    # globales: cliente.tenant_registro_id solo marca dónde se registró).
+    ids = select(MovimientoPuntos.cliente_id).where(
+        MovimientoPuntos.tenant_id == tenant.id).distinct()
+    clientes = db.scalars(
+        select(Cliente).where(Cliente.id.in_(ids), Cliente.saldo_puntos > 0)
+    ).all()
+    total = 0
+    for cliente in clientes:
+        ganado_viejo = db.scalar(
+            select(func.coalesce(func.sum(MovimientoPuntos.puntos), 0)).where(
+                MovimientoPuntos.cliente_id == cliente.id,
+                MovimientoPuntos.puntos > 0,
+                MovimientoPuntos.tipo.in_(TIPOS_GANANCIA),
+                MovimientoPuntos.created_at < cutoff,
+            )
+        ) or 0
+        expirado_prev = -db.scalar(
+            select(func.coalesce(func.sum(MovimientoPuntos.puntos), 0)).where(
+                MovimientoPuntos.cliente_id == cliente.id,
+                MovimientoPuntos.tipo == TipoMovimiento.expirado,
+            )
+        ) or 0
+        a_expirar = min(cliente.saldo_puntos, max(0, ganado_viejo - expirado_prev))
+        if a_expirar <= 0:
+            continue
+        cliente.saldo_puntos -= a_expirar
+        registrar_movimiento(
+            db, cliente_id=cliente.id, puntos=-a_expirar,
+            tipo=TipoMovimiento.expirado, tenant_id=tenant.id,
+            detalle={"motivo": "ttl_puntos", "ttl_meses": tenant.puntos_ttl_meses},
+        )
+        total += a_expirar
+    return total

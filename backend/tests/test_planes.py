@@ -12,7 +12,7 @@ def _signup(client, **over):
         "negocio_nombre": f"Negocio {suf}",
         "owner_nombre": "Dueño Test",
         "email": f"owner-{suf}@test.com",
-        "password": "TestPass123",
+        "password": "TestPass12345",
     }
     data.update(over)
     return client.post("/api/v1/auth/signup", json=data)
@@ -110,7 +110,7 @@ def test_signup_rate_limit(client):
 def test_login_owner_signup_funciona(client):
     r = _signup(client)
     email = r.json()["usuario"]["email"]
-    headers = login(client, email, "TestPass123")
+    headers = login(client, email, "TestPass12345")
     assert "Bearer" in headers["Authorization"]
 
 

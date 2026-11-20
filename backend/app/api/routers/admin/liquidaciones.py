@@ -1,4 +1,4 @@
-from app.core.deps import require_superadmin
+from app.core.deps import require_superadmin_2fa
 from app.core.security import utcnow
 from app.db.session import get_db
 from app.models import EstadoLiquidacion, Liquidacion, Tenant, Usuario
@@ -14,7 +14,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-router = APIRouter(dependencies=[Depends(require_superadmin)])
+router = APIRouter(dependencies=[Depends(require_superadmin_2fa)])
 
 
 def _out(db: Session, liq: Liquidacion) -> LiquidacionOut:
@@ -61,7 +61,7 @@ def listar_liquidaciones(
 
 @router.post("/generar", response_model=LiquidacionGenerada)
 def generar(data: GenerarLiquidacionesIn, db: Session = Depends(get_db),
-            admin: Usuario = Depends(require_superadmin)):
+            admin: Usuario = Depends(require_superadmin_2fa)):
     resultado = generar_liquidaciones(db, data.periodo, admin.id)
     db.commit()
     return LiquidacionGenerada(**resultado)
@@ -77,7 +77,7 @@ def detalle_liquidacion(liquidacion_id: int, db: Session = Depends(get_db)):
 
 @router.post("/{liquidacion_id}/pagar", response_model=LiquidacionOut)
 def marcar_pagada(liquidacion_id: int, db: Session = Depends(get_db),
-                  admin: Usuario = Depends(require_superadmin)):
+                  admin: Usuario = Depends(require_superadmin_2fa)):
     """Consolidación: marca como pagada auditando al usuario interno (regla #13)."""
     liq = db.get(Liquidacion, liquidacion_id)
     if not liq:

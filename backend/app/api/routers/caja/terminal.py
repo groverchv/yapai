@@ -43,10 +43,6 @@ from sqlalchemy.orm import Session
 router = APIRouter(dependencies=[Depends(require_caja)])
 
 
-def _aware(dt: datetime) -> datetime:
-    return dt if dt.tzinfo is not None else dt.replace(tzinfo=timezone.utc)
-
-
 def _sucursales_cajero(db: Session, usuario: Usuario) -> list[Sucursal]:
     """Sucursales operables: asignadas al cajero o todas las activas del tenant."""
     base = select(Sucursal).where(

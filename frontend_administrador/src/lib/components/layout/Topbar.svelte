@@ -8,9 +8,7 @@
 	let { titulo, onmenu }: { titulo: string; onmenu?: () => void } = $props();
 
 	async function logout() {
-		if (auth.refreshToken) {
-			await api.post('/auth/logout', { refresh_token: auth.refreshToken }).catch(() => {});
-		}
+		await api.post('/auth/logout').catch(() => {});
 		auth.limpiar();
 		goto('/login');
 	}

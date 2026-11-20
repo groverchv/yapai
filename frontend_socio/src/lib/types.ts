@@ -5,6 +5,7 @@ export interface UsuarioMe {
 	rol: 'superadmin' | 'owner' | 'cajero';
 	tenant_id: number | null;
 	totp_habilitado: boolean;
+	email_verificado?: boolean;
 	tenant_nombre?: string | null;
 	tenant_logo?: string | null;
 }
@@ -31,6 +32,7 @@ export interface Perfil {
 	rol: string;
 	tenant_id: number;
 	tenant_nombre: string;
+	nit_rut: string | null;
 	logo_url: string | null;
 }
 
@@ -234,11 +236,13 @@ export interface FacturaSocio {
 	vence_en: string;
 	pagada_en: string | null;
 	metodo: string | null;
+	comprobante_url?: string | null;
 }
 
 export interface EstadoCuenta {
 	estado: 'al_dia' | 'pendiente' | 'vencida';
 	facturas: FacturaSocio[];
+	pago_online?: boolean;
 }
 
 export interface Comunicado {

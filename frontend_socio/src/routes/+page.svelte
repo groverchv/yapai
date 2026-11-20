@@ -8,6 +8,7 @@
 
 	let planes = $state<PlanPublico[]>([]);
 	let errorPlanes = $state('');
+	let demoToken = $state('');
 
 	onMount(async () => {
 		if (auth.autenticado) {
@@ -20,6 +21,11 @@
 		} catch {
 			errorPlanes = 'No se pudieron cargar los planes';
 		}
+		try {
+			const d = await fetchRed(`${API_BASE}/auth/demo`);
+			const body = await d.json();
+			if (body.disponible && body.device_token) demoToken = body.device_token;
+		} catch { /* demo opcional */ }
 	});
 
 	const features = [
@@ -67,6 +73,12 @@
 				Ver planes
 			</a>
 		</div>
+		{#if demoToken}
+			<a href="/kiosco/{demoToken}" target="_blank" rel="noopener"
+				class="mt-5 inline-flex items-center gap-2 rounded-xl bg-indigo-950 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-900">
+				<Icon name="monitor" clase="h-4 w-4" /> Probar el kiosco demo en vivo
+			</a>
+		{/if}
 		<p class="mt-4 text-xs text-slate-500">14 días de prueba · Sin tarjeta</p>
 	</section>
 
@@ -152,5 +164,11 @@
 	<footer class="border-t border-slate-200 py-8 text-center text-sm text-slate-500">
 		<img src="/logo.png" alt="YAPAI" class="mx-auto h-7 opacity-70" />
 		<p class="mt-3">© 2026 YAPAI — Fidelización para comercios</p>
+		<p class="mt-2 flex items-center justify-center gap-4">
+			<a href="/ayuda" class="hover:text-slate-700">Ayuda</a>
+			<a href="/legal/terminos" class="hover:text-slate-700">Términos</a>
+			<a href="/legal/privacidad" class="hover:text-slate-700">Privacidad</a>
+			<a href="mailto:soporte@yapai.com" class="hover:text-slate-700">Soporte</a>
+		</p>
 	</footer>
 </div>

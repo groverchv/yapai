@@ -3,7 +3,7 @@
 	import { API_BASE, fetchRed } from '#lib/api/client';
 	import { i18n } from '#lib/i18n.svelte';
 	import { auth } from '#lib/stores/auth.svelte';
-	import type { TokenPair, UsuarioMe } from '#lib/types';
+	import type { UsuarioMe } from '#lib/types';
 
 	let email = $state('');
 	let password = $state('');
@@ -13,12 +13,12 @@
 	let preToken = $state('');
 	let codigo = $state('');
 
-	function entrarConTokens(data: { tokens: TokenPair; usuario: UsuarioMe }) {
-		const { tokens, usuario } = data;
+	function entrarConTokens(data: { usuario: UsuarioMe }) {
+		const { usuario } = data;
 		if (usuario.rol !== 'superadmin') {
 			throw new Error('Este portal es solo para administradores YAPAI');
 		}
-		auth.guardar(tokens, usuario);
+		auth.guardar(usuario);
 		goto('/dashboard');
 	}
 
@@ -158,6 +158,10 @@
 				class="w-full text-sm text-slate-500 hover:underline">{i18n.t('login.volver')}</button>
 		</form>
 		{/if}
+		<p class="mt-4 text-center text-xs text-slate-400">
+			<a href="/terminos" class="hover:underline">Términos de Servicio</a>
+			· <a href="/privacidad" class="hover:underline">Privacidad</a>
+		</p>
 		</div>
 	</div>
 </div>

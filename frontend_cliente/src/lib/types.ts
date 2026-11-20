@@ -16,8 +16,12 @@ export interface Cliente {
 }
 
 export interface LoginClienteResponse {
-	tokens: TokenPair;
+	// La sesión viaja en cookies HttpOnly; el body puede incluir tokens para
+	// clients Bearer (apps móviles) — el web los ignora.
+	tokens: TokenPair | null;
 	cliente: Cliente;
+	otp_requerido?: boolean;
+	otp_ttl_minutos?: number | null;
 }
 
 export interface Wallet {
@@ -120,6 +124,12 @@ export interface Pase {
 	premio_nombre: string;
 	comercio: string;
 	created_at: string;
+}
+
+export interface Sesion {
+	id: number;
+	created_at: string;
+	expira_en: string;
 }
 
 export interface FirmaUpload {

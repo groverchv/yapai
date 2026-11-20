@@ -1,8 +1,9 @@
 from datetime import date, datetime, time, timedelta
 
-from app.core.deps import require_superadmin
+from app.core.deps import require_superadmin_2fa
 from app.db.session import get_db
 from app.models import (
+    AuditLog,
     Cliente,
     EstadoFactura,
     EstadoLiquidacion,
@@ -10,12 +11,17 @@ from app.models import (
     FacturaPlan,
     Liquidacion,
     MovimientoPuntos,
+    RolUsuario,
+    Sucursal,
     Tenant,
     TipoMovimiento,
+    Usuario,
 )
 from app.schemas.admin import (
+    AuditItem,
     DashboardOut,
     DistribucionTipoItem,
+    FunnelEtapa,
     KpisGlobales,
     KpisSocio,
     Pagina,
@@ -34,7 +40,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-router = APIRouter(dependencies=[Depends(require_superadmin)])
+router = APIRouter(dependencies=[Depends(require_superadmin_2fa)])
 
 
 @router.get("/transacciones", response_model=Pagina[TransaccionOut])
@@ -64,6 +70,88 @@ def transacciones_globales(
     ) or 0
     rows = db.execute(stmt.offset((page - 1) * size).limit(size)).all()
     return Pagina(items=[to_transaccion_out(r) for r in rows], total=total, page=page, size=size)
+
+
+@router.get("/audit", response_model=Pagina[AuditItem])
+def audit_log(
+    accion: str | None = None, actor_id: int | None = None,
+    entidad: str | None = None,
+    desde: date | None = None, hasta: date | None = None,
+    page: int = Query(1, ge=1), size: int = Query(20, ge=1, le=200),
+    format: str | None = Query(None, pattern="^csv$"),
+    db: Session = Depends(get_db),
+):
+    """Visor del log de auditoría (hash-chained, append-only). Solo lectura."""
+    filtros = []
+    if accion:
+        filtros.append(AuditLog.accion == accion)
+    if actor_id:
+        filtros.append(AuditLog.actor_id == actor_id)
+    if entidad:
+        filtros.append(AuditLog.entidad == entidad)
+    if desde:
+        filtros.append(AuditLog.created_at >= datetime.combine(desde, time.min))
+    if hasta:
+        filtros.append(AuditLog.created_at <= datetime.combine(hasta, time.max))
+
+    stmt = (
+        select(AuditLog, Usuario.email.label("actor_email"))
+        .outerjoin(Usuario, AuditLog.actor_id == Usuario.id)
+        .where(*filtros)
+        .order_by(AuditLog.id.desc())
+    )
+    if format == "csv":
+        rows = db.execute(stmt).all()
+        return csv_response(
+            "audit_log.csv",
+            ["id", "fecha", "actor", "accion", "entidad", "entidad_id", "detalle", "hash"],
+            [(a.id, a.created_at, mail or (a.actor_id or "sistema"), a.accion,
+              a.entidad, a.entidad_id or "", str(a.detalle or ""),
+              (a.registro_hash or "")[:16]) for a, mail in rows],
+        )
+    total = db.scalar(select(func.count(AuditLog.id)).where(*filtros)) or 0
+    rows = db.execute(stmt.offset((page - 1) * size).limit(size)).all()
+    return Pagina(
+        items=[AuditItem(
+            id=a.id, actor_id=a.actor_id, actor_email=mail,
+            accion=a.accion, entidad=a.entidad, entidad_id=a.entidad_id,
+            detalle=a.detalle, registro_hash=a.registro_hash,
+            created_at=a.created_at,
+        ) for a, mail in rows],
+        total=total, page=page, size=size,
+    )
+
+
+@router.get("/funnel", response_model=list[FunnelEtapa])
+def funnel_conversion(db: Session = Depends(get_db)):
+    """Funnel de activación de socios: signup → owner activo → sucursal →
+    clientes → primer giro de ruleta. % relativo al total de signups."""
+    total = db.scalar(select(func.count(Tenant.id))) or 0
+    activados = db.scalar(
+        select(func.count(func.distinct(Usuario.tenant_id))).where(
+            Usuario.rol == RolUsuario.owner,
+            Usuario.password_hash.is_not(None),
+        )
+    ) or 0
+    con_sucursal = db.scalar(
+        select(func.count(func.distinct(Sucursal.tenant_id)))
+    ) or 0
+    con_clientes = db.scalar(
+        select(func.count(func.distinct(MovimientoPuntos.tenant_id)))
+    ) or 0
+    con_giro = db.scalar(
+        select(func.count(func.distinct(MovimientoPuntos.tenant_id))).where(
+            MovimientoPuntos.tipo == TipoMovimiento.ruleta)
+    ) or 0
+
+    etapas = [
+        ("Signups", total), ("Cuenta activada", activados),
+        ("Primera sucursal", con_sucursal), ("Primer cliente", con_clientes),
+        ("Primer giro", con_giro),
+    ]
+    base = total or 1
+    return [FunnelEtapa(nombre=n, cantidad=c, porcentaje=round(c / base * 100, 1))
+            for n, c in etapas]
 
 
 @router.get("/socios/{tenant_id}/rendimiento", response_model=KpisSocio)

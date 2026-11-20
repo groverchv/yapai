@@ -137,9 +137,9 @@
 	}
 
 	function exportarCsv() {
-		// descarga con el token de sesión
+		// la sesión viaja en cookies HttpOnly — credentials: 'include' basta
 		fetch(`${API_BASE}/socio/campanas/inactivos.csv?dias=${dias}`, {
-			headers: { Authorization: `Bearer ${auth.accessToken}` }
+			credentials: 'include'
 		})
 			.then((r) => r.blob())
 			.then((blob) => {

@@ -1,4 +1,15 @@
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
+
+
+def _password_fuerte(v: str) -> str:
+    """Política de contraseñas para usuarios del sistema (owner/cajero/admin):
+    >=12 caracteres, al menos una letra y un dígito."""
+    if len(v) < 12:
+        raise ValueError("La contraseña debe tener al menos 12 caracteres")
+    if not any(c.isalpha() for c in v) or not any(c.isdigit() for c in v):
+        raise ValueError("La contraseña debe incluir letras y dígitos")
+    return v
+
 
 # --- Requests ---
 
@@ -12,19 +23,27 @@ class ClienteLoginRequest(BaseModel):
     ci: str = Field(min_length=3, max_length=50)
 
 
+class ClienteOtpVerifyRequest(BaseModel):
+    telefono: str = Field(min_length=4, max_length=30)
+    ci: str = Field(min_length=3, max_length=50)
+    codigo: str = Field(min_length=6, max_length=6)
+
+
 class ClienteRegistroRequest(BaseModel):
     nombre: str = Field(min_length=2, max_length=160)
     telefono: str = Field(min_length=4, max_length=30)
     ci: str = Field(min_length=3, max_length=50)
     codigo_referido: str | None = None
+    # 2da fase: OTP del teléfono (vacío en la 1ra llamada → envía el código)
+    codigo: str | None = Field(default=None, min_length=4, max_length=10)
 
 
 class RefreshRequest(BaseModel):
-    refresh_token: str
+    refresh_token: str | None = None  # cookie HttpOnly en navegadores
 
 
 class LogoutRequest(BaseModel):
-    refresh_token: str
+    refresh_token: str | None = None  # cookie HttpOnly en navegadores
 
 
 class ForgotPasswordRequest(BaseModel):
@@ -33,12 +52,20 @@ class ForgotPasswordRequest(BaseModel):
 
 class ResetPasswordRequest(BaseModel):
     token: str
-    password: str = Field(min_length=8, max_length=128)
+    password: str = Field(min_length=12, max_length=128)
+
+    _v = field_validator("password")(_password_fuerte)
 
 
 class OnboardingRequest(BaseModel):
     token: str
-    password: str = Field(min_length=8, max_length=128)
+    password: str = Field(min_length=12, max_length=128)
+
+    _v = field_validator("password")(_password_fuerte)
+
+
+class VerificarEmailRequest(BaseModel):
+    token: str = Field(min_length=10, max_length=200)
 
 
 class SignupRequest(BaseModel):
@@ -46,9 +73,11 @@ class SignupRequest(BaseModel):
     negocio_nombre: str = Field(min_length=2, max_length=200)
     owner_nombre: str = Field(min_length=2, max_length=160)
     email: EmailStr
-    password: str = Field(min_length=8, max_length=128)
+    password: str = Field(min_length=12, max_length=128)
     telefono: str | None = Field(default=None, max_length=50)
     categoria_id: int | None = None
+
+    _v = field_validator("password")(_password_fuerte)
 
 
 # --- Responses ---
@@ -67,11 +96,11 @@ class UsuarioMe(BaseModel):
     rol: str
     tenant_id: int | None
     totp_habilitado: bool = False
+    email_verificado: bool = False
     tenant_nombre: str | None = None
     tenant_logo: str | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ClienteMe(BaseModel):
@@ -84,8 +113,7 @@ class ClienteMe(BaseModel):
     codigo_referido: str | None = None
     foto_url: str | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class LoginResponse(BaseModel):
@@ -95,6 +123,9 @@ class LoginResponse(BaseModel):
     # 2FA: cuando el usuario tiene TOTP, el login devuelve pre_token en vez de tokens
     requires_2fa: bool = False
     pre_token: str | None = None
+    # OTP cliente: cuando CLIENTE_OTP_ENABLED, login devuelve esto en vez de tokens
+    otp_requerido: bool = False
+    otp_ttl_minutos: int | None = None
 
 
 class TotpSetupOut(BaseModel):
@@ -129,6 +160,12 @@ class PlanPublico(BaseModel):
     max_clientes: int
     max_empleados: int
     ruleta_habilitada: bool
+
+
+class DemoInfo(BaseModel):
+    disponible: bool
+    device_token: str | None = None
+    comercio: str | None = None
 
 
 class SignupResponse(BaseModel):

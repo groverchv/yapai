@@ -147,6 +147,24 @@ export interface EsquemaOut {
 	has_usage: boolean;
 }
 
+export interface FunnelEtapa {
+	nombre: string;
+	cantidad: number;
+	porcentaje: number;
+}
+
+export interface AuditItem {
+	id: number;
+	actor_id: number | null;
+	actor_email: string | null;
+	accion: string;
+	entidad: string;
+	entidad_id: number | null;
+	detalle: Record<string, unknown> | null;
+	registro_hash: string | null;
+	created_at: string;
+}
+
 export interface TransaccionOut {
 	id: number;
 	created_at: string;
@@ -233,4 +251,5 @@ export interface FacturaOut {
 	pagada_en: string | null;
 	metodo: string | null;
 	referencia: string | null;
+	comprobante_url?: string | null;
 }

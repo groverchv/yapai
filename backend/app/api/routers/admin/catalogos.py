@@ -1,4 +1,4 @@
-from app.core.deps import require_superadmin
+from app.core.deps import require_superadmin_2fa
 from app.core.utils import slugify
 from app.db.session import get_db
 from app.models import CategoriaNegocio, EsquemaComision, Liquidacion, Tenant, Usuario
@@ -15,7 +15,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-router = APIRouter(dependencies=[Depends(require_superadmin)])
+router = APIRouter(dependencies=[Depends(require_superadmin_2fa)])
 
 
 # ---------- Categorías de negocio ----------
@@ -37,7 +37,7 @@ def listar_categorias(db: Session = Depends(get_db)):
 
 
 @router.post("/categorias", response_model=CategoriaOut, status_code=status.HTTP_201_CREATED)
-def crear_categoria(data: CategoriaIn, db: Session = Depends(get_db), admin: Usuario = Depends(require_superadmin)):
+def crear_categoria(data: CategoriaIn, db: Session = Depends(get_db), admin: Usuario = Depends(require_superadmin_2fa)):
     slug = data.slug or slugify(data.nombre)
     if db.scalar(select(CategoriaNegocio).where(CategoriaNegocio.slug == slug)):
         raise HTTPException(status.HTTP_409_CONFLICT, "Ya existe una categoría con ese slug")
@@ -51,7 +51,7 @@ def crear_categoria(data: CategoriaIn, db: Session = Depends(get_db), admin: Usu
 
 @router.patch("/categorias/{cat_id}", response_model=CategoriaOut)
 def editar_categoria(cat_id: int, data: CategoriaUpdate, db: Session = Depends(get_db),
-                     admin: Usuario = Depends(require_superadmin)):
+                     admin: Usuario = Depends(require_superadmin_2fa)):
     cat = db.get(CategoriaNegocio, cat_id)
     if not cat:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Categoría no encontrada")
@@ -68,7 +68,7 @@ def editar_categoria(cat_id: int, data: CategoriaUpdate, db: Session = Depends(g
 
 
 @router.delete("/categorias/{cat_id}")
-def eliminar_categoria(cat_id: int, db: Session = Depends(get_db), admin: Usuario = Depends(require_superadmin)):
+def eliminar_categoria(cat_id: int, db: Session = Depends(get_db), admin: Usuario = Depends(require_superadmin_2fa)):
     """Regla #4: no se elimina físicamente si tiene socios vinculados."""
     cat = db.get(CategoriaNegocio, cat_id)
     if not cat:
@@ -108,7 +108,7 @@ def listar_esquemas(db: Session = Depends(get_db)):
 
 
 @router.post("/esquemas", response_model=EsquemaOut, status_code=status.HTTP_201_CREATED)
-def crear_esquema(data: EsquemaIn, db: Session = Depends(get_db), admin: Usuario = Depends(require_superadmin)):
+def crear_esquema(data: EsquemaIn, db: Session = Depends(get_db), admin: Usuario = Depends(require_superadmin_2fa)):
     if db.scalar(select(EsquemaComision).where(EsquemaComision.nombre == data.nombre)):
         raise HTTPException(status.HTTP_409_CONFLICT, "Ya existe un esquema con ese nombre")
     e = EsquemaComision(**data.model_dump())
@@ -121,7 +121,7 @@ def crear_esquema(data: EsquemaIn, db: Session = Depends(get_db), admin: Usuario
 
 @router.patch("/esquemas/{esquema_id}", response_model=EsquemaOut)
 def editar_esquema(esquema_id: int, data: EsquemaUpdate, db: Session = Depends(get_db),
-                   admin: Usuario = Depends(require_superadmin)):
+                   admin: Usuario = Depends(require_superadmin_2fa)):
     e = db.get(EsquemaComision, esquema_id)
     if not e:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Esquema no encontrado")
@@ -145,7 +145,7 @@ def editar_esquema(esquema_id: int, data: EsquemaUpdate, db: Session = Depends(g
 
 
 @router.delete("/esquemas/{esquema_id}")
-def eliminar_esquema(esquema_id: int, db: Session = Depends(get_db), admin: Usuario = Depends(require_superadmin)):
+def eliminar_esquema(esquema_id: int, db: Session = Depends(get_db), admin: Usuario = Depends(require_superadmin_2fa)):
     e = db.get(EsquemaComision, esquema_id)
     if not e:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Esquema no encontrado")

@@ -11,6 +11,7 @@ from app.schemas.socio import (
     FirmaUploadOut,
 )
 from app.services.audit import registrar_audit
+from app.services.push import push_broadcast_tenant
 from app.services.uploads import firma_disponible, generar_firma
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import select
@@ -101,11 +102,15 @@ def editar(comunicado_id: int, data: ComunicadoUpdate,
 def publicar(comunicado_id: int, usuario: Usuario = Depends(require_owner),
              db: Session = Depends(get_db)):
     c = _propio(db, comunicado_id, usuario.tenant_id)
+    primera_publicacion = c.publicado_en is None
     c.estado = EstadoComunicado.publicado
-    if c.publicado_en is None:
+    if primera_publicacion:
         c.publicado_en = utcnow()
     registrar_audit(db, usuario.id, "publicar_comunicado", "comunicado", c.id)
     db.commit()
+    if primera_publicacion:
+        push_broadcast_tenant(usuario.tenant_id, c.titulo,
+                              (c.descripcion or "")[:140], "/ofertas")
     return _out(db, c)
 
 

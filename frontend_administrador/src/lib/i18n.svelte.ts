@@ -15,6 +15,7 @@ const ES = {
 	// Items de menú
 	'nav.dashboard': 'Dashboard',
 	'nav.transacciones': 'Transacciones',
+	'nav.audit': 'Auditoría',
 	'nav.rendimiento': 'Rendimiento',
 	'nav.premios': 'Premios',
 	'nav.ruleta': 'Ruleta',
@@ -68,6 +69,7 @@ const EN: Record<Clave, string> = {
 	'nav.cuenta': 'Account',
 	'nav.dashboard': 'Dashboard',
 	'nav.transacciones': 'Transactions',
+	'nav.audit': 'Audit log',
 	'nav.rendimiento': 'Performance',
 	'nav.premios': 'Rewards',
 	'nav.ruleta': 'Roulette',

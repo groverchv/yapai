@@ -25,6 +25,7 @@
 			titulo: 'nav.operacion',
 			items: [
 				{ label: 'nav.transacciones', href: '/monitoreo/transacciones', icono: 'trending-up' },
+				{ label: 'nav.audit', href: '/monitoreo/audit', icono: 'shield' },
 				{ label: 'nav.rendimiento', href: '/monitoreo/rendimiento', icono: 'target' },
 				{ label: 'nav.liquidaciones', href: '/liquidaciones', icono: 'banknote' },
 				{ label: 'nav.facturacion_saas', href: '/facturacion', icono: 'receipt' }

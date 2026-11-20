@@ -1,0 +1,70 @@
+version: 2
+updates:
+  # Backend Python (pip)
+  - package-ecosystem: "pip"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 10
+    labels: ["dependencias", "backend"]
+
+  # Frontends npm
+  - package-ecosystem: "npm"
+    directory: "/frontend_cliente"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels: ["dependencias", "frontend-cliente"]
+
+  - package-ecosystem: "npm"
+    directory: "/frontend_socio"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels: ["dependencias", "frontend-socio"]
+
+  - package-ecosystem: "npm"
+    directory: "/frontend_administrador"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels: ["dependencias", "frontend-admin"]
+
+  # Imágenes base de los Dockerfiles
+  - package-ecosystem: "docker"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+    labels: ["dependencias", "docker"]
+
+  - package-ecosystem: "docker"
+    directory: "/frontend_cliente"
+    schedule:
+      interval: "weekly"
+    labels: ["dependencias", "docker"]
+
+  - package-ecosystem: "docker"
+    directory: "/frontend_socio"
+    schedule:
+      interval: "weekly"
+    labels: ["dependencias", "docker"]
+
+  - package-ecosystem: "docker"
+    directory: "/frontend_administrador"
+    schedule:
+      interval: "weekly"
+    labels: ["dependencias", "docker"]
+
+  - package-ecosystem: "docker"
+    directory: "/deploy"
+    schedule:
+      interval: "weekly"
+    labels: ["dependencias", "docker"]
+
+  # Acciones de GitHub
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels: ["dependencias", "ci"]

@@ -1,6 +1,7 @@
 
 from app.core.deps import require_owner
 from app.core.security import utcnow
+from app.core.utils import aware_utc as _aware
 from app.db.session import get_db
 from app.models import Campana, Sucursal, Usuario
 from app.schemas.socio import CampanaIn, CampanaOut, CampanaUpdate, InactivoOut
@@ -11,10 +12,6 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 router = APIRouter(dependencies=[Depends(require_owner)])
-
-
-def _aware(dt):
-    return dt if dt.tzinfo is not None else dt.replace(tzinfo=utcnow().tzinfo)
 
 
 def _out(db: Session, c: Campana) -> CampanaOut:

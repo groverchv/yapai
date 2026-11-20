@@ -4,15 +4,12 @@ import secrets
 from datetime import timedelta
 
 from app.core.security import utcnow
+from app.core.utils import aware_utc as _aware
 from app.models import Campana, Cliente, EstadoCliente, MovimientoPuntos
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
 _ALFABETO_CODIGO = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"  # sin 0/O/1/I/L — fácil de dictar
-
-
-def _aware(dt):
-    return dt if dt is None or dt.tzinfo is not None else dt.replace(tzinfo=utcnow().tzinfo)
 
 
 def multiplicador_activo(db: Session, tenant_id: int, sucursal_id: int | None) -> tuple[int, Campana | None]:

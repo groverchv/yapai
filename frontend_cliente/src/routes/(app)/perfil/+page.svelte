@@ -4,7 +4,8 @@
 	import { auth } from '#lib/stores/auth.svelte';
 	import { pwa } from '#lib/stores/pwa.svelte';
 	import { toast } from '#lib/stores/toast.svelte';
-	import { mensajeError } from '#lib/api/client';
+	import { api, mensajeError } from '#lib/api/client';
+	import type { Sesion } from '#lib/types';
 	import { activarPush, estadoPush, pushSoportado, type EstadoPush } from '#lib/push';
 	import { cloudinaryThumb, compartir, iniciales } from '#lib/utils/format';
 	import Dialog from '#lib/components/ui/Dialog.svelte';
@@ -18,8 +19,41 @@
 	let inputFoto: HTMLInputElement;
 	let estadoNotif = $state<EstadoPush | 'cargando'>('cargando');
 	let activandoNotif = $state(false);
+	let sesiones = $state<Sesion[]>([]);
+	let confirmarCerrarTodas = $state(false);
+
+	async function cargarSesiones() {
+		try {
+			sesiones = await api.get<Sesion[]>('/cliente/me/sesiones');
+		} catch { /* silencioso */ }
+	}
+
+	async function cerrarSesion(id: number) {
+		try {
+			await api.delete(`/cliente/me/sesiones/${id}`);
+			sesiones = sesiones.filter((s) => s.id !== id);
+			toast.exito('Sesión cerrada');
+		} catch (e) {
+			toast.error(mensajeError(e));
+		}
+	}
+
+	async function cerrarTodas() {
+		try {
+			await api.delete('/cliente/me/sesiones');
+			await auth.cerrarSesion();
+			goto('/login');
+		} catch (e) {
+			toast.error(mensajeError(e));
+		}
+	}
+
+	function fmtFecha(iso: string): string {
+		return new Date(iso).toLocaleDateString('es-BO', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+	}
 
 	onMount(async () => {
+		cargarSesiones();
 		if (!pushSoportado()) {
 			estadoNotif = 'no-soportado';
 			return;
@@ -182,6 +216,29 @@
 			<Icon name="log-out" clase="h-4 w-4" /> Cerrar sesión
 		</button>
 
+		{#if sesiones.length}
+			<div class="mt-4 border-t border-gray-100 pt-4">
+				<p class="text-xs font-semibold uppercase tracking-wide text-gray-500">
+					Sesiones activas ({sesiones.length})
+				</p>
+				<ul class="mt-2 space-y-1.5">
+					{#each sesiones as s (s.id)}
+						<li class="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2">
+							<span class="text-xs text-gray-600">Desde {fmtFecha(s.created_at)}</span>
+							<button onclick={() => cerrarSesion(s.id)}
+								class="text-xs font-medium text-red-600 hover:underline">
+								Cerrar
+							</button>
+						</li>
+					{/each}
+				</ul>
+				<button onclick={() => (confirmarCerrarTodas = true)}
+					class="mt-2 w-full rounded-xl border border-red-200 py-2 text-xs font-semibold text-red-600 hover:bg-red-50">
+					Cerrar todas las sesiones
+				</button>
+			</div>
+		{/if}
+
 		<div class="mt-4 border-t border-gray-100 pt-4">
 			<button onclick={() => (confirmarEliminar = true)}
 				class="flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-medium text-red-600 hover:bg-red-50">
@@ -198,4 +255,12 @@
 	onConfirmar={eliminar}>
 	Se eliminará tu cuenta de forma permanente y perderás todos tus puntos acumulados y pases activos.
 	Esta acción no se puede deshacer.
+</Dialog>
+
+<Dialog abierto={confirmarCerrarTodas} titulo="Cerrar todas las sesiones"
+	texConfirmar="Cerrar todo" peligroso
+	oncerrar={() => (confirmarCerrarTodas = false)}
+	onConfirmar={cerrarTodas}>
+	Se cerrarán todas tus sesiones en todos los dispositivos, incluida esta. Tendrás que
+	iniciar sesión de nuevo.
 </Dialog>

@@ -20,6 +20,7 @@ class TipoMovimiento(str, enum.Enum):
     congelar = "congelar"
     liberar = "liberar"
     anulacion = "anulacion"
+    expirado = "expirado"
 
 
 class EstadoPase(str, enum.Enum):

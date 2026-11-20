@@ -188,3 +188,52 @@ def opciones_filtros(usuario: Usuario = Depends(require_owner), db: Session = De
         "sucursales": [{"id": s.id, "nombre": s.nombre} for s in sucursales],
         "cajeros": [{"id": c.id, "nombre": c.nombre} for c in cajeros],
     }
+
+
+_TIPOS_NETO = (
+    TipoMovimiento.registro,
+    TipoMovimiento.ruleta,
+    TipoMovimiento.bonus_manual,
+    TipoMovimiento.referido,
+    TipoMovimiento.canje,
+    TipoMovimiento.anulacion,
+)
+
+
+@router.get("/reportes/pasivo-puntos", response_model=dict)
+def pasivo_puntos(usuario: Usuario = Depends(require_owner), db: Session = Depends(get_db)):
+    """Pasivo financiero de puntos del tenant: puntos emitidos menos canjeados
+    (congelar/liberar cancelan entre sí y se excluyen). Es lo que el comercio
+    debe si todos los clientes canjearan hoy — KPI de salud del programa."""
+    total = db.scalar(
+        select(func.coalesce(func.sum(MovimientoPuntos.puntos), 0)).where(
+            MovimientoPuntos.tenant_id == usuario.tenant_id,
+            MovimientoPuntos.tipo.in_(_TIPOS_NETO),
+        )
+    ) or 0
+    por_cliente = db.execute(
+        select(Cliente.id, Cliente.nombre, Cliente.ci,
+               func.coalesce(func.sum(MovimientoPuntos.puntos), 0).label("pasivo"))
+        .join(Cliente, MovimientoPuntos.cliente_id == Cliente.id)
+        .where(MovimientoPuntos.tenant_id == usuario.tenant_id,
+               MovimientoPuntos.tipo.in_(_TIPOS_NETO))
+        .group_by(Cliente.id, Cliente.nombre, Cliente.ci)
+        .order_by(func.sum(MovimientoPuntos.puntos).desc())
+        .limit(20)
+    ).all()
+    por_sucursal = db.execute(
+        select(Sucursal.id, Sucursal.nombre,
+               func.coalesce(func.sum(MovimientoPuntos.puntos), 0).label("pasivo"))
+        .join(Sucursal, MovimientoPuntos.sucursal_id == Sucursal.id)
+        .where(MovimientoPuntos.tenant_id == usuario.tenant_id,
+               MovimientoPuntos.tipo.in_(_TIPOS_NETO))
+        .group_by(Sucursal.id, Sucursal.nombre)
+        .order_by(func.sum(MovimientoPuntos.puntos).desc())
+    ).all()
+    return {
+        "pasivo_total": int(total),
+        "top_clientes": [{"cliente_id": r.id, "nombre": r.nombre, "ci": r.ci,
+                          "pasivo": int(r.pasivo)} for r in por_cliente],
+        "por_sucursal": [{"sucursal_id": r.id, "nombre": r.nombre,
+                          "pasivo": int(r.pasivo)} for r in por_sucursal],
+    }

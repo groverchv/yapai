@@ -18,7 +18,7 @@ def _tenant_facturable(client, db) -> Tenant:
         "negocio_nombre": f"Negocio {suf}",
         "owner_nombre": "Dueño Test",
         "email": f"owner-{suf}@test.com",
-        "password": "TestPass123",
+        "password": "TestPass12345",
     })
     assert r.status_code == 201, r.text
     tenant = db.scalar(
@@ -59,7 +59,7 @@ def test_no_factura_en_trial_ni_plan_gratis(client, db, admin_headers):
     suf = uuid.uuid4().hex[:8]
     r = client.post("/api/v1/auth/signup", json={
         "negocio_nombre": f"Trial {suf}", "owner_nombre": "Owner Trial",
-        "email": f"trial-{suf}@test.com", "password": "TestPass123",
+        "email": f"trial-{suf}@test.com", "password": "TestPass12345",
     })
     assert r.status_code == 201, r.text
     client.post("/api/v1/admin/facturacion/generar", headers=admin_headers)
@@ -93,7 +93,7 @@ def test_socio_ve_estado_de_cuenta_y_facturas(client, db, admin_headers):
     owner = db.scalar(select(Usuario).where(
         Usuario.tenant_id == t.id, Usuario.rol == "owner"))
     from tests.conftest import login
-    headers = login(client, owner.email, "TestPass123")
+    headers = login(client, owner.email, "TestPass12345")
 
     client.post("/api/v1/admin/facturacion/generar", headers=admin_headers)
     r = client.get("/api/v1/socio/facturacion", headers=headers)

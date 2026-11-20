@@ -6,9 +6,12 @@ kiosco inoperativo si pantalla/sucursal/tenant están suspendidos o la
 habilitación venció.
 """
 
-import random
 from datetime import datetime, timedelta, timezone
 
+from app.core.config import settings
+from app.core.ratelimit import kiosco_limiter
+from app.core.security import secure_random
+from app.core.utils import aware_utc as _aware
 from app.db.session import get_db
 from app.models import (
     Cliente,
@@ -52,10 +55,6 @@ router = APIRouter()
 MAX_GIROS_DIA = 1  # por cliente y pantalla
 
 
-def _aware(dt: datetime) -> datetime:
-    return dt if dt.tzinfo is not None else dt.replace(tzinfo=timezone.utc)
-
-
 def _contexto(db: Session, device_token: str) -> tuple[Pantalla, Sucursal, Tenant]:
     """Valida la cadena pantalla → sucursal → tenant. Devuelve 404/403 con detalle."""
     pantalla = db.scalar(select(Pantalla).where(Pantalla.device_token == device_token))
@@ -63,7 +62,9 @@ def _contexto(db: Session, device_token: str) -> tuple[Pantalla, Sucursal, Tenan
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Pantalla no encontrada")
     if pantalla.estado == EstadoPantalla.bloqueada:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Pantalla bloqueada")
-    if not pantalla.habilitada_hasta or _aware(pantalla.habilitada_hasta) <= datetime.now(timezone.utc):
+    es_demo = bool(settings.DEMO_DEVICE_TOKEN) and pantalla.device_token == settings.DEMO_DEVICE_TOKEN
+    if not es_demo and (not pantalla.habilitada_hasta
+                        or _aware(pantalla.habilitada_hasta) <= datetime.now(timezone.utc)):
         raise HTTPException(
             status.HTTP_403_FORBIDDEN,
             "Pantalla no habilitada: el cajero debe ingresar el PIN de caja",
@@ -77,7 +78,7 @@ def _contexto(db: Session, device_token: str) -> tuple[Pantalla, Sucursal, Tenan
     return pantalla, sucursal, tenant
 
 
-@router.get("/{device_token}/pin-info")
+@router.get("/{device_token}/pin-info", dependencies=[Depends(kiosco_limiter)])
 def pin_info(device_token: str, db: Session = Depends(get_db)):
     """Info mínima para la pantalla de desbloqueo por PIN (antes de habilitar).
     No requiere que la pantalla esté habilitada."""
@@ -125,7 +126,8 @@ def config(device_token: str, db: Session = Depends(get_db)):
     return KioscoConfigOut(
         comercio=tenant.nombre_comercial, logo_url=tenant.logo_url,
         sucursal=sucursal.nombre, pantalla=pantalla.nombre,
-        habilitada_hasta=pantalla.habilitada_hasta,
+        habilitada_hasta=pantalla.habilitada_hasta
+        or datetime(2099, 12, 31, tzinfo=timezone.utc),
         puntos_registro=tenant.puntos_registro,
         segmentos=[SegmentoPublico(etiqueta=s.etiqueta, puntos=s.puntos,
                                  peso=s.peso, color=s.color) for s in segmentos],
@@ -135,7 +137,8 @@ def config(device_token: str, db: Session = Depends(get_db)):
 
 
 @router.post("/{device_token}/registro", response_model=RegistroKioscoOut,
-             status_code=status.HTTP_201_CREATED)
+             status_code=status.HTTP_201_CREATED,
+             dependencies=[Depends(kiosco_limiter)])
 def registro(device_token: str, data: RegistroKioscoIn, db: Session = Depends(get_db)):
     pantalla, sucursal, tenant = _contexto(db, device_token)
 
@@ -210,12 +213,17 @@ def registro(device_token: str, data: RegistroKioscoIn, db: Session = Depends(ge
     )
 
 
-@router.post("/{device_token}/ruleta/girar", response_model=GirarOut)
+@router.post("/{device_token}/ruleta/girar", response_model=GirarOut,
+             dependencies=[Depends(kiosco_limiter)])
 def girar(device_token: str, data: GirarIn, db: Session = Depends(get_db)):
     pantalla, sucursal, tenant = _contexto(db, device_token)
     verificar_ruleta(db, tenant)
 
-    cliente = db.get(Cliente, data.cliente_id)
+    # SELECT FOR UPDATE serializa los giros del cliente: dos requests
+    # concurrentes no pueden pasar ambos el check de giros/día (Postgres;
+    # SQLite serializa escrituras a nivel de base de datos).
+    cliente = db.scalar(
+        select(Cliente).where(Cliente.id == data.cliente_id).with_for_update())
     if not cliente or cliente.estado != EstadoCliente.activo:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Cliente no encontrado")
 
@@ -242,7 +250,7 @@ def girar(device_token: str, data: GirarIn, db: Session = Depends(get_db)):
     if not segmentos:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "La ruleta no tiene segmentos activos")
 
-    elegido = random.choices(segmentos, weights=[s.peso for s in segmentos], k=1)[0]
+    elegido = secure_random.choices(segmentos, weights=[s.peso for s in segmentos], k=1)[0]
     indice = segmentos.index(elegido)
     mult, campana = multiplicador_activo(db, tenant.id, sucursal.id)
     puntos = elegido.puntos * mult

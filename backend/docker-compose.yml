@@ -1,7 +1,7 @@
 services:
   db:
     image: postgres:16-alpine
-    restart: always
+    restart: unless-stopped
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -18,7 +18,7 @@ services:
 
   api:
     build: .
-    restart: always
+    restart: unless-stopped
     ports:
       - "8000:8000"
     environment:
@@ -27,22 +27,15 @@ services:
       POSTGRES_HOST: db
       POSTGRES_PORT: 5432
       POSTGRES_DB: yapai_db
+      SEED_DEMO: "true"
       # Producción: definir JWT_SECRET y CORS_ORIGINS reales via env / .env
+    # Dev sí siembra datos demo automáticamente (el CMD de la imagen no lo hace)
+    command: >
+      sh -c "python -m alembic upgrade head && python -m app.seed --demo &&
+             uvicorn app.main:app --host 0.0.0.0 --port 8000 --proxy-headers --forwarded-allow-ips '*'"
     depends_on:
       db:
         condition: service_healthy
-
-  postgrest:
-    image: postgrest/postgrest:latest
-    restart: always
-    ports:
-      - "3000:3000"
-    environment:
-      PGRST_DB_URI: postgres://postgres:postgres@db:5432/yapai_db
-      PGRST_DB_SCHEMA: public
-      PGRST_DB_ANON_ROLE: postgres
-    depends_on:
-      - db
 
 volumes:
   postgres_data:

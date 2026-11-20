@@ -30,7 +30,8 @@ def generar_firma(tenant_id: int | None = None, carpeta: str = "logos") -> dict:
         folder = f"yapai/{carpeta}"
     params = {"folder": folder, "timestamp": str(timestamp)}
     base = "&".join(f"{k}={v}" for k, v in sorted(params.items()))
-    signature = hashlib.sha1(f"{base}{settings.CLOUDINARY_API_SECRET}".encode()).hexdigest()
+    # SHA-1 es el algoritmo que exige la API de firma de Cloudinary (no es uso criptográfico propio)
+    signature = hashlib.sha1(f"{base}{settings.CLOUDINARY_API_SECRET}".encode(), usedforsecurity=False).hexdigest()
     return {
         "cloud_name": settings.CLOUDINARY_CLOUD_NAME,
         "api_key": settings.CLOUDINARY_API_KEY,

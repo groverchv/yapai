@@ -27,6 +27,10 @@ movil_cliente/build/
 *.db
 *.sqlite3
 
+# Dumps de respuestas API / payloads de prueba en la raíz del backend
+# (pueden contener tokens). El backend no versiona .json en esa carpeta.
+/backend/*.json
+
 # Sistema / IDE
 .DS_Store
 Thumbs.db

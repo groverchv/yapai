@@ -37,4 +37,7 @@ class Usuario(Base):
     # 2FA TOTP: secret queda guardado al hacer setup; habilitado tras verificar un código
     totp_secret: Mapped[str | None] = mapped_column(String(64), nullable=True)
     totp_habilitado: Mapped[bool] = mapped_column(Boolean, default=False)
+    # Null hasta que el usuario confirma su correo con el link de verificación
+    email_verificado_en: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

@@ -1,5 +1,3 @@
-from datetime import timezone
-
 import jwt
 from app.core.config import settings
 from app.core.security import (
@@ -10,15 +8,12 @@ from app.core.security import (
     sha256_hex,
     utcnow,
 )
+from app.core.utils import aware_utc as _aware
 from app.models import Cliente, RefreshToken, SujetoTipo, Usuario
 from app.schemas.auth import TokenPair
 from fastapi import HTTPException, status
 from sqlalchemy import select, update
 from sqlalchemy.orm import Session
-
-
-def _aware(dt):
-    return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
 
 
 def emitir_par_tokens(db: Session, sujeto_tipo: SujetoTipo, sujeto_id: int, rol: str, tenant_id: int | None = None) -> TokenPair:
@@ -53,7 +48,14 @@ def rotar_refresh(db: Session, refresh_token: str) -> tuple[TokenPair, str, int]
         raise _refresh_invalido()
 
     row = db.scalar(select(RefreshToken).where(RefreshToken.token_hash == sha256_hex(refresh_token)))
-    if not row or row.revocado or _aware(row.expira_en) < utcnow():
+    if not row or _aware(row.expira_en) < utcnow():
+        raise _refresh_invalido()
+    if row.revocado:
+        # Reuso de un refresh ya rotado: posible robo — revocar toda la familia
+        # de sesiones del sujeto (regla de detect-and-kill de rotación OAuth).
+        # Commit propio: el router no commitea cuando este 401 aborta el request.
+        revocar_todos_refresh(db, row.sujeto_tipo, row.sujeto_id)
+        db.commit()
         raise _refresh_invalido()
 
     row.revocado = True

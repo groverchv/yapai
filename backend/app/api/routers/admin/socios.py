@@ -1,7 +1,7 @@
 from datetime import date, timedelta
 
 from app.core.config import settings
-from app.core.deps import require_superadmin
+from app.core.deps import require_superadmin_2fa
 from app.core.security import generar_token_plano, sha256_hex, utcnow
 from app.db.session import get_db
 from app.models import (
@@ -49,7 +49,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
-router = APIRouter(dependencies=[Depends(require_superadmin)])
+router = APIRouter(dependencies=[Depends(require_superadmin_2fa)])
 
 
 @router.post("/uploads/firma", response_model=FirmaUploadOut)
@@ -98,6 +98,7 @@ def _detalle(db: Session, tenant: Tenant) -> SocioDetalle:
         plan=db.get(Plan, tenant.plan_id).nombre if tenant.plan_id else None,
         trial_fin=tenant.trial_fin,
         facturacion_estado=estado_cuenta(db, tenant),
+        puntos_ttl_meses=tenant.puntos_ttl_meses,
     )
 
 
@@ -154,7 +155,7 @@ def listar_socios(
 
 
 @router.post("", response_model=SocioCreadoResponse, status_code=status.HTTP_201_CREATED)
-def crear_socio(data: SocioCreate, db: Session = Depends(get_db), admin: Usuario = Depends(require_superadmin)):
+def crear_socio(data: SocioCreate, db: Session = Depends(get_db), admin: Usuario = Depends(require_superadmin_2fa)):
     """Alta manual: crea tenant + owner + envía email de onboarding con link único."""
     if db.scalar(select(Tenant).where(Tenant.nit_rut == data.nit_rut)):
         raise HTTPException(status.HTTP_409_CONFLICT, "Ya existe un socio con ese NIT/RUT")
@@ -202,7 +203,7 @@ def detalle_socio(tenant_id: int, db: Session = Depends(get_db)):
 
 @router.patch("/{tenant_id}", response_model=SocioDetalle)
 def editar_socio(tenant_id: int, data: SocioUpdate, db: Session = Depends(get_db),
-                 admin: Usuario = Depends(require_superadmin)):
+                 admin: Usuario = Depends(require_superadmin_2fa)):
     tenant = _get_tenant(db, tenant_id)
     cambios = data.model_dump(exclude_unset=True)
     if "nit_rut" in cambios and cambios["nit_rut"] != tenant.nit_rut:
@@ -217,7 +218,7 @@ def editar_socio(tenant_id: int, data: SocioUpdate, db: Session = Depends(get_db
 
 @router.patch("/{tenant_id}/plan", response_model=SocioDetalle)
 def cambiar_plan(tenant_id: int, data: SocioPlanUpdate, db: Session = Depends(get_db),
-                 admin: Usuario = Depends(require_superadmin)):
+                 admin: Usuario = Depends(require_superadmin_2fa)):
     """Asigna/cambia el plan comercial del socio (None = sin restricciones)."""
     tenant = _get_tenant(db, tenant_id)
     if data.plan_id is not None and not db.get(Plan, data.plan_id):
@@ -232,7 +233,7 @@ def cambiar_plan(tenant_id: int, data: SocioPlanUpdate, db: Session = Depends(ge
 
 
 @router.post("/{tenant_id}/suspender", response_model=SocioDetalle)
-def suspender_socio(tenant_id: int, db: Session = Depends(get_db), admin: Usuario = Depends(require_superadmin)):
+def suspender_socio(tenant_id: int, db: Session = Depends(get_db), admin: Usuario = Depends(require_superadmin_2fa)):
     tenant = _get_tenant(db, tenant_id)
     if tenant.estado == EstadoTenant.suspendido:
         raise HTTPException(status.HTTP_409_CONFLICT, "El socio ya está suspendido")
@@ -242,7 +243,7 @@ def suspender_socio(tenant_id: int, db: Session = Depends(get_db), admin: Usuari
 
 
 @router.post("/{tenant_id}/reactivar", response_model=SocioDetalle)
-def reactivar_socio(tenant_id: int, db: Session = Depends(get_db), admin: Usuario = Depends(require_superadmin)):
+def reactivar_socio(tenant_id: int, db: Session = Depends(get_db), admin: Usuario = Depends(require_superadmin_2fa)):
     tenant = _get_tenant(db, tenant_id)
     if tenant.estado == EstadoTenant.activo:
         raise HTTPException(status.HTTP_409_CONFLICT, "El socio ya está activo")
@@ -261,7 +262,7 @@ def _owner_del_tenant(db: Session, tenant_id: int) -> Usuario:
 
 
 @router.post("/{tenant_id}/forzar-reset", response_model=MessageResponse)
-def forzar_reset(tenant_id: int, db: Session = Depends(get_db), admin: Usuario = Depends(require_superadmin)):
+def forzar_reset(tenant_id: int, db: Session = Depends(get_db), admin: Usuario = Depends(require_superadmin_2fa)):
     """Fuerza la recuperación de contraseña del Owner: revoca sesiones y envía link."""
     _get_tenant(db, tenant_id)
     owner = _owner_del_tenant(db, tenant_id)
@@ -279,7 +280,7 @@ def forzar_reset(tenant_id: int, db: Session = Depends(get_db), admin: Usuario =
 
 
 @router.post("/{tenant_id}/reenviar-onboarding", response_model=MessageResponse)
-def reenviar_onboarding(tenant_id: int, db: Session = Depends(get_db), admin: Usuario = Depends(require_superadmin)):
+def reenviar_onboarding(tenant_id: int, db: Session = Depends(get_db), admin: Usuario = Depends(require_superadmin_2fa)):
     """Reenvía el email de bienvenida. Solo aplica si el Owner aún no activó su cuenta."""
     _get_tenant(db, tenant_id)
     owner = _owner_del_tenant(db, tenant_id)

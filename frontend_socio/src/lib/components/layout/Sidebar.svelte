@@ -36,7 +36,8 @@
 			titulo: 'nav.cuenta',
 			items: [
 				{ label: 'nav.perfil', href: '/perfil', icono: 'user-round' },
-				{ label: 'nav.facturacion', href: '/facturacion', icono: 'receipt' }
+				{ label: 'nav.facturacion', href: '/facturacion', icono: 'receipt' },
+				{ label: 'nav.ayuda', href: '/ayuda', icono: 'sparkles' }
 			]
 		}
 	];

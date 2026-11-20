@@ -49,11 +49,20 @@ class Tenant(Base):
     puntos_referido: Mapped[int] = mapped_column(Integer, default=100)
     max_puntos_tx: Mapped[int] = mapped_column(Integer, default=500)
     max_puntos_dia_cajero: Mapped[int] = mapped_column(Integer, default=2000)
+    # Meses de vida de los puntos ganados. 0 = nunca expiran.
+    puntos_ttl_meses: Mapped[int] = mapped_column(Integer, default=0)
     suspendido_en: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     suspendido_por: Mapped[int | None] = mapped_column(ForeignKey("usuarios.id"), nullable=True)
+    # Offboarding: fecha de solicitud de baja → purga tras BAJA_RETENCION_DIAS
+    baja_solicitada_en: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     # SaaS: plan comercial y fin del período de prueba
     plan_id: Mapped[int | None] = mapped_column(ForeignKey("planes.id"), nullable=True)
     trial_fin: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    # Marca para no reenviar el aviso "tu trial termina pronto" (job facturación)
+    trial_avisado_en: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    # Pasarela de pagos (Stripe): mapea el customer externo → tenant
+    stripe_customer_id: Mapped[str | None] = mapped_column(
+        String(80), unique=True, nullable=True, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 

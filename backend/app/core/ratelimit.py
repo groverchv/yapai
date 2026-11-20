@@ -94,17 +94,39 @@ class RateLimiter:
 
 
 def por_ip(request: Request) -> str:
+    # Tras --proxy-headers + forwarded_allow_ips, request.client.host ya es la IP
+    # real del cliente. Sin proxies de confianza configurados es la conexión directa.
     return request.client.host if request.client else "unknown"
+
+
+def por_ip_y_path_param(nombre: str):
+    """Clave IP + parámetro de ruta (ej. device_token del kiosco)."""
+    def clave(request: Request) -> str:
+        return f"{por_ip(request)}:{request.path_params.get(nombre, '')}"
+    return clave
 
 
 # Limitadores predefinidos
 login_limiter = RateLimiter(intentos=10, ventana_seg=60, clave=por_ip)
+# Login de cliente (tel+CI son datos semi-públicos): ventana más estricta
+cliente_login_limiter = RateLimiter(intentos=5, ventana_seg=300, clave=por_ip)
+# Verificación de OTP: algo más de margen que OTP_MAX_INTENTOS (5) para que
+# un intento legítimo tras varios fallos aún pueda llegar al endpoint.
+cliente_otp_limiter = RateLimiter(intentos=8, ventana_seg=300, clave=por_ip)
 # PIN de caja: 5 intentos → bloqueo 15 min (seguridad, sección 10 del plan)
 pin_limiter = RateLimiter(intentos=5, ventana_seg=900, clave=por_ip)
 # Signup público: 5 altas/hora por IP (anti-spam de tenants)
 signup_limiter = RateLimiter(intentos=5, ventana_seg=3600, clave=por_ip)
 # 2FA: código de 6 dígitos — ventana corta anti fuerza bruta
 totp_limiter = RateLimiter(intentos=5, ventana_seg=300, clave=por_ip)
+# Recuperación/onboarding de contraseña: anti email-bombing y brute force de tokens
+recovery_limiter = RateLimiter(intentos=3, ventana_seg=3600, clave=por_ip)
+# Refresh/logout: el token va firmado, pero limitamos abuso de endpoint
+token_limiter = RateLimiter(intentos=20, ventana_seg=60, clave=por_ip)
+# Kiosco: registro y ruleta por IP + pantalla (el device_token va en la URL)
+kiosco_limiter = RateLimiter(intentos=30, ventana_seg=300, clave=por_ip_y_path_param("device_token"))
+# Webhook Stripe: reintentos legítimos de Stripe + defensa ante ráfagas
+webhook_limiter = RateLimiter(intentos=120, ventana_seg=60, clave=por_ip)
 
 # Compat: los tests limpian las ventanas en memoria
 _ventanas = getattr(_almacen, "ventanas", {})

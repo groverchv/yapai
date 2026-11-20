@@ -27,6 +27,11 @@ LATENCY = Histogram(
     "yapai_http_request_duration_seconds", "Latencia por request (s)",
     ["method", "path"], buckets=(0.01, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5),
 )
+# Alertas antifraude: emisión anómala de puntos (ver services/fraude.py)
+FRAUDE_ALERTAS = Counter(
+    "yapai_fraude_alertas_total", "Alertas antifraude de emisión de puntos",
+    ["tipo"],
+)
 
 logger = logging.getLogger("yapai.access")
 

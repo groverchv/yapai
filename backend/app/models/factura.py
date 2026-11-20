@@ -41,5 +41,23 @@ class FacturaPlan(Base):
     pagada_en: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     metodo: Mapped[str | None] = mapped_column(String(40), nullable=True)  # qr|transferencia|stripe|otro
     referencia: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    # Comprobante de pago manual que el socio sube (URL en Cloudinary)
+    comprobante_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    comprobante_en: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     aprobada_por: Mapped[int | None] = mapped_column(ForeignKey("usuarios.id"), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class EventoStripe(Base):
+    """Eventos del webhook de Stripe ya procesados — idempotencia.
+
+    Stripe reintenta la entrega; el constraint UNIQUE sobre event_id garantiza
+    que un evento se procese exactamente una vez aunque llegue N veces.
+    """
+    __tablename__ = "eventos_stripe"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    event_id: Mapped[str] = mapped_column(String(80), unique=True, index=True)
+    tipo: Mapped[str] = mapped_column(String(60))
+    procesado_en: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now())

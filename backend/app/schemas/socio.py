@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from app.schemas.admin import SerieDia
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 # --- Perfil ---
 
@@ -15,6 +15,8 @@ class PerfilOut(BaseModel):
     logo_url: str | None = None
     telefono: str | None = None
     email_contacto: str | None = None
+    nit_rut: str | None = None
+    email_verificado: bool = False
 
 
 class PerfilUpdate(BaseModel):
@@ -22,6 +24,7 @@ class PerfilUpdate(BaseModel):
     tenant_nombre: str | None = Field(default=None, max_length=200)
     logo_url: str | None = Field(default=None, max_length=500)
     telefono: str | None = Field(default=None, max_length=50)
+    nit_rut: str | None = Field(default=None, min_length=3, max_length=50)
 
 
 class MediaUploadOut(BaseModel):
@@ -322,11 +325,17 @@ class FacturaSocioOut(BaseModel):
     vence_en: datetime
     pagada_en: datetime | None
     metodo: str | None
+    comprobante_url: str | None = None
+
+
+class ComprobanteIn(BaseModel):
+    url: str = Field(min_length=10, max_length=500)
 
 
 class EstadoCuentaOut(BaseModel):
     estado: str                      # al_dia | pendiente | vencida
     facturas: list[FacturaSocioOut]
+    pago_online: bool = False        # Stripe configurado → botón "Pagar en línea"
 
 
 class PantallaQrOut(BaseModel):
@@ -368,8 +377,7 @@ class ComunicadoOut(BaseModel):
     vigencia_hasta: datetime | None
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class FirmaUploadOut(BaseModel):

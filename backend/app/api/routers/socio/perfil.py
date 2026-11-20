@@ -24,6 +24,8 @@ def mi_perfil(usuario: Usuario = Depends(require_owner), db: Session = Depends(g
         logo_url=tenant.logo_url if tenant else None,
         telefono=tenant.telefono if tenant else None,
         email_contacto=tenant.email_contacto if tenant else None,
+        nit_rut=tenant.nit_rut if tenant else None,
+        email_verificado=usuario.email_verificado_en is not None,
     )
 
 
@@ -39,6 +41,8 @@ def actualizar_perfil(data: PerfilUpdate, usuario: Usuario = Depends(require_own
             tenant.logo_url = data.logo_url
         if data.telefono is not None:
             tenant.telefono = data.telefono
+        if data.nit_rut is not None:
+            tenant.nit_rut = data.nit_rut
     db.commit()
     return mi_perfil(usuario, db)
 

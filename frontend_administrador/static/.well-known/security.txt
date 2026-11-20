@@ -1,0 +1,5 @@
+# Política de divulgación de seguridad — Yapai
+# Ver SECURITY.md en el repositorio para el proceso completo
+Contact: mailto:seguridad@yapai.com
+Expires: 2027-12-31T23:59:59.000Z
+Preferred-Languages: es, en

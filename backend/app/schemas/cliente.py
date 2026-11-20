@@ -109,6 +109,13 @@ class PaseOut(BaseModel):
     created_at: datetime
 
 
+class SesionOut(BaseModel):
+    """Sesión activa (refresh token) — solo metadatos seguros, nunca el token."""
+    id: int
+    created_at: datetime
+    expira_en: datetime
+
+
 # --- Comunicados (feed de ofertas) ---
 
 class ComunicadoClienteOut(BaseModel):

@@ -1,17 +1,15 @@
-import type { TokenPair, UsuarioMe } from '../types';
+import type { UsuarioMe } from '../types';
 
 const KEY = 'yapai_admin_sesion';
 
+// Solo se persiste el perfil (dato de UI, no sensible). La sesión vive en
+// cookies HttpOnly: nada que robar por XSS y el backend las rota en /refresh.
 interface Sesion {
-	access: string;
-	refresh: string;
 	usuario: UsuarioMe;
 }
 
 class AuthStore {
 	usuario = $state<UsuarioMe | null>(null);
-	accessToken = $state<string | null>(null);
-	refreshToken = $state<string | null>(null);
 
 	constructor() {
 		try {
@@ -19,8 +17,6 @@ class AuthStore {
 			if (raw) {
 				const s: Sesion = JSON.parse(raw);
 				this.usuario = s.usuario;
-				this.accessToken = s.access;
-				this.refreshToken = s.refresh;
 			}
 		} catch {
 			this.limpiar();
@@ -28,28 +24,20 @@ class AuthStore {
 	}
 
 	get autenticado() {
-		return !!this.accessToken;
+		return !!this.usuario;
 	}
 
-	guardar(tokens: TokenPair, usuario: UsuarioMe) {
+	guardar(usuario: UsuarioMe) {
 		this.usuario = usuario;
-		this.accessToken = tokens.access_token;
-		this.refreshToken = tokens.refresh_token;
-		localStorage.setItem(KEY, JSON.stringify({
-			access: tokens.access_token,
-			refresh: tokens.refresh_token,
-			usuario
-		} satisfies Sesion));
+		localStorage.setItem(KEY, JSON.stringify({ usuario } satisfies Sesion));
 	}
 
-	actualizarTokens(tokens: TokenPair) {
-		if (this.usuario) this.guardar(tokens, this.usuario);
+	actualizarUsuario(usuario: UsuarioMe) {
+		this.guardar(usuario);
 	}
 
 	limpiar() {
 		this.usuario = null;
-		this.accessToken = null;
-		this.refreshToken = null;
 		localStorage.removeItem(KEY);
 	}
 }

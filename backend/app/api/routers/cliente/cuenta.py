@@ -12,6 +12,8 @@ from app.models import (
     MovimientoPuntos,
     PaseDigital,
     Premio,
+    PushSuscripcion,
+    RefreshToken,
     Sucursal,
     SujetoTipo,
     Tenant,
@@ -24,6 +26,7 @@ from app.schemas.cliente import (
     MovimientoClienteOut,
     PerfilClienteOut,
     ProximoPremioOut,
+    SesionOut,
     WalletOut,
 )
 from app.schemas.socio import FirmaUploadOut
@@ -36,7 +39,7 @@ from app.services.puntos import (
 )
 from app.services.uploads import firma_disponible, generar_firma
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import func, or_, select
+from sqlalchemy import delete, func, or_, select
 from sqlalchemy.orm import Session
 
 router = APIRouter(dependencies=[Depends(get_current_cliente)])
@@ -92,9 +95,51 @@ def eliminar_cuenta(cliente: Cliente = Depends(get_current_cliente), db: Session
     cliente.puntos_congelados = 0
     cliente.estado = EstadoCliente.eliminado
     cliente.eliminado_en = datetime.now(timezone.utc)
+    # Anonimización de PII (derecho de supresión): el ledger mantiene
+    # cliente_id para integridad contable, pero la persona ya no es identificable.
+    # CI y teléfono son UNIQUE → placeholders deterministas por id.
+    cliente.nombre = "Cuenta eliminada"
+    cliente.ci = f"del-ci-{cliente.id}"
+    cliente.telefono = f"del-tel-{cliente.id}"
+    cliente.foto_url = None
+    cliente.codigo_referido = None
+    db.execute(delete(PushSuscripcion).where(PushSuscripcion.cliente_id == cliente.id))
     revocar_todos_refresh(db, SujetoTipo.cliente, cliente.id)
     db.commit()
     return MessageResponse(detail="Cuenta eliminada. Tus puntos fueron anulados.")
+
+
+@router.get("/me/export")
+def exportar_datos(cliente: Cliente = Depends(get_current_cliente),
+                   db: Session = Depends(get_db)):
+    """Portabilidad (GDPR art. 20 / normativa de datos personales): devuelve
+    todos los datos personales del cliente en JSON descargable."""
+    movimientos = db.scalars(
+        select(MovimientoPuntos).where(MovimientoPuntos.cliente_id == cliente.id)
+        .order_by(MovimientoPuntos.created_at)
+    ).all()
+    pases = db.scalars(
+        select(PaseDigital).where(PaseDigital.cliente_id == cliente.id)
+    ).all()
+    return {
+        "perfil": {
+            "id": cliente.id, "nombre": cliente.nombre, "ci": cliente.ci,
+            "telefono": cliente.telefono, "saldo_puntos": cliente.saldo_puntos,
+            "puntos_congelados": cliente.puntos_congelados,
+            "registrado_en": cliente.created_at.isoformat() if cliente.created_at else None,
+        },
+        "movimientos": [
+            {"id": m.id, "tipo": m.tipo.value, "puntos": m.puntos,
+             "tenant_id": m.tenant_id, "detalle": m.detalle,
+             "fecha": m.created_at.isoformat() if m.created_at else None}
+            for m in movimientos
+        ],
+        "pases": [
+            {"id": p.id, "premio_id": p.premio_id, "estado": p.estado.value,
+             "puntos": p.puntos, "fecha": p.created_at.isoformat() if p.created_at else None}
+            for p in pases
+        ],
+    }
 
 
 @router.get("/wallet", response_model=WalletOut)
@@ -188,3 +233,44 @@ def movimientos(page: int = Query(1, ge=1), size: int = Query(20, ge=1, le=100),
         ) for m, comercio, sucursal, premio in rows],
         total=total, page=page, size=size,
     )
+
+
+@router.get("/me/sesiones", response_model=list[SesionOut])
+def listar_sesiones(cliente: Cliente = Depends(get_current_cliente),
+                    db: Session = Depends(get_db)):
+    """Sesiones activas (refresh tokens vigentes y no revocados) del cliente.
+
+    Solo expone metadatos — nunca el token ni su hash."""
+    ahora = datetime.now(timezone.utc)
+    rows = db.scalars(
+        select(RefreshToken).where(
+            RefreshToken.sujeto_tipo == SujetoTipo.cliente,
+            RefreshToken.sujeto_id == cliente.id,
+            RefreshToken.revocado == False,  # noqa: E712
+            RefreshToken.expira_en > ahora,
+        ).order_by(RefreshToken.created_at.desc())
+    ).all()
+    return [SesionOut(id=r.id, created_at=r.created_at, expira_en=r.expira_en)
+            for r in rows]
+
+
+@router.delete("/me/sesiones/{sesion_id}", response_model=MessageResponse)
+def revocar_sesion(sesion_id: int, cliente: Cliente = Depends(get_current_cliente),
+                   db: Session = Depends(get_db)):
+    """Revoca una sesión propia por id. 404 si no existe o es de otro cliente."""
+    tok = db.get(RefreshToken, sesion_id)
+    if (not tok or tok.sujeto_tipo != SujetoTipo.cliente
+            or tok.sujeto_id != cliente.id or tok.revocado):
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Sesión no encontrada")
+    tok.revocado = True
+    db.commit()
+    return MessageResponse(detail="Sesión cerrada")
+
+
+@router.delete("/me/sesiones", response_model=MessageResponse)
+def revocar_todas_sesiones(cliente: Cliente = Depends(get_current_cliente),
+                           db: Session = Depends(get_db)):
+    """Cierra TODAS las sesiones del cliente (incluida la actual → re-login)."""
+    revocar_todos_refresh(db, SujetoTipo.cliente, cliente.id)
+    db.commit()
+    return MessageResponse(detail="Todas las sesiones fueron cerradas")

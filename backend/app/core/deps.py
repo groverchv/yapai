@@ -2,15 +2,14 @@ from dataclasses import dataclass
 from typing import Callable
 
 import jwt
+from app.core.config import settings
+from app.core.cookies import token_desde_request
 from app.core.security import decodificar_token
 from app.db.session import get_db
 from app.models import Cliente, EstadoCliente, EstadoUsuario, RolUsuario, Usuario
-from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi import Depends, HTTPException, Request, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-
-bearer = HTTPBearer(auto_error=False)
 
 
 @dataclass
@@ -38,13 +37,14 @@ def _credenciales_invalidas() -> HTTPException:
 
 
 def get_current_subject(
-    cred: HTTPAuthorizationCredentials = Depends(bearer),
+    request: Request,
     db: Session = Depends(get_db),
 ) -> Subject:
-    if cred is None:
+    token = token_desde_request(request)
+    if not token:
         raise _credenciales_invalidas()
     try:
-        payload = decodificar_token(cred.credentials)
+        payload = decodificar_token(token)
     except jwt.PyJWTError:
         raise _credenciales_invalidas() from None
 
@@ -89,3 +89,19 @@ def require_role(*roles: RolUsuario) -> Callable:
 require_superadmin = require_role(RolUsuario.superadmin)
 require_owner = require_role(RolUsuario.owner)
 require_caja = require_role(RolUsuario.owner, RolUsuario.cajero)
+
+
+def require_superadmin_2fa(usuario: Usuario = Depends(require_superadmin)) -> Usuario:
+    """Superadmin + 2FA obligatorio cuando REQUIRE_SUPERADMIN_2FA está activo.
+
+    Gate por cuenta (totp_habilitado): una sesión sin 2FA puede emitirse para
+    permitir habilitar TOTP en el primer acceso, pero no accede a rutas admin
+    hasta que la cuenta tenga 2FA activo.
+    """
+    if settings.REQUIRE_SUPERADMIN_2FA and not usuario.totp_habilitado:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="La administración exige autenticación de dos factores. "
+                   "Habilítala en POST /auth/2fa/habilitar.",
+        )
+    return usuario
