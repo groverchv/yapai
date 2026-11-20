@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { API_BASE, fetchRed } from '#lib/api/client';
 	import { auth } from '#lib/stores/auth.svelte';
-	import logo from '#lib/assets/logo.png';
+	import logo from '#lib/assets/favicon.svg';
 
 	let status = $state<'operational' | 'degraded' | null>(null);
 
