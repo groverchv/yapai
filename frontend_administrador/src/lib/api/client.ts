@@ -1,8 +1,19 @@
 import { env } from '$env/dynamic/public';
 import { auth } from '../stores/auth.svelte';
 
-// PUBLIC_API_BASE en runtime (adapter-node); default: backend local en dev
-export const API_BASE = env.PUBLIC_API_BASE ?? 'http://localhost:8000/api/v1';
+// PUBLIC_API_BASE en runtime (adapter-node); si ssr=false en prod, deduce api.<dominio>
+function resolveApiBase(): string {
+	if (env.PUBLIC_API_BASE) return env.PUBLIC_API_BASE;
+	if (typeof window !== 'undefined') {
+		const h = window.location.hostname;
+		if (h !== 'localhost' && h !== '127.0.0.1') {
+			const root = h.replace(/^(app|admin|www)\./, '');
+			return `${window.location.protocol}//api.${root}/api/v1`;
+		}
+	}
+	return 'http://localhost:8000/api/v1';
+}
+export const API_BASE = resolveApiBase();
 
 // Sesión por cookies HttpOnly (sin tokens en localStorage ⇒ XSS no las roba).
 // X-Requested-With: requerido por el guard CSRF del backend en mutaciones.
