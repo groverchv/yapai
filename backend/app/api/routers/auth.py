@@ -308,25 +308,25 @@ def registro_cliente(data: ClienteRegistroRequest, response: Response, db: Sessi
         detalle={"origen": "app_bienvenida"},
     )
 
-    # Bonus de referido (consistente con el kiosco): lo paga el tenant donde
-    # se registró el referidor — si es una cuenta global sin tenant, no hay
-    # patrocinador y no se emite bonus.
+    # Bonus de referido: si el referidor pertenece a un tenant usa su
+    # configuración; si es cuenta global de la app, otorga 100 pts.
     tenant_ref = (
         db.get(Tenant, referidor.tenant_registro_id)
         if referidor and referidor.tenant_registro_id else None
     )
-    if referidor and tenant_ref:
+    pts_referido = tenant_ref.puntos_referido if tenant_ref else 100
+    if referidor:
         otorgar(
-            db, referidor, tenant_ref.puntos_referido, TipoMovimiento.referido,
-            tenant_id=tenant_ref.id,
+            db, referidor, pts_referido, TipoMovimiento.referido,
+            tenant_id=tenant_ref.id if tenant_ref else None,
             detalle={"referido_cliente_id": cliente.id, "origen": "app"},
         )
 
     tokens = emitir_par_tokens(db, SujetoTipo.cliente, cliente.id, "cliente")
     db.commit()
     set_auth_cookies(response, tokens)
-    if referidor and tenant_ref:
-        push_async(referidor.id, f"+{tenant_ref.puntos_referido} pts por tu referido",
+    if referidor:
+        push_async(referidor.id, f"+{pts_referido} pts por tu referido",
                    f"{cliente.nombre} se registró con tu código", "/billetera")
     return LoginResponse(tokens=tokens, cliente=ClienteMe.model_validate(cliente))
 
