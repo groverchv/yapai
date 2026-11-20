@@ -2,7 +2,7 @@
 	import { page } from '$app/state';
 	import { onMount } from 'svelte';
 	import { fetchRed, API_BASE } from '#lib/api/client';
-	import logo from '#lib/assets/logo.png';
+	import logo from '#lib/assets/favicon.svg';
 
 	let estado = $state<'cargando' | 'ok' | 'error'>('cargando');
 	let mensaje = $state('');
