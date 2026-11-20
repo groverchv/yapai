@@ -302,6 +302,12 @@ def registro_cliente(data: ClienteRegistroRequest, response: Response, db: Sessi
     db.add(cliente)
     db.flush()
 
+    # Puntos de bienvenida por registro desde la app
+    otorgar(
+        db, cliente, 500, TipoMovimiento.registro,
+        detalle={"origen": "app_bienvenida"},
+    )
+
     # Bonus de referido (consistente con el kiosco): lo paga el tenant donde
     # se registró el referidor — si es una cuenta global sin tenant, no hay
     # patrocinador y no se emite bonus.
