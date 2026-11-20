@@ -165,9 +165,7 @@ class Settings(BaseSettings):
             errores.append("SEED_DEMO debe ser false (no sembrar datos demo)")
         if self.SIGNUP_MODE not in ("auto", "manual"):
             errores.append("SIGNUP_MODE debe ser 'auto' o 'manual'")
-        if not self.CLIENTE_OTP_ENABLED:
-            errores.append("CLIENTE_OTP_ENABLED debe ser true (login cliente requiere OTP)")
-        elif self.OTP_PROVIDER != "webhook" or not self.OTP_WEBHOOK_URL:
+        if self.CLIENTE_OTP_ENABLED and (self.OTP_PROVIDER != "webhook" or not self.OTP_WEBHOOK_URL):
             errores.append("OTP_PROVIDER debe ser 'webhook' con OTP_WEBHOOK_URL configurado")
         if not self.REQUIRE_SUPERADMIN_2FA:
             errores.append("REQUIRE_SUPERADMIN_2FA debe ser true (2FA obligatorio para admins)")
