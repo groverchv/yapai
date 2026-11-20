@@ -19,7 +19,7 @@ qrcode==8.2
 sentry-sdk[fastapi]==2.72.0
 prometheus-client==0.26.0
 pyotp==2.10.0
-cloudinary==1.46.3
+cloudinary==1.47.0
 python-multipart==0.0.32
 pywebpush==2.5.0
 redis==7.4.1
