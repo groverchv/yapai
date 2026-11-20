@@ -1,4 +1,4 @@
-FROM python:3.13-slim
+FROM python:3.15-slim
 
 # Usuario no-root para el proceso de la app
 RUN groupadd -r yapai && useradd -r -g yapai yapai
